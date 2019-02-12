@@ -23,7 +23,7 @@ enum {
  always_comb begin
    
   case(OPS)
-      opcodeR: begin 
+      opcodeR1, opcodeR2: begin 
 	opcode = "R";
 	if (instr[14:12] == 3'b000) begin
 	    $display("");	
@@ -60,7 +60,7 @@ enum {
     end
 
 
-    opcodeI: begin
+    opcodeI1, opcodeI2, opcodeI3, opcodeI4: begin
 	opcode = "I";
 	if (instr[14:12] == 3'b000) begin
 	    $display("");	
@@ -171,7 +171,7 @@ enum {
         end
     end
 
-    opcodeU: begin
+    opcodeU1, opcodeU2: begin
 	opcode = "U";
 	if (instr[14:12] == 3'b000) begin
 	    $display("");	
