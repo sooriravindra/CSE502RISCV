@@ -1,3 +1,4 @@
+
 `include "Sysbus.defs"
 `include "states.sv"
 `include "fetch.sv"
@@ -56,7 +57,7 @@ module top
 	  if (bus_reqack == 1 		& next_state == WAIT_RESP & state == INITIAL) begin
 		state <= next_state;		
 	  end
-	  else if (bus_respcyc == 1 & next_state == GOT_RESP  & state == WAIT_RESP) begin
+	  else if (bus_respcyc == 0 & next_state == GOT_RESP  & state == WAIT_RESP) begin
 		state <= next_state;
 	  end
 	  else if (bus_respcyc == 0 & next_state == INITIAL   & state == GOT_RESP) begin
