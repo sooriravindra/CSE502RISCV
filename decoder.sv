@@ -1,181 +1,190 @@
-module decoder();
-
- output opcode; // opcode with instructions
- output [4:0] rs1, rs2, rd; //registers
- input [32:0] instr; //input 32 bit instruction from PC
- enum {opcodeR=6'b0110011, opcodeI=6'b0010011, opcodeS=6'b0100011, opcodeSB=6'b1100011, opcodeU=6'b0110111, opcodeUJ=6'b1101111} OPS;
+module decoder
+(
+ output [15:0] opcode, // opcode with instructions
+ output [4:0] rs1, 
+ output [4:0] rs2, 
+ output [4:0] rd, //registers
+ input [32:0] instr //input 32 bit instruction from PC
+);
+ enum {opcodeR=7'b0110011, opcodeI=7'b0010011, opcodeS=7'b0100011, opcodeSB=7'b1100011, opcodeU=7'b0110111, opcodeUJ=7'b1101111} OPS;
  
  always_comb begin
    
   case(OPS)
-   opcodeR: 
+      opcodeR: begin 
 	opcode = "R";
-	if (input[14:12] == 000) begin
+	if (instr[14:12] == 000) begin
 		
 	
-	end else if (input[14:12] == 001) begin
+	end else if (instr[14:12] == 001) begin
 
 
-	end else if (input[14:12] == 010) begin
+	end else if (instr[14:12] == 010) begin
 
 
-	end else if (input[14:12] == 011) begin
+	end else if (instr[14:12] == 011) begin
 
 
-	end else if (input[14:12] == 100) begin
+	end else if (instr[14:12] == 100) begin
 
 
-	end else if (input[14:12] == 101) begin
+	end else if (instr[14:12] == 101) begin
 
 
-	end else if (input[14:12] == 110) begin
+	end else if (instr[14:12] == 110) begin
 
 
-	end else if (input[14:12] == 111) begin
+	end else if (instr[14:12] == 111) begin
 
 
 	end
+    end
 
 
-   opcodeI: 
+    opcodeI: begin
 	opcode = "I";
-	if (input[14:12] == 000) begin
+	if (instr[14:12] == 000) begin
 
 
-        end else if (input[14:12] == 001) begin
+        end else if (instr[14:12] == 001) begin
 
 
-        end else if (input[14:12] == 010) begin
+        end else if (instr[14:12] == 010) begin
 
 
-        end else if (input[14:12] == 011) begin
+        end else if (instr[14:12] == 011) begin
 
 
-        end else if (input[14:12] == 100) begin
+        end else if (instr[14:12] == 100) begin
 
 
-        end else if (input[14:12] == 101) begin
+        end else if (instr[14:12] == 101) begin
 
 
-        end else if (input[14:12] == 110) begin
+        end else if (instr[14:12] == 110) begin
 
 
-        end else if (input[14:12] == 111) begin
+        end else if (instr[14:12] == 111) begin
 
 
         end
+    end
 
-   opcodeS: 
+    opcodeS: begin
 	opcode = "S";
-	if (input[14:12] == 000) begin
+	if (instr[14:12] == 000) begin
 
 
-        end else if (input[14:12] == 001) begin
+        end else if (instr[14:12] == 001) begin
 
 
-        end else if (input[14:12] == 010) begin
+        end else if (instr[14:12] == 010) begin
 
 
-        end else if (input[14:12] == 011) begin
+        end else if (instr[14:12] == 011) begin
 
 
-        end else if (input[14:12] == 100) begin
+        end else if (instr[14:12] == 100) begin
 
 
-        end else if (input[14:12] == 101) begin
+        end else if (instr[14:12] == 101) begin
 
 
-        end else if (input[14:12] == 110) begin
+        end else if (instr[14:12] == 110) begin
 
 
-        end else if (input[14:12] == 111) begin
+        end else if (instr[14:12] == 111) begin
 
 
         end
+    end
 
-   opcodeSB: 
+    opcodeSB: begin
 	opcode = "SB";
-	if (input[14:12] == 000) begin
+	if (instr[14:12] == 000) begin
 
 
-        end else if (input[14:12] == 001) begin
+        end else if (instr[14:12] == 001) begin
 
 
-        end else if (input[14:12] == 010) begin
+        end else if (instr[14:12] == 010) begin
 
 
-        end else if (input[14:12] == 011) begin
+        end else if (instr[14:12] == 011) begin
 
 
-        end else if (input[14:12] == 100) begin
+        end else if (instr[14:12] == 100) begin
 
 
-        end else if (input[14:12] == 101) begin
+        end else if (instr[14:12] == 101) begin
 
 
-        end else if (input[14:12] == 110) begin
+        end else if (instr[14:12] == 110) begin
 
 
-        end else if (input[14:12] == 111) begin
+        end else if (instr[14:12] == 111) begin
 
 
         end
+    end
 
-   opcodeU: 
+    opcodeU: begin
 	opcode = "U";
-	if (input[14:12] == 000) begin
+	if (instr[14:12] == 000) begin
 
 
-        end else if (input[14:12] == 001) begin
+        end else if (instr[14:12] == 001) begin
 
 
-        end else if (input[14:12] == 010) begin
+        end else if (instr[14:12] == 010) begin
 
 
-        end else if (input[14:12] == 011) begin
+        end else if (instr[14:12] == 011) begin
 
 
-        end else if (input[14:12] == 100) begin
+        end else if (instr[14:12] == 100) begin
 
 
-        end else if (input[14:12] == 101) begin
+        end else if (instr[14:12] == 101) begin
 
 
-        end else if (input[14:12] == 110) begin
+        end else if (instr[14:12] == 110) begin
 
 
-        end else if (input[14:12] == 111) begin
+        end else if (instr[14:12] == 111) begin
 
 
         end
+    end
 
-   opcodeUJ: 
+    opcodeUJ: begin
 	opcode = "UJ";
-	if (input[14:12] == 000) begin
+	if (instr[14:12] == 000) begin
 
 
-        end else if (input[14:12] == 001) begin
+        end else if (instr[14:12] == 001) begin
 
 
-        end else if (input[14:12] == 010) begin
+        end else if (instr[14:12] == 010) begin
 
 
-        end else if (input[14:12] == 011) begin
+        end else if (instr[14:12] == 011) begin
 
 
-        end else if (input[14:12] == 100) begin
+        end else if (instr[14:12] == 100) begin
 
 
-        end else if (input[14:12] == 101) begin
+        end else if (instr[14:12] == 101) begin
 
 
-        end else if (input[14:12] == 110) begin
+        end else if (instr[14:12] == 110) begin
 
 
-        end else if (input[14:12] == 111) begin
+        end else if (instr[14:12] == 111) begin
 
 
         end
+    end
 
    endcase
  end
