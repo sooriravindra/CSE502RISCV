@@ -13,28 +13,28 @@ module decoder
   case(OPS)
       opcodeR: begin 
 	opcode = "R";
-	if (instr[14:12] == 000) begin
+	if (instr[14:12] == 3'b000) begin
 		
 	
-	end else if (instr[14:12] == 001) begin
+	end else if (instr[14:12] == 3'b001) begin
 
 
-	end else if (instr[14:12] == 010) begin
+	end else if (instr[14:12] == 3'b010) begin
 
 
-	end else if (instr[14:12] == 011) begin
+	end else if (instr[14:12] == 3'b011) begin
 
 
-	end else if (instr[14:12] == 100) begin
+	end else if (instr[14:12] == 3'b100) begin
 
 
-	end else if (instr[14:12] == 101) begin
+	end else if (instr[14:12] == 3'b101) begin
 
 
-	end else if (instr[14:12] == 110) begin
+	end else if (instr[14:12] == 3'b110) begin
 
 
-	end else if (instr[14:12] == 111) begin
+	end else if (instr[14:12] == 3'b111) begin
 
 
 	end
@@ -43,28 +43,28 @@ module decoder
 
     opcodeI: begin
 	opcode = "I";
-	if (instr[14:12] == 000) begin
+	if (instr[14:12] == 3'b000) begin
 
 
-        end else if (instr[14:12] == 001) begin
+        end else if (instr[14:12] == 3'b001) begin
 
 
-        end else if (instr[14:12] == 010) begin
+        end else if (instr[14:12] == 3'b010) begin
 
 
-        end else if (instr[14:12] == 011) begin
+        end else if (instr[14:12] == 3'b011) begin
 
 
-        end else if (instr[14:12] == 100) begin
+        end else if (instr[14:12] == 3'b100) begin
 
 
-        end else if (instr[14:12] == 101) begin
+        end else if (instr[14:12] == 3'b101) begin
 
 
-        end else if (instr[14:12] == 110) begin
+        end else if (instr[14:12] == 3'b110) begin
 
 
-        end else if (instr[14:12] == 111) begin
+        end else if (instr[14:12] == 3'b111) begin
 
 
         end
@@ -72,28 +72,28 @@ module decoder
 
     opcodeS: begin
 	opcode = "S";
-	if (instr[14:12] == 000) begin
+	if (instr[14:12] == 3'b000) begin
 
 
-        end else if (instr[14:12] == 001) begin
+        end else if (instr[14:12] == 3'b001) begin
 
 
-        end else if (instr[14:12] == 010) begin
+        end else if (instr[14:12] == 3'b010) begin
 
 
-        end else if (instr[14:12] == 011) begin
+        end else if (instr[14:12] == 3'b011) begin
 
 
-        end else if (instr[14:12] == 100) begin
+        end else if (instr[14:12] == 3'b100) begin
 
 
-        end else if (instr[14:12] == 101) begin
+        end else if (instr[14:12] == 3'b101) begin
 
 
-        end else if (instr[14:12] == 110) begin
+        end else if (instr[14:12] == 3'b110) begin
 
 
-        end else if (instr[14:12] == 111) begin
+        end else if (instr[14:12] == 3'b111) begin
 
 
         end
@@ -101,28 +101,28 @@ module decoder
 
     opcodeSB: begin
 	opcode = "SB";
-	if (instr[14:12] == 000) begin
+	if (instr[14:12] == 3'b000) begin
 
 
-        end else if (instr[14:12] == 001) begin
+        end else if (instr[14:12] == 3'b001) begin
 
 
-        end else if (instr[14:12] == 010) begin
+        end else if (instr[14:12] == 3'b010) begin
 
 
-        end else if (instr[14:12] == 011) begin
+        end else if (instr[14:12] == 3'b011) begin
 
 
-        end else if (instr[14:12] == 100) begin
+        end else if (instr[14:12] == 3'b100) begin
 
 
-        end else if (instr[14:12] == 101) begin
+        end else if (instr[14:12] == 3'b101) begin
 
 
-        end else if (instr[14:12] == 110) begin
+        end else if (instr[14:12] == 3'b110) begin
 
 
-        end else if (instr[14:12] == 111) begin
+        end else if (instr[14:12] == 3'b111) begin
 
 
         end
@@ -130,28 +130,28 @@ module decoder
 
     opcodeU: begin
 	opcode = "U";
-	if (instr[14:12] == 000) begin
+	if (instr[14:12] == 3'b000) begin
 
 
-        end else if (instr[14:12] == 001) begin
+        end else if (instr[14:12] == 3'b001) begin
 
 
-        end else if (instr[14:12] == 010) begin
+        end else if (instr[14:12] == 3'b010) begin
 
 
-        end else if (instr[14:12] == 011) begin
+        end else if (instr[14:12] == 3'b011) begin
 
 
-        end else if (instr[14:12] == 100) begin
+        end else if (instr[14:12] == 3'b100) begin
 
 
-        end else if (instr[14:12] == 101) begin
+        end else if (instr[14:12] == 3'b101) begin
 
 
-        end else if (instr[14:12] == 110) begin
+        end else if (instr[14:12] == 3'b110) begin
 
 
-        end else if (instr[14:12] == 111) begin
+        end else if (instr[14:12] == 3'b111) begin
 
 
         end
@@ -159,28 +159,28 @@ module decoder
 
     opcodeUJ: begin
 	opcode = "UJ";
-	if (instr[14:12] == 000) begin
+	if (instr[14:12] == 3'b000) begin
 
 
-        end else if (instr[14:12] == 001) begin
+        end else if (instr[14:12] == 3'b001) begin
 
 
-        end else if (instr[14:12] == 010) begin
+        end else if (instr[14:12] == 3'b010) begin
 
 
-        end else if (instr[14:12] == 011) begin
+        end else if (instr[14:12] == 3'b011) begin
 
 
-        end else if (instr[14:12] == 100) begin
+        end else if (instr[14:12] == 3'b100) begin
 
 
-        end else if (instr[14:12] == 101) begin
+        end else if (instr[14:12] == 3'b101) begin
 
 
-        end else if (instr[14:12] == 110) begin
+        end else if (instr[14:12] == 3'b110) begin
 
 
-        end else if (instr[14:12] == 111) begin
+        end else if (instr[14:12] == 3'b111) begin
 
 
         end
