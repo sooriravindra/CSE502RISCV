@@ -28,6 +28,7 @@ module top
 
   logic [63:0] pc;
 
+  decoder decoder_instance(10'b0000010011);
   always_comb begin
 	case(state)
 	  INITIAL	: begin
