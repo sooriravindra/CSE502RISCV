@@ -1,5 +1,6 @@
 `include "Sysbus.defs"
 `include "states.sv"
+`include "fetch.sv"
 
 module top
 #(
@@ -26,7 +27,7 @@ module top
   input  [BUS_TAG_WIDTH-1:0] bus_resptag
 );
 
-  logic [63:0] pc;
+  logic [63:0] pc, next_pc;
 
   always_comb begin
 	case(state)
@@ -51,13 +52,14 @@ module top
       pc <= entry;
     end else begin
       //$display("Hello World!  @ %x", pc);
+	  pc <= next_pc;
 	  if (bus_reqack == 1 		& next_state == WAIT_RESP & state == INITIAL) begin
 		state <= next_state;		
 	  end
 	  else if (bus_respcyc == 1 & next_state == GOT_RESP  & state == WAIT_RESP) begin
 		state <= next_state;
 	  end
-	  else if (bus_respcyc == 0 & next_state == INITIAL & state == GOT_RESP) begin
+	  else if (bus_respcyc == 0 & next_state == INITIAL   & state == GOT_RESP) begin
 		state <= next_state;
 	  end
 //      $finish;
@@ -66,6 +68,9 @@ module top
 //  initial begin
 //    $display("Initializing top, entry point = 0x%x", entry);
   end
+
+//  fetch_mod fetch_interface(.exec_or_npc(1'b1), .frm_exec(64'h0000000000000000), .if_id_instr(bus_resp), .if_id_npc());
+  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc));
 
   always_comb begin
 	case(state)
