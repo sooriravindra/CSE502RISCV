@@ -23,36 +23,137 @@ enum {
  always_comb begin
    
   case(OPS)
-      opcodeR1, opcodeR2: begin 
+      opcodeR1: begin 
         opcode = "R";
         case(instr[14:12])
             3'b000: begin
-                $display("");
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("ADD");
+		    end
+		    7'b0100000: begin
+			 $display("SUB");
+		    end
+		    7'b0000001: begin
+			 $display("MUL");
+		    end
+		endcase
             end
             3'b001: begin
-                $display("");
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("SLL");
+		    end
+		    7'b0000001: begin
+			 $display("MULH");
+		    end
+		endcase
             end
             3'b010: begin
-                $display("");
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("SLT");
+		    end
+		    7'b0000001: begin
+			 $display("MULHSU");
+		    end
+		endcase
             end
             3'b011: begin
-                $display("");
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("SLTU");
+		    end	
+		    7'b0000001: begin
+			 $display("MULHU");
+		    end
+		endcase
             end
             3'b100: begin
-                $display("");
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("XOR");
+		    end
+		    7'b0000001: begin
+			 $display("DIV");
+		    end
+		endcase
             end
             3'b101: begin
-                $display("");
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("SRL");
+		    end
+		    7'b0100000: begin
+			 $display("SRA");
+		    end
+		    7'b0000001: begin
+			 $display("DIVU");
+		    end
+		endcase
             end
             3'b110: begin
-                $display("");
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("OR");
+		    end
+		    7'b0000001: begin
+			 $display("REM");
+		    end
+		endcase
             end
             3'b111: begin
-                $display("");
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("AND");
+		    end
+		    7'b0000001: begin
+			 $display("REMU");
+		    end
+		endcase
+             end
+     end
+     opcodeR2: begin
+        opcode = "R";
+        case(instr[14:12])
+            3'b000: begin
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("ADDW");
+		    end
+		    7'b0100000: begin
+			 $display("SUBW");
+		    end
+		    7'b0000001: begin
+			 $display("MULW");
+		    end
+		endcase
             end
+            3'b001: begin
+                $display("SLLW");
+            end
+            3'b100: begin
+                $display("DIVW");
+            end
+            3'b101: begin
+		case(instr[31:25])
+		    7'b0000000: begin
+               		 $display("SRLW");
+		    end
+		    7'b0100000: begin
+			 $display("SRAW");
+		    end
+	            7'b0000001: begin
+			 $display("DIVUW");
+		endcase
+            end
+            3'b110: begin
+                $display("REMW");
+            end
+            3'b111: begin
+                $display("REMUW");
     end
-
-
+    
     opcodeI1, opcodeI2, opcodeI3, opcodeI4: begin
         opcode = "I";
         case(instr[14:12])
