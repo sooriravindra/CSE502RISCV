@@ -24,225 +24,178 @@ enum {
    
   case(OPS)
       opcodeR1, opcodeR2: begin 
-	opcode = "R";
-	if (instr[14:12] == 3'b000) begin
-	    $display("");	
-	
-	end else if (instr[14:12] == 3'b001) begin
-	    $display("");	
-
-
-	end else if (instr[14:12] == 3'b010) begin
-	    $display("");	
-
-
-	end else if (instr[14:12] == 3'b011) begin
-	    $display("");	
-
-
-	end else if (instr[14:12] == 3'b100) begin
-	    $display("");	
-
-
-	end else if (instr[14:12] == 3'b101) begin
-	    $display("");	
-
-
-	end else if (instr[14:12] == 3'b110) begin
-	    $display("");	
-
-
-	end else if (instr[14:12] == 3'b111) begin
-	    $display("");	
-
-
-	end
+        opcode = "R";
+        case(instr[14:12])
+            3'b000: begin
+                $display("");
+            end
+            3'b001: begin
+                $display("");
+            end
+            3'b010: begin
+                $display("");
+            end
+            3'b011: begin
+                $display("");
+            end
+            3'b100: begin
+                $display("");
+            end
+            3'b101: begin
+                $display("");
+            end
+            3'b110: begin
+                $display("");
+            end
+            3'b111: begin
+                $display("");
+            end
     end
 
 
     opcodeI1, opcodeI2, opcodeI3, opcodeI4: begin
-	opcode = "I";
-	if (instr[14:12] == 3'b000) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b001) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b010) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b011) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b100) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b101) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b110) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b111) begin
-	    $display("");	
-
-
-        end
+        opcode = "I";
+        case(instr[14:12])
+            3'b000: begin
+                $display("");
+            end
+            3'b001: begin
+                $display("");
+            end
+            3'b010: begin
+                $display("");
+            end
+            3'b011: begin
+                $display("");
+            end
+            3'b100: begin
+                $display("");
+            end
+            3'b101: begin
+                $display("");
+            end
+            3'b110: begin
+                $display("");
+            end
+            3'b111: begin
+                $display("");
+            end
     end
 
     opcodeS: begin
-	opcode = "S";
-	if (instr[14:12] == 3'b000) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b001) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b010) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b011) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b100) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b101) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b110) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b111) begin
-	    $display("");	
-
-
-        end
+        opcode = "S";
+        case(instr[14:12])
+            3'b000: begin
+                $display("");
+            end
+            3'b001: begin
+                $display("");
+            end
+            3'b010: begin
+                $display("");
+            end
+            3'b011: begin
+                $display("");
+            end
+            3'b100: begin
+                $display("");
+            end
+            3'b101: begin
+                $display("");
+            end
+            3'b110: begin
+                $display("");
+            end
+            3'b111: begin
+                $display("");
+            end
     end
 
     opcodeSB: begin
-	opcode = "SB";
-	if (instr[14:12] == 3'b000) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b001) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b010) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b011) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b100) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b101) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b110) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b111) begin
-	    $display("");	
-
-
-        end
+        opcode = "SB";
+        case(instr[14:12])
+            3'b000: begin
+                $display("");
+            end
+            3'b001: begin
+                $display("");
+            end
+            3'b010: begin
+                $display("");
+            end
+            3'b011: begin
+                $display("");
+            end
+            3'b100: begin
+                $display("");
+            end
+            3'b101: begin
+                $display("");
+            end
+            3'b110: begin
+                $display("");
+            end
+            3'b111: begin
+                $display("");
+            end
     end
 
     opcodeU1, opcodeU2: begin
-	opcode = "U";
-	if (instr[14:12] == 3'b000) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b001) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b010) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b011) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b100) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b101) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b110) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b111) begin
-	    $display("");	
-
-
-        end
+        opcode = "U";
+        case(instr[14:12])
+            3'b000: begin
+                $display("");
+            end
+            3'b001: begin
+                $display("");
+            end
+            3'b010: begin
+                $display("");
+            end
+            3'b011: begin
+                $display("");
+            end
+            3'b100: begin
+                $display("");
+            end
+            3'b101: begin
+                $display("");
+            end
+            3'b110: begin
+                $display("");
+            end
+            3'b111: begin
+                $display("");
+            end
     end
 
     opcodeUJ: begin
-	opcode = "UJ";
-	if (instr[14:12] == 3'b000) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b001) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b010) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b011) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b100) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b101) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b110) begin
-	    $display("");	
-
-
-        end else if (instr[14:12] == 3'b111) begin
-	    $display("");	
-
-
-        end
+        opcode = "UJ";
+        case(instr[14:12])
+            3'b000: begin
+                $display("");
+            end
+            3'b001: begin
+                $display("");
+            end
+            3'b010: begin
+                $display("");
+            end
+            3'b011: begin
+                $display("");
+            end
+            3'b100: begin
+                $display("");
+            end
+            3'b101: begin
+                $display("");
+            end
+            3'b110: begin
+                $display("");
+            end
+            3'b111: begin
+                $display("");
+            end
     end
 
    endcase
