@@ -28,8 +28,10 @@ module top
   input  [BUS_TAG_WIDTH-1:0] bus_resptag
 );
 
-  logic [63:0] pc, next_pc, data_out;
+  logic [63:0] pc, next_pc; 
+  logic [511:0] data_out;
   logic flag;
+  integer count, next_count;
 
   always_comb begin
 	case(state)
@@ -38,9 +40,13 @@ module top
 	  	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
 	  	bus_reqcyc 	= 1;
 		bus_respack = 0;
+		flag 		= 0;
 	  end
-	  WAIT_RESP	: bus_reqcyc 	= 0;
-	  GOT_RESP	: bus_respack 	= 1;
+	  WAIT_RESP	: begin
+		bus_reqcyc = 0;
+		next_count = 0;
+	  end
+	  GOT_RESP	: bus_respack = 1;
 	  default	: begin
 	  	bus_req   	= entry;
       	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
@@ -57,6 +63,7 @@ module top
       //$display("Hello World!  @ %x", pc);
 	  pc <= next_pc;
 	  state <= next_state;
+	  count <= next_count;
 //      $finish;
     end
 
@@ -81,11 +88,17 @@ module top
 	  end
 	  GOT_RESP	: begin
 		if (bus_respcyc & flag) begin
-		  for (int i = 0; i < BUS_DATA_WIDTH/8; i += 1) begin
-            data_out[i*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
-          end
+		  if (count < 8) begin
+            data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
+			next_count = count + 1;
+		  end
+		  else begin
+			flag = 0;
+			next_count = 0;
+		  end
         end	
-		else if (!bus_respcyc) begin
+		//else if (bus_respcyc == 0) begin
+		else if (flag == 0) begin
 		  next_state = INITIAL;
 		end
 	  end
