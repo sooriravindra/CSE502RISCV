@@ -37,6 +37,7 @@ enum {
 		    7'b0000001: begin
 			 $display("MUL");
 		    end
+		    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b001: begin
@@ -47,6 +48,7 @@ enum {
 		    7'b0000001: begin
 			 $display("MULH");
 		    end
+		    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b010: begin
@@ -57,6 +59,7 @@ enum {
 		    7'b0000001: begin
 			 $display("MULHSU");
 		    end
+                    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b011: begin
@@ -67,6 +70,7 @@ enum {
 		    7'b0000001: begin
 			 $display("MULHU");
 		    end
+                    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b100: begin
@@ -77,6 +81,7 @@ enum {
 		    7'b0000001: begin
 			 $display("DIV");
 		    end
+                    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b101: begin
@@ -90,6 +95,7 @@ enum {
 		    7'b0000001: begin
 			 $display("DIVU");
 		    end
+                    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b110: begin
@@ -100,6 +106,7 @@ enum {
 		    7'b0000001: begin
 			 $display("REM");
 		    end
+                    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b111: begin
@@ -110,8 +117,11 @@ enum {
 		    7'b0000001: begin
 			 $display("REMU");
 		    end
+                    default: $display("Unknown opcode\n");
 		endcase
              end
+             default: $display("Unknown opcode\n");
+         endcase
      end
      opcodeR2: begin
         opcode = "R";
@@ -127,6 +137,7 @@ enum {
 		    7'b0000001: begin
 			 $display("MULW");
 		    end
+                    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b001: begin
@@ -145,6 +156,8 @@ enum {
 		    end
 	            7'b0000001: begin
 			 $display("DIVUW");
+	            end
+                    default: $display("Unknown opcode\n");
 		endcase
             end
             3'b110: begin
@@ -152,151 +165,159 @@ enum {
             end
             3'b111: begin
                 $display("REMUW");
+            end
+	    default: $display("Unknown opcode\n");
+        endcase
     end
-    
-    opcodeI1, opcodeI2, opcodeI3, opcodeI4: begin
+
+
+    opcodeI1: begin
+        opcode = "I";
+        $display("JALR");
+    end
+    opcodeI2: begin
         opcode = "I";
         case(instr[14:12])
             3'b000: begin
-                $display("");
+                $display("LB");
             end
             3'b001: begin
-                $display("");
+                $display("LH");
             end
             3'b010: begin
-                $display("");
+                $display("LW");
             end
             3'b011: begin
-                $display("");
+                $display("LD");
             end
             3'b100: begin
-                $display("");
+                $display("LBU");
             end
             3'b101: begin
-                $display("");
+                $display("LHU");
             end
             3'b110: begin
-                $display("");
+                $display("LWU");
+            end
+            default: $display("Unknown opcode\n");
+        endcase
+    end
+    opcodeI3: begin
+        opcode = "I";
+        case(instr[14:12])
+            3'b000: begin
+                $display("ADDI");
+            end
+            3'b001: begin
+                $display("SLLI");
+            end
+            3'b010: begin
+                $display("SLTI");
+            end
+            3'b011: begin
+                $display("SLTIU");
+            end
+            3'b100: begin
+                $display("XORI");
+            end
+            3'b101: begin
+                case(instr[30])
+                    0'b1: begin
+                        $display("SRLI");
+                    end
+                    1'b1: begin
+                        $display("SRAI");
+                    end
+                endcase
+            end
+            3'b110: begin
+                $display("ORI");
             end
             3'b111: begin
-                $display("");
+                $display("ANDI");
             end
+        endcase
     end
 
+    opcodeI4: begin
+        opcode = "I";
+        case(instr[14:12])
+            3'b000: begin
+                $display("ADDIW");
+            end
+            3'b001: begin
+                $display("SLLIW");
+            end
+            3'b101: begin
+                case(instr[30])
+                    0'b1: begin
+                        $display("SRLIW");
+                    end
+                    1'b1: begin
+                        $display("SRAIW");
+                    end
+                endcase
+            end
+            default: $display("Unknown opcode\n");
+        endcase
+    end
     opcodeS: begin
         opcode = "S";
         case(instr[14:12])
             3'b000: begin
-                $display("");
+                $display("SB");
             end
             3'b001: begin
-                $display("");
+                $display("SH");
             end
             3'b010: begin
-                $display("");
+                $display("SW");
             end
             3'b011: begin
-                $display("");
+                $display("SD");
             end
-            3'b100: begin
-                $display("");
-            end
-            3'b101: begin
-                $display("");
-            end
-            3'b110: begin
-                $display("");
-            end
-            3'b111: begin
-                $display("");
-            end
+            default: $display("Unknown opcode\n");
+        endcase
     end
 
     opcodeSB: begin
         opcode = "SB";
         case(instr[14:12])
             3'b000: begin
-                $display("");
+                $display("BEQ");
             end
             3'b001: begin
-                $display("");
-            end
-            3'b010: begin
-                $display("");
-            end
-            3'b011: begin
-                $display("");
+                $display("BNE");
             end
             3'b100: begin
-                $display("");
+                $display("BLT");
             end
             3'b101: begin
-                $display("");
+                $display("BGE");
             end
             3'b110: begin
-                $display("");
+                $display("BLTU");
             end
             3'b111: begin
-                $display("");
+                $display("BGEU");
             end
+            default: $display("Unknown opcode\n");
+        endcase
     end
 
-    opcodeU1, opcodeU2: begin
+    opcodeU1: begin
         opcode = "U";
-        case(instr[14:12])
-            3'b000: begin
-                $display("");
-            end
-            3'b001: begin
-                $display("");
-            end
-            3'b010: begin
-                $display("");
-            end
-            3'b011: begin
-                $display("");
-            end
-            3'b100: begin
-                $display("");
-            end
-            3'b101: begin
-                $display("");
-            end
-            3'b110: begin
-                $display("");
-            end
-            3'b111: begin
-                $display("");
-            end
+        $display("LUI");
+    end
+
+    opcodeU2: begin
+        opcode = "U";
+        $display("AUIPC");
     end
 
     opcodeUJ: begin
         opcode = "UJ";
-        case(instr[14:12])
-            3'b000: begin
-                $display("");
-            end
-            3'b001: begin
-                $display("");
-            end
-            3'b010: begin
-                $display("");
-            end
-            3'b011: begin
-                $display("");
-            end
-            3'b100: begin
-                $display("");
-            end
-            3'b101: begin
-                $display("");
-            end
-            3'b110: begin
-                $display("");
-            end
-            3'b111: begin
-                $display("");
-            end
+        $display("JAL");
     end
 
    endcase
