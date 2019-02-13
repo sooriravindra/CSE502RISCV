@@ -3,9 +3,17 @@
 module 
 inc_pc(
 	   input [63:0] pc_in, 
-	   output[63:0] next_pc
+	   output[63:0] next_pc,
+	   input sig_recvd
 	  );
-	assign next_pc = pc_in + 4;
+  always_comb begin
+	if (sig_recvd) begin
+	  next_pc = pc_in + 4;
+	end
+    else begin
+	  next_pc = pc_in;
+	end
+  end
 endmodule
 
 //module

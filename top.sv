@@ -28,7 +28,8 @@ module top
   input  [BUS_TAG_WIDTH-1:0] bus_resptag
 );
 
-  logic [63:0] pc, next_pc;
+  logic [63:0] pc, next_pc, data_out;
+  logic flag;
 
   always_comb begin
 	case(state)
@@ -36,6 +37,7 @@ module top
 	  	bus_req 	= pc;
 	  	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
 	  	bus_reqcyc 	= 1;
+		bus_respack = 0;
 	  end
 	  WAIT_RESP	: bus_reqcyc 	= 0;
 	  GOT_RESP	: bus_respack 	= 1;
@@ -54,15 +56,7 @@ module top
     end else begin
       //$display("Hello World!  @ %x", pc);
 	  pc <= next_pc;
-	  if (bus_reqack == 1 		& next_state == WAIT_RESP & state == INITIAL) begin
-		state <= next_state;		
-	  end
-	  else if (bus_respcyc == 0 & next_state == GOT_RESP  & state == WAIT_RESP) begin
-		state <= next_state;
-	  end
-	  else if (bus_respcyc == 0 & next_state == INITIAL   & state == GOT_RESP) begin
-		state <= next_state;
-	  end
+	  state <= next_state;
 //      $finish;
     end
 
@@ -70,19 +64,30 @@ module top
 //    $display("Initializing top, entry point = 0x%x", entry);
   end
 
-//  fetch_mod fetch_interface(.exec_or_npc(1'b1), .frm_exec(64'h0000000000000000), .if_id_instr(bus_resp), .if_id_npc());
-  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc));
+  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag));
 
   always_comb begin
 	case(state)
 	  INITIAL	: begin 
-		next_state = WAIT_RESP;
+		if (bus_reqack) begin
+		  next_state = WAIT_RESP;
+		end
 	  end
-	  WAIT_RESP	: begin 
-		next_state = GOT_RESP;
+	  WAIT_RESP	: begin
+		if (bus_respcyc) begin 
+		  next_state = GOT_RESP;
+		  flag = 1;
+	    end
 	  end
-	  GOT_RESP	: begin 
-		next_state = INITIAL;
+	  GOT_RESP	: begin
+		if (bus_respcyc & flag) begin
+		  for (int i = 0; i < BUS_DATA_WIDTH/8; i += 1) begin
+            data_out[i*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
+          end
+        end	
+		else if (!bus_respcyc) begin
+		  next_state = INITIAL;
+		end
 	  end
 	  default	: begin 
 		next_state = INITIAL;
