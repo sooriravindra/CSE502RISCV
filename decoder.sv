@@ -50,6 +50,7 @@ enum {
             3'b111: begin
                 $display("");
             end
+        endcase
     end
 
 
@@ -80,6 +81,7 @@ enum {
             3'b111: begin
                 $display("");
             end
+        endcase
     end
 
     opcodeS: begin
@@ -109,6 +111,7 @@ enum {
             3'b111: begin
                 $display("");
             end
+        endcase
     end
 
     opcodeSB: begin
@@ -138,6 +141,7 @@ enum {
             3'b111: begin
                 $display("");
             end
+        endcase
     end
 
     opcodeU1, opcodeU2: begin
@@ -167,6 +171,7 @@ enum {
             3'b111: begin
                 $display("");
             end
+        endcase
     end
 
     opcodeUJ: begin
@@ -196,6 +201,7 @@ enum {
             3'b111: begin
                 $display("");
             end
+        endcase
     end
 
    endcase
