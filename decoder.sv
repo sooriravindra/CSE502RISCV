@@ -1,10 +1,11 @@
 module decoder
 (
- output [15:0] opcode, // opcode with instructions
- output [4:0] rs1, 
- output [4:0] rs2, 
- output [4:0] rd, //registers
- input [63:0] instr //input 32 bit instruction from PC
+// output [15:0] opcode, // opcode with instructions
+// output [4:0] rs1, 
+// output [4:0] rs2, 
+// output [4:0] rd, //registers
+ input [63:0] instr, //input 32 bit instruction from PC
+ input clk
 );
 enum {
     opcodeR1 = 7'b0110011, 
@@ -20,11 +21,12 @@ enum {
     opcodeUJ = 7'b1101111
     } OPS;
  
- always_comb begin
+ assign OPS = instr[6:0];
+ always_ff @(posedge clk) begin
    
   case(OPS)
       opcodeR1: begin 
-        opcode = "R";
+        //opcode = "R";
         case(instr[14:12])
             3'b000: begin
 		case(instr[31:25])
@@ -124,7 +126,7 @@ enum {
          endcase
      end
      opcodeR2: begin
-        opcode = "R";
+        //opcode = "R";
         case(instr[14:12])
             3'b000: begin
 		case(instr[31:25])
@@ -172,11 +174,11 @@ enum {
 
 
     opcodeI1: begin
-        opcode = "I";
+        //opcode = "I";
         $display("JALR");
     end
     opcodeI2: begin
-        opcode = "I";
+        //opcode = "I";
         case(instr[14:12])
             3'b000: begin
                 $display("LB");
@@ -203,7 +205,7 @@ enum {
         endcase
     end
     opcodeI3: begin
-        opcode = "I";
+        //opcode = "I";
         case(instr[14:12])
             3'b000: begin
                 $display("ADDI");
@@ -240,7 +242,7 @@ enum {
     end
 
     opcodeI4: begin
-        opcode = "I";
+        //opcode = "I";
         case(instr[14:12])
             3'b000: begin
                 $display("ADDIW");
@@ -262,7 +264,7 @@ enum {
         endcase
     end
     opcodeS: begin
-        opcode = "S";
+        //opcode = "S";
         case(instr[14:12])
             3'b000: begin
                 $display("SB");
@@ -281,7 +283,7 @@ enum {
     end
 
     opcodeSB: begin
-        opcode = "SB";
+        //opcode = "SB";
         case(instr[14:12])
             3'b000: begin
                 $display("BEQ");
@@ -306,17 +308,17 @@ enum {
     end
 
     opcodeU1: begin
-        opcode = "U";
+        //opcode = "U";
         $display("LUI");
     end
 
     opcodeU2: begin
-        opcode = "U";
+        //opcode = "U";
         $display("AUIPC");
     end
 
     opcodeUJ: begin
-        opcode = "UJ";
+        //opcode = "UJ";
         $display("JAL");
     end
 
