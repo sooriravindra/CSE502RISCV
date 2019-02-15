@@ -41,6 +41,7 @@ module top
 	  	bus_reqcyc 	= 1;
 		bus_respack = 0;
 		flag 		= 0;
+		data_out = 0;
 	  end
 	  WAIT_RESP	: begin
 		bus_reqcyc = 0;
@@ -64,8 +65,10 @@ module top
 	  pc <= next_pc;
 	  state <= next_state;
 	  count <= next_count;
-//      $finish;
     end
+	if (!bus_resp & pc) begin
+      $finish;
+	end
 
 //  initial begin
 //    $display("Initializing top, entry point = 0x%x", entry);
@@ -92,15 +95,13 @@ module top
             data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
 			next_count = count + 1;
 		  end
-		  else begin
-			flag = 0;
-			next_count = 0;
-		  end
-        end	
-		//else if (bus_respcyc == 0) begin
-		else if (flag == 0) begin
-		  next_state = INITIAL;
 		end
+	    else if (!bus_respcyc) begin
+		  flag = 0;
+		  next_count = 0;
+		  next_state = INITIAL;
+		end	
+		//else if (bus_respcyc == 0) begin
 	  end
 	  default	: begin 
 		next_state = INITIAL;
