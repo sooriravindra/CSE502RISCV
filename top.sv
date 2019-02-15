@@ -2,6 +2,7 @@
 `include "Sysbus.defs"
 `include "states.sv"
 `include "fetch.sv"
+`include "decoder.sv"
 
 module top
 #(
@@ -75,6 +76,7 @@ module top
   end
 
   inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag));
+  decoder decoder_instance(.instr(bus_resp),.clk(clk));
 
   always_comb begin
 	case(state)
