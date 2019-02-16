@@ -67,7 +67,7 @@ module top
 	  state <= next_state;
 	  count <= next_count;
     end
-	if (!bus_resp & pc) begin
+	if ((bus_resp == 0) & pc != 0) begin
       $finish;
 	end
 
