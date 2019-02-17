@@ -1,10 +1,11 @@
 module decoder
 (
- output [15:0] opcode, // opcode with instructions
- output [4:0] rs1, 
- output [4:0] rs2, 
- output [4:0] rd, //registers
- input [63:0] instr //input 32 bit instruction from PC
+// output [15:0] opcode, // opcode with instructions
+// output [4:0] rs1, 
+// output [4:0] rs2, 
+// output [4:0] rd, //registers
+ input [63:0] instr, //input 32 bit instruction from PC
+ input clk
 );
 enum {
     opcodeR1 = 7'b0110011, 
@@ -20,11 +21,12 @@ enum {
     opcodeUJ = 7'b1101111
     } OPS;
  
- always_comb begin
+ assign OPS = instr[6:0];
+ always_ff @(posedge clk) begin
    
   case(OPS)
       opcodeR1: begin 
-        opcode = "R";
+        //opcode = "R";
         case(instr[14:12])
             3'b000: begin
 		case(instr[31:25])
@@ -142,7 +144,7 @@ enum {
          endcase
      end
      opcodeR2: begin
-        opcode = "R";
+        //opcode = "R";
         case(instr[14:12])
             3'b000: begin
 		case(instr[31:25])
@@ -200,12 +202,12 @@ enum {
 
 
     opcodeI1: begin
-        opcode = "I";
+        // opcode = "I";
         $display("JALR ");
 	$display("rd,rs1,offset");
-    end
+        end
     opcodeI2: begin
-        opcode = "I";
+        //opcode = "I";
         case(instr[14:12])
             3'b000: begin
                 $display("LB ");
@@ -221,72 +223,89 @@ enum {
             end
             3'b011: begin
                 $display("LD ");
+		$display("rd,offset(rs1)");
             end
             3'b100: begin
                 $display("LBU ");
+		$display("rd,offset(rs1)");
             end
             3'b101: begin
                 $display("LHU ");
+		$display("rd,offset(rs1)");
             end
             3'b110: begin
                 $display("LWU ");
+		$display("rd,offset(rs1)");
             end
             default: $display("Unknown opcode\n");
         endcase
     end
     opcodeI3: begin
-        opcode = "I";
+        //opcode = "I";
         case(instr[14:12])
             3'b000: begin
                 $display("ADDI ");
+		$display("rd,rs1,imm");
             end
             3'b001: begin
-                $display("SLLI");
+                $display("SLLI ");
+		$display("rd,rs1,imm");
             end
             3'b010: begin
-                $display("SLTI");
+                $display("SLTI ");
+		$display("rd,rs1,imm");
             end
             3'b011: begin
-                $display("SLTIU");
+                $display("SLTIU ");
+		$display("rd,rs1,imm");
             end
             3'b100: begin
-                $display("XORI");
+                $display("XORI ");
+		$display("rd,rs1,imm");
             end
             3'b101: begin
                 case(instr[30])
                     0'b1: begin
-                        $display("SRLI");
+                        $display("SRLI ");
+			$display("rd,rs1,imm");
                     end
                     1'b1: begin
-                        $display("SRAI");
+                        $display("SRAI ");
+			$display("rd,rs1,imm");
                     end
                 endcase
             end
             3'b110: begin
-                $display("ORI");
+                $display("ORI ");
+		$display("rd,rs1,imm");
             end
             3'b111: begin
-                $display("ANDI");
+                $display("ANDI ");
+		$display("rd,rs1,imm");
             end
         endcase
     end
 
     opcodeI4: begin
-        opcode = "I";
+        //opcode = "I";
         case(instr[14:12])
             3'b000: begin
-                $display("ADDIW");
+                $display("ADDIW ");
+		$display("rd,rs1,imm");
             end
             3'b001: begin
-                $display("SLLIW");
+                $display("SLLIW ");
+		$display("rd,rs1,imm");
             end
             3'b101: begin
                 case(instr[30])
                     0'b1: begin
-                        $display("SRLIW");
+                        $display("SRLIW ");
+			$display("rd,rs1,imm");
                     end
                     1'b1: begin
-                        $display("SRAIW");
+                        $display("SRAIW ");
+			$display("rd,rs1,imm");
                     end
                 endcase
             end
@@ -294,62 +313,75 @@ enum {
         endcase
     end
     opcodeS: begin
-        opcode = "S";
+        //opcode = "S";
         case(instr[14:12])
             3'b000: begin
-                $display("SB");
+                $display("SB ");
+		$display("rs2,offset(rs1)");
             end
             3'b001: begin
-                $display("SH");
+                $display("SH ");
+		$display("rs2,offset(rs1)");
             end
             3'b010: begin
-                $display("SW");
+                $display("SW ");
+		$display("rs2,offset(rs1)");
             end
             3'b011: begin
-                $display("SD");
+                $display("SD ");
+		$display("rs2,offset(rs1)");
             end
             default: $display("Unknown opcode\n");
         endcase
     end
 
     opcodeSB: begin
-        opcode = "SB";
+        //opcode = "SB";
         case(instr[14:12])
             3'b000: begin
-                $display("BEQ");
+                $display("BEQ ");
+		$display("rs1,rs2,offset");
             end
             3'b001: begin
-                $display("BNE");
+                $display("BNE ");
+		$display("rs1,rs2,offset");
             end
             3'b100: begin
-                $display("BLT");
+                $display("BLT ");
+		$display("rs1,rs2,offset");
             end
             3'b101: begin
-                $display("BGE");
+                $display("BGE ");
+		$display("rs1,rs2,offset");
             end
             3'b110: begin
-                $display("BLTU");
+                $display("BLTU ");
+		$display("rs1,rs2,offset");
             end
             3'b111: begin
-                $display("BGEU");
+                $display("BGEU ");
+		$display("rs1,rs2,offset");
             end
             default: $display("Unknown opcode\n");
         endcase
     end
 
     opcodeU1: begin
-        opcode = "U";
+        //opcode = "U";
         $display("LUI");
+	$display("rd,imm");
     end
 
     opcodeU2: begin
-        opcode = "U";
+        //opcode = "U";
         $display("AUIPC");
+	$display("rd,offset");
     end
 
     opcodeUJ: begin
-        opcode = "UJ";
+        //opcode = "UJ";
         $display("JAL");
+	$display("rd,offset");
     end
 
    endcase

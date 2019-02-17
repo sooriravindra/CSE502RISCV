@@ -2,6 +2,7 @@
 `include "Sysbus.defs"
 `include "states.sv"
 `include "fetch.sv"
+`include "decoder.sv"
 
 module top
 #(
@@ -28,8 +29,10 @@ module top
   input  [BUS_TAG_WIDTH-1:0] bus_resptag
 );
 
-  logic [63:0] pc, next_pc, data_out;
+  logic [63:0] pc, next_pc; 
+  logic [511:0] data_out;
   logic flag;
+  integer count, next_count;
 
   always_comb begin
 	case(state)
@@ -38,9 +41,14 @@ module top
 	  	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
 	  	bus_reqcyc 	= 1;
 		bus_respack = 0;
+		flag 		= 0;
+		data_out = 0;
 	  end
-	  WAIT_RESP	: bus_reqcyc 	= 0;
-	  GOT_RESP	: bus_respack 	= 1;
+	  WAIT_RESP	: begin
+		bus_reqcyc = 0;
+		next_count = 0;
+	  end
+	  GOT_RESP	: bus_respack = 1;
 	  default	: begin
 	  	bus_req   	= entry;
       	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
@@ -57,14 +65,18 @@ module top
       //$display("Hello World!  @ %x", pc);
 	  pc <= next_pc;
 	  state <= next_state;
-//      $finish;
+	  count <= next_count;
     end
+	if ((bus_resp == 0) & pc != 0) begin
+      $finish;
+	end
 
 //  initial begin
 //    $display("Initializing top, entry point = 0x%x", entry);
   end
 
   inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag));
+  decoder decoder_instance(.instr(bus_resp),.clk(clk));
 
   always_comb begin
 	case(state)
@@ -81,13 +93,17 @@ module top
 	  end
 	  GOT_RESP	: begin
 		if (bus_respcyc & flag) begin
-		  for (int i = 0; i < BUS_DATA_WIDTH/8; i += 1) begin
-            data_out[i*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
-          end
-        end	
-		else if (!bus_respcyc) begin
-		  next_state = INITIAL;
+		  if (count < 8) begin
+            data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
+			next_count = count + 1;
+		  end
 		end
+	    else if (!bus_respcyc) begin
+		  flag = 0;
+		  next_count = 0;
+		  next_state = INITIAL;
+		end	
+		//else if (bus_respcyc == 0) begin
 	  end
 	  default	: begin 
 		next_state = INITIAL;
