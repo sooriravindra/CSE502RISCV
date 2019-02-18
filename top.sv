@@ -31,7 +31,7 @@ module top
 
   logic [63:0] pc, next_pc; 
   logic [511:0] data_out;
-  logic flag;
+  logic flag_pc_inc;
   integer count, next_count;
 
   always_comb begin
@@ -41,7 +41,7 @@ module top
 	  	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
 	  	bus_reqcyc 	= 1;
 		bus_respack = 0;
-		flag 		= 0;
+		flag_pc_inc	= 0;
 		data_out = 0;
 	  end
 	  WAIT_RESP	: begin
@@ -75,7 +75,7 @@ module top
 //    $display("Initializing top, entry point = 0x%x", entry);
   end
 
-  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag));
+  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag_pc_inc));
   decoder decoder_instance(.instr(bus_resp),.clk(clk));
 
   always_comb begin
@@ -83,23 +83,27 @@ module top
 	  INITIAL	: begin 
 		if (bus_reqack) begin
 		  next_state = WAIT_RESP;
+		  flag_pc_inc = 0;
 		end
 	  end
 	  WAIT_RESP	: begin
 		if (bus_respcyc) begin 
 		  next_state = GOT_RESP;
-		  flag = 1;
+		  flag_pc_inc = 0;
 	    end
 	  end
 	  GOT_RESP	: begin
-		if (bus_respcyc & flag) begin
+		if ((bus_respcyc & !flag_pc_inc) | (bus_respcyc == 0 & count == 7)) begin
 		  if (count < 8) begin
             data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
 			next_count = count + 1;
 		  end
+//		  else begin
+//			flag_pc_inc = 1;
+//		  end
 		end
 	    else if (!bus_respcyc) begin
-		  flag = 0;
+		  flag_pc_inc = 1;
 		  next_count = 0;
 		  next_state = INITIAL;
 		end	

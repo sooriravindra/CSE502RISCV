@@ -8,7 +8,7 @@ inc_pc(
 	  );
   always_comb begin
 	if (sig_recvd) begin
-	  next_pc = pc_in + 8;
+	  next_pc = pc_in + 4;
 	end
     else begin
 	  next_pc = pc_in;
