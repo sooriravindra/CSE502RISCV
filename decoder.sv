@@ -31,16 +31,13 @@ enum {
             3'b000: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("ADD ");
-			 $display("rd,rs1,rs2");
+               		 $display("ADD rd, rs1, rs2");
 		    end
 		    7'b0100000: begin
-			 $display("SUB ");
-			 $display("rd,rs1,rs2");
+			 $display("SUB rd, rs1, rs2");
 		    end
 		    7'b0000001: begin
-			 $display("MUL ");
-			 $display("rd,rs1,rs2");
+			 $display("MUL rd, rs1, rs2");
 		    end
 		    default: $display("Unknown opcode\n");
 		endcase
@@ -48,12 +45,10 @@ enum {
             3'b001: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("SLL ");
-			 $display("rd,rs1,rs2");
+               		 $display("SLL rd, rs1, rs2");
 		    end
 		    7'b0000001: begin
-			 $display("MULH ");
-			 $display("rd,rs1,rs2");
+			 $display("MULH rd, rs1, rs2");
 		    end
 		    default: $display("Unknown opcode\n");
 		endcase
@@ -61,12 +56,10 @@ enum {
             3'b010: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("SLT ");
-			 $display("rd,rs1,rs2");
+               		 $display("SLT rd, rs1, rs2");
 		    end
 		    7'b0000001: begin
-			 $display("MULHSU ");
-			 $display("rd,rs1,rs2");
+			 $display("MULHSU rd, rs1, rs2");
 		    end
                     default: $display("Unknown opcode\n");
 		endcase
@@ -74,12 +67,10 @@ enum {
             3'b011: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("SLTU ");
-			 $display("rd,rs1,rs2");
+               		 $display("SLTU rd, rs1, rs2");
 		    end	
 		    7'b0000001: begin
-			 $display("MULHU ");
-			 $display("rd,rs1,rs2");
+			 $display("MULHU rd, rs1, rs2");
 		    end
                     default: $display("Unknown opcode\n");
 		endcase
@@ -87,12 +78,10 @@ enum {
             3'b100: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("XOR ");
-			 $display("rd,rs1,rs2"); 
+               		 $display("XOR rd, rs1, rs2"); 
 		    end
 		    7'b0000001: begin
-			 $display("DIV ");
-			 $display("rd,rs1,rs2");
+			 $display("DIV rd, rs1, rs2");
 		    end
                     default: $display("Unknown opcode\n");
 		endcase
@@ -100,16 +89,13 @@ enum {
             3'b101: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("SRL ");
-			 $display("rd,rs1,rs2");
+               		 $display("SRL rd, rs1, rs2");
 		    end
 		    7'b0100000: begin
-			 $display("SRA ");
-			 $display("rd,rs1,rs2");
+			 $display("SRA rd, rs1, rs2");
 		    end
 		    7'b0000001: begin
-			 $display("DIVU ");
-			 $display("rd,rs1,rs2");
+			 $display("DIVU rd, rs1, rs2");
 		    end
                     default: $display("Unknown opcode\n");
 		endcase
@@ -117,12 +103,10 @@ enum {
             3'b110: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("OR ");
-			 $display("rd,rs1,rs2");
+               		 $display("OR rd, rs1, rs2");
 		    end
 		    7'b0000001: begin
-			 $display("REM ");
-			 $display("rd,rs1,rs2");
+			 $display("REM rd, rs1, rs2");
 		    end
                     default: $display("Unknown opcode\n");
 		endcase
@@ -130,12 +114,10 @@ enum {
             3'b111: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("AND ");
-			 $display("rd,rs1,rs2");
+               		 $display("AND rd, rs1, rs2");
 		    end
 		    7'b0000001: begin
-			 $display("REMU ");
-			 $display("rd,rs1,rs2");
+			 $display("REMU rd, rs1, rs2");
 		    end
                     default: $display("Unknown opcode\n");
 		endcase
@@ -149,52 +131,42 @@ enum {
             3'b000: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("ADDW ");
-			 $display("rd,rs1,rs2");
+               		 $display("ADDW rd, rs1, rs2");
 		    end
 		    7'b0100000: begin
-			 $display("SUBW ");
-			 $display("rd,rs1,rs2");
+			 $display("SUBW rd, rs1, rs2");
 		    end
 		    7'b0000001: begin
-			 $display("MULW ");
-			 $display("rd,rs1,rs2");
+			 $display("MULW rd, rs1, rs2");
 		    end
                     default: $display("Unknown opcode\n");
 		endcase
             end
             3'b001: begin
-                $display("SLLW ");
-		$display("rd,rs1,rs2");
+                $display("SLLW rd, rs1, rs2");
             end
             3'b100: begin
-                $display("DIVW ");
-		$display("rd,rs1,rs2");
+                $display("DIVW rd, rs1, rs2");
             end
             3'b101: begin
 		case(instr[31:25])
 		    7'b0000000: begin
-               		 $display("SRLW ");
-			 $display("rd,rs1,rs2");
+               		 $display("SRLW rd, rs1, rs2");
 		    end
 		    7'b0100000: begin
-			 $display("SRAW ");
-			 $display("rd,rs1,rs2");
+			 $display("SRAW rd, rs1, rs2");
 		    end
 	            7'b0000001: begin
-			 $display("DIVUW ");
-			 $display("rd,rs1,rs2");
+			 $display("DIVUW rd, rs1, rs2");
 	            end
                     default: $display("Unknown opcode\n");
 		endcase
             end
             3'b110: begin
-                $display("REMW ");
-		$display("rd,rs1,rs2");
+                $display("REMW rd, rs1, rs2");
             end
             3'b111: begin
-                $display("REMUW ");
-		$display("rd,rs1,rs2");
+                $display("REMUW rd, rs1, rs2");
             end
 	    default: $display("Unknown opcode\n");
         endcase
@@ -203,39 +175,31 @@ enum {
 
     opcodeI1: begin
         // opcode = "I";
-        $display("JALR ");
-	$display("rd,rs1,offset");
+        $display("JALR rd, rs1, 0x%h", $signed(instr[31:20]));
         end
     opcodeI2: begin
         //opcode = "I";
         case(instr[14:12])
             3'b000: begin
-                $display("LB ");
-		$display("rd,offset(rs1)");
+                $display("LB rd, %d(rs1)", $signed(instr[31:20]));
             end
             3'b001: begin
-                $display("LH ");
-		$display("rd,offset(rs1)");
+                $display("LH rd, %d(rs1)", $signed(instr[31:20]));
             end
             3'b010: begin
-                $display("LW ");
-		$display("rd,offset(rs1)");
+                $display("LW rd, %d(rs1)", $signed(instr[31:20]));
             end
             3'b011: begin
-                $display("LD ");
-		$display("rd,offset(rs1)");
+                $display("LD rd, %d(rs1)", $signed(instr[31:20]));
             end
             3'b100: begin
-                $display("LBU ");
-		$display("rd,offset(rs1)");
+                $display("LBU rd, %d(rs1)", $signed(instr[31:20]));
             end
             3'b101: begin
-                $display("LHU ");
-		$display("rd,offset(rs1)");
+                $display("LHU rd, %d(rs1)", $signed(instr[31:20]));
             end
             3'b110: begin
-                $display("LWU ");
-		$display("rd,offset(rs1)");
+                $display("LWU rd, %d(rs1)", $signed(instr[31:20]));
             end
             default: $display("Unknown opcode\n");
         endcase
@@ -244,44 +208,38 @@ enum {
         //opcode = "I";
         case(instr[14:12])
             3'b000: begin
-                $display("ADDI ");
-		$display("rd,rs1,imm");
+                $display("ADDI rd, rs1, %d", $signed(instr[31:20]));
             end
+	    //shift immediate instructions should only use lowest 5 bits
+	    //of the immediate value
             3'b001: begin
-                $display("SLLI ");
-		$display("rd,rs1,imm");
+                $display("SLLI rd, rs1, %d", $signed(instr[24:20]));
             end
             3'b010: begin
-                $display("SLTI ");
-		$display("rd,rs1,imm");
+                $display("SLTI rd, rs1, %d", $signed(instr[31:20]));
             end
             3'b011: begin
-                $display("SLTIU ");
-		$display("rd,rs1,imm");
+                $display("SLTIU rd, rs1, %d", $signed(instr[31:20]));
             end
             3'b100: begin
-                $display("XORI ");
-		$display("rd,rs1,imm");
+                $display("XORI rd, rs1, %d", $signed(instr[31:20]));
             end
             3'b101: begin
                 case(instr[30])
+	  	    //shift immediate instructions should only use lowest 5 bits
                     0'b1: begin
-                        $display("SRLI ");
-			$display("rd,rs1,imm");
+                        $display("SRLI rd, rs1, %d", $signed(instr[24:20]));
                     end
                     1'b1: begin
-                        $display("SRAI ");
-			$display("rd,rs1,imm");
+                        $display("SRAI rd, rs1, %d", $signed(instr[24:20]));
                     end
                 endcase
             end
             3'b110: begin
-                $display("ORI ");
-		$display("rd,rs1,imm");
+                $display("ORI rd, rs1, %d", $signed(instr[31:20]));
             end
             3'b111: begin
-                $display("ANDI ");
-		$display("rd,rs1,imm");
+                $display("ANDI rd, rs1, %d", $signed(instr[31:20]));
             end
         endcase
     end
@@ -290,22 +248,20 @@ enum {
         //opcode = "I";
         case(instr[14:12])
             3'b000: begin
-                $display("ADDIW ");
-		$display("rd,rs1,imm");
+                $display("ADDIW rd, rs1, %d", $signed(instr[31:20]));
             end
+	    //shift instructions use lowest 5 bits for immediate
             3'b001: begin
-                $display("SLLIW ");
-		$display("rd,rs1,imm");
+                $display("SLLIW rd,rs1, %d", $signed(instr[24:20]));
             end
             3'b101: begin
                 case(instr[30])
+		    //shift instructions use lowest 5 bits for immediate
                     0'b1: begin
-                        $display("SRLIW ");
-			$display("rd,rs1,imm");
+                        $display("SRLIW rd,rs1, %d", $signed(instr[24:20]));
                     end
                     1'b1: begin
-                        $display("SRAIW ");
-			$display("rd,rs1,imm");
+                        $display("SRAIW rd,rs1, %d", $signed(instr[24:20]));
                     end
                 endcase
             end
@@ -316,20 +272,16 @@ enum {
         //opcode = "S";
         case(instr[14:12])
             3'b000: begin
-                $display("SB ");
-		$display("rs2,offset(rs1)");
+                $display("SB rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
             end
-            3'b001: begin
-                $display("SH ");
-		$display("rs2,offset(rs1)");
+            3'b001: begin 
+		$display("SH rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
             end
-            3'b010: begin
-                $display("SW ");
-		$display("rs2,offset(rs1)");
+            3'b010: begin 
+		$display("SW rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
             end
-            3'b011: begin
-                $display("SD ");
-		$display("rs2,offset(rs1)");
+            3'b011: begin 
+		$display("SD rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
             end
             default: $display("Unknown opcode\n");
         endcase
@@ -339,28 +291,22 @@ enum {
         //opcode = "SB";
         case(instr[14:12])
             3'b000: begin
-                $display("BEQ ");
-		$display("rs1,rs2,offset");
+                $display("BEQ rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
             end
             3'b001: begin
-                $display("BNE ");
-		$display("rs1,rs2,offset");
+                $display("BNE rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
             end
             3'b100: begin
-                $display("BLT ");
-		$display("rs1,rs2,offset");
+                $display("BLT rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
             end
             3'b101: begin
-                $display("BGE ");
-		$display("rs1,rs2,offset");
+                $display("BGE rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
             end
             3'b110: begin
-                $display("BLTU ");
-		$display("rs1,rs2,offset");
+                $display("BLTU rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
             end
             3'b111: begin
-                $display("BGEU ");
-		$display("rs1,rs2,offset");
+                $display("BGEU rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
             end
             default: $display("Unknown opcode\n");
         endcase
@@ -368,24 +314,20 @@ enum {
 
     opcodeU1: begin
         //opcode = "U";
-        $display("LUI");
-	$display("rd,imm");
+        $display("LUI rd, 0x%h", $signed(instr[31:12]));
     end
 
     opcodeU2: begin
         //opcode = "U";
-        $display("AUIPC");
-	$display("rd,offset");
+        $display("AUIPC rd, 0x%h", $signed(instr[31:12]));
     end
 
     opcodeUJ: begin
         //opcode = "UJ";
-        $display("JAL");
-	$display("rd,offset");
+        $display("JAL rd, 0x%h", $signed(instr[31:12]));
     end
 
    endcase
  end
 
 endmodule
-
