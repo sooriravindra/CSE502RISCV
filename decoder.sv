@@ -4,7 +4,7 @@ module decoder
 // output [4:0] rs1, 
 // output [4:0] rs2, 
 // output [4:0] rd, //registers
- input [63:0] instr, //input 32 bit instruction from PC
+ input [31:0] instr, //input 32 bit instruction from PC
  input clk
 );
 enum {

@@ -46,7 +46,7 @@ module top
 	  end
 	  WAIT_RESP	: begin
 		bus_reqcyc = 0;
-		next_count = 0;
+//		next_count = 0;
 	  end
 	  GOT_RESP	: bus_respack = 1;
 	  default	: begin
@@ -76,7 +76,7 @@ module top
   end
 
   inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag_pc_inc));
-  decoder decoder_instance(.instr(bus_resp),.clk(clk));
+  decoder decoder_instance(.instr(data_out[31:0]), .clk(flag_pc_inc));
 
   always_comb begin
 	case(state)
@@ -90,6 +90,13 @@ module top
 		if (bus_respcyc) begin 
 		  next_state = GOT_RESP;
 		  flag_pc_inc = 0;
+		  if (count == 0) begin
+            data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
+			next_count = count + 1;
+		  end
+		  else begin
+			data_out = 0;
+		  end
 	    end
 	  end
 	  GOT_RESP	: begin
