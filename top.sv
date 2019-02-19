@@ -42,11 +42,9 @@ module top
 	  	bus_reqcyc 	= 1;
 		bus_respack = 0;
 		flag_pc_inc	= 0;
-		data_out = 0;
 	  end
 	  WAIT_RESP	: begin
 		bus_reqcyc = 0;
-//		next_count = 0;
 	  end
 	  GOT_RESP	: bus_respack = 1;
 	  default	: begin
@@ -62,17 +60,14 @@ module top
     if (reset) begin
       pc <= entry;
     end else begin
-      //$display("Hello World!  @ %x", pc);
 	  pc <= next_pc;
 	  state <= next_state;
 	  count <= next_count;
     end
-	if ((bus_resp == 0) & pc != 0) begin
+	if ((data_out[7:0] == 0) & pc != 0) begin
       $finish;
 	end
 
-//  initial begin
-//    $display("Initializing top, entry point = 0x%x", entry);
   end
 
   inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag_pc_inc));
@@ -82,6 +77,7 @@ module top
 	case(state)
 	  INITIAL	: begin 
 		if (bus_reqack) begin
+		  next_count = 0;
 		  next_state = WAIT_RESP;
 		  flag_pc_inc = 0;
 		end
@@ -105,16 +101,11 @@ module top
             data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
 			next_count = count + 1;
 		  end
-//		  else begin
-//			flag_pc_inc = 1;
-//		  end
 		end
 	    else if (!bus_respcyc) begin
 		  flag_pc_inc = 1;
-		  next_count = 0;
 		  next_state = INITIAL;
 		end	
-		//else if (bus_respcyc == 0) begin
 	  end
 	  default	: begin 
 		next_state = INITIAL;
