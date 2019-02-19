@@ -291,22 +291,22 @@ enum {
         //opcode = "SB";
         case(instr[14:12])
             3'b000: begin
-                $display("BEQ rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
+                $display("BEQ rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
             end
             3'b001: begin
-                $display("BNE rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
+                $display("BNE rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
             end
             3'b100: begin
-                $display("BLT rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
+                $display("BLT rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
             end
             3'b101: begin
-                $display("BGE rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
+                $display("BGE rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
             end
             3'b110: begin
-                $display("BLTU rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
+                $display("BLTU rs1, rs2, 0x%h", $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
             end
             3'b111: begin
-                $display("BGEU rs1, rs2, 0x%h", $signed({instr[31:25],instr[11:7]}));
+                $display("BGEU rs1, rs2, 0x%h", $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
             end
             default: $display("Unknown opcode\n");
         endcase
@@ -324,7 +324,7 @@ enum {
 
     opcodeUJ: begin
         //opcode = "UJ";
-        $display("JAL rd, 0x%h", $signed(instr[31:12]));
+        $display("JAL rd, 0x%h", $signed({instr[31], instr[19:12], instr[20], instr[30:21], 1'b0}));
     end
 
    endcase
