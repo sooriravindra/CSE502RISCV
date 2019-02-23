@@ -6,5 +6,33 @@ module alu
     input [4:0] regDest,
     input clk
 );
+enum {
+    opcode_addi         = 10'h013,
+    opcode_addiw        = 10'h01b,
+    opcode_addsubmulw   = 10'h03b,
+    opcode_andi         = 10'h393
+} opcodes;
+always_comb begin
+    case (opcode)
+        opcode_addi: $display("ADDI");
+        opcode_addiw:  $display("ADDIW");
+        opcode_addsubmulw: begin
+            case(regB[11:5])
+                7'b0000000: begin
+                    $display("ADDW");
+                end
+                7'b0000001: begin
+                    $display("MULW");
+                end
+                7'b0100000: begin
+                    $display("SUBW");
+                end
+            endcase
+        end
+        opcode_andi: $display("ANDI");
+        default: begin
+        end
+    endcase
+end
 endmodule
 

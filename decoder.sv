@@ -129,7 +129,7 @@ enum {
      opcodeR2: begin
         //opcode = "R";
         rs1 <= instr[19:15];
-        rs2 <= { 7'b0000000 , instr[24:20]};
+        rs2 <= instr[31:20];
         rd <= instr[11:7];
         opcode <= { instr[14:12] , instr[6:0] }; 
         case(instr[14:12])
