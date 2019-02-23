@@ -25,11 +25,14 @@ always_comb begin
     case (opcode)
         opcode_addi: begin
             $display("ADDI");
-            temp_dest = register_file[regA] + {{52{regB[11]}}, regB} ;
+            //temp_dest = register_file[regA] + {{52{regB[11]}}, regB} ;
+			
+            temp_dest = register_file[regA] + $signed(regB) ;
         end
         opcode_addiw: begin
             $display("ADDIW");
-            temp_dest = register_file[regA][31:0] + {{20{regB[11]}}, regB};
+            //temp_dest = register_file[regA][31:0] + {{20{regB[11]}}, regB};
+            temp_dest = $signed(register_file[regA][31:0]) + regB;
         end
         opcode_addsubmulw: begin
             case(regB[11:5])
