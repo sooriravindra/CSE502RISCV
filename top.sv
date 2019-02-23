@@ -29,6 +29,10 @@ module top
   input  [BUS_TAG_WIDTH-1:0] bus_resptag
 );
 
+  logic [4:0]  decoder_regA;
+  logic [11:0] decoder_regB;
+  logic [4:0]  decoder_regDest;
+  logic [9:0]  decoder_opcode;
   logic [63:0] pc, next_pc; 
   logic [511:0] data_out;
   logic flag_pc_inc;
@@ -71,7 +75,8 @@ module top
   end
 
   inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag_pc_inc));
-  decoder decoder_instance(.instr(data_out[31:0]), .clk(flag_pc_inc));
+  decoder decoder_instance(.instr(data_out[31:0]), .clk(flag_pc_inc), .rs1(decoder_regA), .rs2(decoder_regB), .rd(decoder_regDest), .opcode(decoder_opcode));
+  alu alu_instance(.regA(decoder_regA), .regB(decoder_regB), .opcode(decoder_opcode), .regDest(decoder_regDest), .clk(flag_pc_inc));
 
   always_comb begin
 	case(state)
