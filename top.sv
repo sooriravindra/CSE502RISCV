@@ -69,7 +69,39 @@ module top
 	  count <= next_count;
     end
 	if ((data_out[7:0] == 0) & pc != 0) begin
-      $finish;
+          $display(register_file[0]);
+          $display(register_file[1]);
+          $display(register_file[2]);
+          $display(register_file[3]);
+          $display(register_file[4]);
+          $display(register_file[5]);
+          $display(register_file[6]);
+          $display(register_file[7]);
+          $display(register_file[8]);
+          $display(register_file[9]);
+          $display(register_file[10]);
+          $display(register_file[11]);
+          $display(register_file[12]);
+          $display(register_file[13]);
+          $display(register_file[14]);
+          $display(register_file[15]);
+          $display(register_file[16]);
+          $display(register_file[17]);
+          $display(register_file[18]);
+          $display(register_file[19]);
+          $display(register_file[20]);
+          $display(register_file[21]);
+          $display(register_file[22]);
+          $display(register_file[23]);
+          $display(register_file[24]);
+          $display(register_file[25]);
+          $display(register_file[26]);
+          $display(register_file[27]);
+          $display(register_file[28]);
+          $display(register_file[29]);
+          $display(register_file[30]);
+          $display(register_file[31]);
+          $finish;
 	end
 
   end

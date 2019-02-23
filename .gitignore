@@ -3,3 +3,4 @@ dramsim2/results/*
 obj_dir/*
 trace.vcd
 *.swp
+*.swo
