@@ -15,7 +15,7 @@ enum {
     opcode_andi         = 10'h393
 } opcodes;
 
-logic [31:0] temp_dest;
+logic [63:0] temp_dest;
 logic sign_extend;
 
 always_ff @(posedge clk) begin
@@ -50,13 +50,21 @@ always_comb begin
                 end
                 7'b0000001: begin
                     $display("MULW");
+					temp_dest = register_file[regA][31:0] * register_file[regB[4:0]];
+					sign_extend = 1;
                 end
                 7'b0100000: begin
                     $display("SUBW");
+					temp_dest = register_file[regA][31:0] - register_file[regB[4:0]];
+					sign_extend = 1;
                 end
             endcase
         end
-        opcode_andi: $display("ANDI");
+        opcode_andi: begin
+			$display("ANDI");
+			temp_dest = register_file[regA][31:0] & {{52{regB[11]}}, regB};
+			sign_extend = 0;
+		end
         default: begin
         end
     endcase
