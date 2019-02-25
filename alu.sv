@@ -16,28 +16,37 @@ enum {
 } opcodes;
 
 logic [31:0] temp_dest;
+logic sign_extend;
 
 always_ff @(posedge clk) begin
-    register_file[regDest] = temp_dest;
+	if (sign_extend) begin
+		register_file[regDest] = {{32{temp_dest[31]}}, temp_dest[31:0]}; 
+    end	
+	else begin
+		register_file[regDest] = temp_dest;
+	end
 end
 
 always_comb begin
     case (opcode)
         opcode_addi: begin
             $display("ADDI");
-            //temp_dest = register_file[regA] + {{52{regB[11]}}, regB} ;
-			
-            temp_dest = register_file[regA] + $signed(regB) ;
+            temp_dest = register_file[regA] + {{52{regB[11]}}, regB};
+			sign_extend = 0;			
+            //temp_dest = register_file[regA] + $signed(regB) ;
         end
         opcode_addiw: begin
             $display("ADDIW");
-            //temp_dest = register_file[regA][31:0] + {{20{regB[11]}}, regB};
-            temp_dest = $signed(register_file[regA][31:0]) + regB;
+            temp_dest = register_file[regA][31:0] + {{20{regB[11]}}, regB};
+			sign_extend = 1;
+            //temp_dest = $signed(register_file[regA][31:0]) + regB;
         end
         opcode_addsubmulw: begin
             case(regB[11:5])
                 7'b0000000: begin
                     $display("ADDW");
+					temp_dest = register_file[regA][31:0] + register_file[regB[4:0]];
+					sign_extend = 1;
                 end
                 7'b0000001: begin
                     $display("MULW");
