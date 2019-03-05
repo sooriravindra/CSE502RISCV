@@ -39,7 +39,7 @@ module top
   integer count, next_count;
 
   always_comb begin
-	case(state)
+	case(b_state)
 	  INITIAL	: begin
 	  	bus_req 	= pc;
 	  	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
@@ -65,7 +65,7 @@ module top
       pc <= entry;
     end else begin
 	  pc <= next_pc;
-	  state <= next_state;
+	  b_state <= b_next_state;
 	  count <= next_count;
     end
 	if ((data_out[7:0] == 0) & pc != 0) begin
@@ -111,17 +111,17 @@ module top
   alu alu_instance(.regA(decoder_regA), .regB(decoder_regB), .opcode(decoder_opcode), .regDest(decoder_regDest), .clk(flag_pc_inc));
 
   always_comb begin
-	case(state)
+	case(b_state)
 	  INITIAL	: begin 
 		if (bus_reqack) begin
 		  next_count = 0;
-		  next_state = WAIT_RESP;
+		  b_next_state = WAIT_RESP;
 		  flag_pc_inc = 0;
 		end
 	  end
 	  WAIT_RESP	: begin
 		if (bus_respcyc) begin 
-		  next_state = GOT_RESP;
+		  b_next_state = GOT_RESP;
 		  flag_pc_inc = 0;
 		  if (count == 0) begin
             data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
@@ -141,11 +141,11 @@ module top
 		end
 	    else if (!bus_respcyc) begin
 		  flag_pc_inc = 1;
-		  next_state = INITIAL;
+		  b_next_state = INITIAL;
 		end	
 	  end
 	  default	: begin 
-		next_state = INITIAL;
+		b_next_state = INITIAL;
 	  end
 	endcase
   end

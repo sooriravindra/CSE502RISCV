@@ -9,14 +9,14 @@ module alu
 );
 
 enum {
-   	opcode_addi		= 10'h013,
-    	opcode_addiw		= 10'h01b,
-     	opcode_addsubmulw	= 10'h03b,
-    	opcode_andi		= 10'h393,
-	opcode_slti		= 10'h113,
+   	opcode_addi			= 10'h013,
+    opcode_addiw		= 10'h01b,
+    opcode_addsubmulw	= 10'h03b,
+    opcode_andi			= 10'h393,
+	opcode_slti			= 10'h113,
 	opcode_sltiu		= 10'h193,
-	opcode_xori		= 10'h213,
-	opcode_ori		= 10'h313,
+	opcode_xori			= 10'h213,
+	opcode_ori			= 10'h313,
 	opcode_addsubmul	= 10'h033,
 	opcode_sllmulh		= 10'h0b3,
 	opcode_sltmulhsu	= 10'h133,
@@ -25,15 +25,15 @@ enum {
 	opcode_srlsradivu	= 10'h2b3,
 	opcode_orrem		= 10'h333,
 	opcode_andremu		= 10'h3b3,
-	opcode_divw		= 10'h23b,
+	opcode_divw			= 10'h23b,
 	opcode_srlsradivuw	= 10'h2bb,
-	opcode_remw		= 10'h33b,
+	opcode_remw			= 10'h33b,
 	opcode_remuw		= 10'h3bb,
-	opcode_slli		= 10'h093,
+	opcode_slli			= 10'h093,
 	opcode_srlsrai		= 10'h293,
 	opcode_srlsraiw		= 10'h29b,
 	opcode_slliw		= 10'h09b,
-	opcode_sllw		= 10'h0bb
+	opcode_sllw			= 10'h0bb
 } opcodes;
 
 logic [63:0] temp_dest;
