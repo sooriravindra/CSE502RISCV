@@ -27,22 +27,22 @@ integer count, next_count;
 
 always_comb begin
     case(b_state)
-        INITIAL	: begin
-            bus_req 	= pc;
-            bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
-            bus_reqcyc 	= 1;
+        INITIAL: begin
+            bus_req     = pc;
+            bus_reqtag  = {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
+            bus_reqcyc  = 1;
             bus_respack = 0;
-            flag_pc_inc	= 0;
+            flag_pc_inc = 0;
         end
-        WAIT_RESP	: begin
+        WAIT_RESP: begin
             bus_reqcyc = 0;
         end
-        GOT_RESP	: bus_respack = 1;
-        default	: begin
-            bus_req   	= entry;
-            bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
-            bus_reqcyc 	= 0;
-            bus_reqcyc 	= 0;
+        GOT_RESP: bus_respack = 1;
+        default: begin
+            bus_req     = entry;
+            bus_reqtag  = {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
+            bus_reqcyc  = 0;
+            bus_reqcyc  = 0;
             bus_respack = 0;
         end
     endcase
@@ -58,14 +58,14 @@ end
 
 always_comb begin
     case(b_state)
-        INITIAL	: begin 
+        INITIAL: begin 
             if (bus_reqack) begin
                 next_count = 0;
                 b_next_state = WAIT_RESP;
                 flag_pc_inc = 0;
             end
         end
-        WAIT_RESP	: begin
+        WAIT_RESP: begin
             if (bus_respcyc) begin 
                 b_next_state = GOT_RESP;
                 flag_pc_inc = 0;
@@ -78,7 +78,7 @@ always_comb begin
                 end
             end
         end
-        GOT_RESP	: begin
+        GOT_RESP: begin
             if ((bus_respcyc & !flag_pc_inc) | (bus_respcyc == 0 & count == 7)) begin
                 if (count < 8) begin
                     data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
@@ -88,11 +88,11 @@ always_comb begin
             else if (!bus_respcyc) begin
                 flag_pc_inc = 1;
                 b_next_state = INITIAL;
-            end	
+            end    
         end
-        default	: begin 
+        default: begin 
             b_next_state = INITIAL;
         end
     endcase
 end
-e
+endmodule
