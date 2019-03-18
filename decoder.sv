@@ -1,12 +1,14 @@
+`include "macros.sv"
+
 module decoder
 (
 // output [15:0] opcode, // opcode with instructions
- input [31:0] instr, //input 32 bit instruction from PC
- input clk,
- output [4:0] rs1, 
- output [11:0] rs2, 
- output [4:0] rd, //registers
- output [9:0] opcode
+ input 	[INSTRSZ-1:0] instr, //input 32 bit instruction from PC
+ input 								clk,
+ output [REGBITS-1:0] rs1, 
+ output [IMMREG-1:0] 	rs2, 
+ output [REGBITS-1:0] rd, //registers
+ output [OPFUNC-1:0] 	opcode
 );
 enum {
     opcodeR1 = 7'b0110011, 

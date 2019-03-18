@@ -17,24 +17,24 @@ i_cache
     input  logic                  clk,
     input  logic                  reset,
     input  logic                  req_recvd,
-    input   logic[INSTSIZE - 1:0] inp_instr,
+    input  logic[INSTSIZE - 1:0] 	inp_instr,
     output logic[INSTSIZE - 1:0]  out_instr,
     output logic[WIDTH - 1:0]     o_pc,
     output logic                  flag_rdy
 );
   logic                  c_hit, pass, on_req, bus_respack, update_done;
   logic [NUMLINES - 1:0] value;
-  logic [WIDTH - 1:0]    cachedata[NUMLINES - 1:0];
-  logic [TAGWIDTH - 1:0] cachetag[NUMLINES - 1:0];
+  logic [WIDTH - 1:0]    cachedata [NUMLINES - 1:0];
+  logic [TAGWIDTH - 1:0] cachetag	 [NUMLINES - 1:0];
   logic                  cachestate[NUMLINES - 1:0];
   logic [INSTSIZE - 1:0] curr_inst;
   always_comb begin
     case(c_state)
       INIT        : begin
-        o_pc          = 0;
-        flag_rdy     = 0;
-        c_hit         = 0;
-        pass         = 0;
+        o_pc        = 0;
+        flag_rdy    = 0;
+        c_hit       = 0;
+        pass        = 0;
         bus_respack = 0;
         update_done = 0;
         value       = 0;
@@ -65,8 +65,12 @@ i_cache
         end
       end
       UPDATE_CACHE: begin
-        
-      end
+				if (bus_respack == 0) begin
+        	update_done = 0;
+     		end
+				else begin
+					update_done = 1;
+				end
     endcase
   end
   always_ff @(posedge clk) begin
