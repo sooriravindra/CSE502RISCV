@@ -1,3 +1,6 @@
+`ifndef REGISTERS_SV
+`define REGISTERS_SV
+
 typedef enum {
     zero = 5'b00000,
     ra   = 5'b00001,
@@ -34,3 +37,5 @@ typedef enum {
 } register_enum;
 
 logic [63:0] register_file[31:0];
+
+`endif

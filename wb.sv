@@ -1,9 +1,13 @@
+`ifndef WB_SV
+`define WB_SV
+
 `include "registers.sv"
 `include "macros.sv"
 
 module
 wb
 #(
+	REGBITS =  5,
   LOGSIZE = 64
 )
 (
@@ -41,6 +45,8 @@ wb
 	end
 	always_comb begin
 		temp_data = ld_or_alu ? lddata_in: alures_in;
-		temp_Reg	= rd;
+		temp_reg	= rd;
 	end
 endmodule
+
+`endif

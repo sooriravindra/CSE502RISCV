@@ -1,8 +1,8 @@
-
 `include "Sysbus.defs"
 `include "states.sv"
 `include "fetch.sv"
 `include "decoder.sv"
+`include "wb.sv"
 
 module top
 #(
@@ -112,7 +112,7 @@ module top
 
   alu 	 alu_instance(.regA(decoder_regA), .regB(decoder_regB), .opcode(decoder_opcode), .regDest(decoder_regDest), .clk(flag_pc_inc));
 
-	wb		 wb_instance(.clk(clk), .rst(reset), .lddata_in(), .alures_in(), .ld_or_alu(), .rd(), .data_out(), destReg());
+	wb		 wb_instance(.clk(clk), .rst(reset), .lddata_in(0), .alures_in(0), .ld_or_alu(0), .rd(decoder_regDest), .data_out(wb_dataOut), .destReg(wb_regDest));
 
   always_comb begin
 	case(b_state)

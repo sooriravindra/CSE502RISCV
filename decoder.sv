@@ -1,14 +1,21 @@
 `include "macros.sv"
 
-module decoder
+module 
+decoder
+#(
+	REGBITS =  5,
+	IMMREG  = 12,
+	OPFUNC	= 10,
+	INSTRSZ = 32
+)
 (
 // output [15:0] opcode, // opcode with instructions
- input 	[INSTRSZ-1:0] instr, //input 32 bit instruction from PC
- input 								clk,
- output [REGBITS-1:0] rs1, 
- output [IMMREG-1:0] 	rs2, 
- output [REGBITS-1:0] rd, //registers
- output [OPFUNC-1:0] 	opcode
+	input  [INSTRSZ-1:0] instr, //input 32 bit instruction from PC
+  input 							 clk,
+  output [REGBITS-1:0] rs1, 
+  output [IMMREG-1:0]  rs2, 
+  output [REGBITS-1:0] rd, //registers
+  output [OPFUNC-1:0]  opcode
 );
 enum {
     opcodeR1 = 7'b0110011, 
