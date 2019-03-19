@@ -19,7 +19,7 @@ i_cache
     input  logic                  req_recvd,
     input  logic[INSTSIZE - 1:0] 	inp_instr,
     output logic[INSTSIZE - 1:0]  out_instr,
-    output logic[WIDTH - 1:0]     o_pc,
+//  output logic[WIDTH - 1:0]     o_pc,
     output logic                  flag_rdy
 );
   logic                  c_hit, pass, on_req, bus_respack, update_done;
@@ -32,7 +32,6 @@ i_cache
     case(c_state)
       INIT        : begin
         o_pc        = 0;
-        flag_rdy    = 0;
         c_hit       = 0;
         pass        = 0;
         bus_respack = 0;
@@ -75,11 +74,14 @@ i_cache
   end
   always_ff @(posedge clk) begin
     if (reset) begin
-      c_state <= INITIAL;
+      c_state 	<= INITIAL;
+			out_instr	<= 0;
+      flag_rdy 	<= 0;
     end
     else begin
       c_state   <= c_next_state;
-      out_instr  <= curr_instr;
+      out_instr <= curr_instr;
+      flag_rdy 	<= update_done;	
     end
   end
   always_comb begin
