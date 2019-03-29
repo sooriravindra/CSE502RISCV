@@ -28,6 +28,7 @@ i_cache
   logic [TAGWIDTH - 1:0] cachetag	 [NUMLINES - 1:0];
   logic                  cachestate[NUMLINES - 1:0];
   logic [INSTSIZE - 1:0] curr_inst;
+  enum {INIT, BUSY, FOUND, REQ_BUS, UPDATE_CACHE} c_state, c_next_state;
   always_comb begin
     case(c_state)
       INIT        : begin

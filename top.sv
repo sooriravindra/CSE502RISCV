@@ -1,5 +1,4 @@
 `include "Sysbus.defs"
-`include "states.sv"
 `include "fetch.sv"
 `include "decoder.sv"
 //`include "wb.sv"

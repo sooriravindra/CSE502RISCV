@@ -23,6 +23,8 @@ module memory_fetch
 logic [511:0] data_out;
 logic data_valid;
 integer count, next_count;
+enum {INITIAL, WAIT_RESP, GOT_RESP} b_state, b_next_state;
+
 
 always_comb begin
     case(b_state)
