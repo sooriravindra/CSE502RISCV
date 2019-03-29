@@ -82,9 +82,15 @@ module top
 
   end
 
+  inc_pc pc_add(
+    .pc_in(pc),
+    .next_pc(next_pc),
+    .sig_recvd(data_mem_valid)
+    );
+
   memory_fetch memory_instace(
     .clk(clk),
-    .in_address(next_pc),
+    .in_address(pc),
     .data_out(data_from_mem),
     .data_valid(data_mem_valid),
     .bus_reqcyc(bus_reqcyc),
@@ -97,12 +103,34 @@ module top
     .bus_resptag(bus_resptag)
   );
 
-  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(data_mem_valid));
+  decoder decoder_instance(
+    .instr(data_from_mem[31:0]),
+    .clk(data_mem_valid),
+    .rs1(decoder_regA),
+    .rs2(decoder_regB),
+    .rd(decoder_regDest),
+    .opcode(decoder_opcode)
+  );
 
-  decoder decoder_instance(.instr(data_from_mem[31:0]), .clk(data_mem_valid), .rs1(decoder_regA), .rs2(decoder_regB), .rd(decoder_regDest), .opcode(decoder_opcode));
+  alu alu_instance(
+    .regA(decoder_regA),
+    .regB(decoder_regB),
+    .opcode(decoder_opcode),
+    .regDest(decoder_regDest),
+    .clk(data_mem_valid)
+  );
 
-  alu alu_instance(.regA(decoder_regA), .regB(decoder_regB), .opcode(decoder_opcode), .regDest(decoder_regDest), .clk(data_mem_valid));
-
-  //wb wb_instance(.clk(clk), .rst(reset), .lddata_in(0), .alures_in(0), .ld_or_alu(0), .rd(decoder_regDest), .data_out(wb_dataOut), .destReg(wb_regDest));
+  /*
+  wb wb_instance(
+    .clk(clk),
+    .rst(reset),
+    .lddata_in(0),
+    .alures_in(0),
+    .ld_or_alu(0),
+    .rd(decoder_regDest),
+    .data_out(wb_dataOut),
+    .destReg(wb_regDest)
+  );
+  */
 
 endmodule
