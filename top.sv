@@ -2,7 +2,8 @@
 `include "states.sv"
 `include "fetch.sv"
 `include "decoder.sv"
-`include "wb.sv"
+//`include "wb.sv"
+`include "memory.sv"
 
 module top
 #(
@@ -34,41 +35,16 @@ module top
   logic [4:0]  decoder_regDest;
   logic [9:0]  decoder_opcode;
   logic [63:0] pc, next_pc; 
-  logic [511:0] data_out;
-  logic flag_pc_inc;
-  integer count, next_count;
+  logic [511:0] data_from_mem;
+  logic data_mem_valid;
 
-  always_comb begin
-	case(b_state)
-	  INITIAL	: begin
-	  	bus_req 	= pc;
-	  	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
-	  	bus_reqcyc 	= 1;
-		bus_respack = 0;
-		flag_pc_inc	= 0;
-	  end
-	  WAIT_RESP	: begin
-		bus_reqcyc = 0;
-	  end
-	  GOT_RESP	: bus_respack = 1;
-	  default	: begin
-	  	bus_req   	= entry;
-      	bus_reqtag 	= {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
-      	bus_reqcyc 	= 0;
-	  	bus_reqcyc 	= 0;
-	  	bus_respack = 0;
-	  end
-	endcase
-  end
   always_ff @ (posedge clk) begin
     if (reset) begin
-      pc <= entry;
+        pc <= entry;
     end else begin
-	  pc <= next_pc;
-	  b_state <= b_next_state;
-	  count <= next_count;
+        pc <= next_pc;
     end
-	if ((data_out[7:0] == 0) & pc != 0) begin
+    if ((data_from_mem[7:0] == 0) & pc != 0) begin
           $display("zero = %x", register_file[0]);
           $display("ra   = %x", register_file[1]);
           $display("sp   = %x", register_file[2]);
@@ -102,55 +78,31 @@ module top
           $display("t5   = %x", register_file[30]);
           $display("t6   = %x", register_file[31]);
           $finish;
-	end
+    end
 
   end
 
-  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag_pc_inc));
+  memory_fetch memory_instace(
+    .clk(clk),
+    .in_address(next_pc),
+    .data_out(data_from_mem),
+    .data_valid(data_mem_valid),
+    .bus_reqcyc(bus_reqcyc),
+    .bus_respack(bus_respack),
+    .bus_req(bus_req),
+    .bus_reqtag(bus_reqtag),
+    .bus_respcyc(bus_respcyc),
+    .bus_reqack(bus_reqack),
+    .bus_resp(bus_resp),
+    .bus_resptag(bus_resptag)
+  );
 
-  decoder decoder_instance(.instr(data_out[31:0]), .clk(flag_pc_inc), .rs1(decoder_regA), .rs2(decoder_regB), .rd(decoder_regDest), .opcode(decoder_opcode));
+  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(data_mem_valid));
 
-  alu 	 alu_instance(.regA(decoder_regA), .regB(decoder_regB), .opcode(decoder_opcode), .regDest(decoder_regDest), .clk(flag_pc_inc));
+  decoder decoder_instance(.instr(data_from_mem[31:0]), .clk(data_mem_valid), .rs1(decoder_regA), .rs2(decoder_regB), .rd(decoder_regDest), .opcode(decoder_opcode));
 
-	wb		 wb_instance(.clk(clk), .rst(reset), .lddata_in(0), .alures_in(0), .ld_or_alu(0), .rd(decoder_regDest), .data_out(wb_dataOut), .destReg(wb_regDest));
+  alu alu_instance(.regA(decoder_regA), .regB(decoder_regB), .opcode(decoder_opcode), .regDest(decoder_regDest), .clk(data_mem_valid));
 
-  always_comb begin
-	case(b_state)
-	  INITIAL	: begin 
-		if (bus_reqack) begin
-		  next_count = 0;
-		  b_next_state = WAIT_RESP;
-		  flag_pc_inc = 0;
-		end
-	  end
-	  WAIT_RESP	: begin
-		if (bus_respcyc) begin 
-		  b_next_state = GOT_RESP;
-		  flag_pc_inc = 0;
-		  if (count == 0) begin
-            data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
-			next_count = count + 1;
-		  end
-		  else begin
-			data_out = 0;
-		  end
-	    end
-	  end
-	  GOT_RESP	: begin
-		if ((bus_respcyc & !flag_pc_inc) | (bus_respcyc == 0 & count == 7)) begin
-		  if (count < 8) begin
-            data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
-			next_count = count + 1;
-		  end
-		end
-	    else if (!bus_respcyc) begin
-		  flag_pc_inc = 1;
-		  b_next_state = INITIAL;
-		end	
-	  end
-	  default	: begin 
-		b_next_state = INITIAL;
-	  end
-	endcase
-  end
+  //wb wb_instance(.clk(clk), .rst(reset), .lddata_in(0), .alures_in(0), .ld_or_alu(0), .rd(decoder_regDest), .data_out(wb_dataOut), .destReg(wb_regDest));
+
 endmodule
