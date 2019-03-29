@@ -1,5 +1,8 @@
+`include "states.sv"
+
 module 
-dcache(
+dcache
+(
 		 	 input 											clk,
 			 input 											wr_en,
 			 input 				[WIDTH-1:0] 	data_in, 
@@ -12,6 +15,32 @@ dcache(
 parameter  WIDTH=16, LOGSIZE=8;
 localparam SIZE=2**LOGSIZE;
 logic [WIDTH-1:0] mem[SIZE-1:0];
+
+  logic                  c_hit, pass, on_req, bus_respack, update_done;
+  logic [NUMLINES - 1:0] value;
+  logic [WIDTH - 1:0]    cachedata [NUMLINES - 1:0];
+  logic [TAGWIDTH - 1:0] cachetag  [NUMLINES - 1:0];
+  logic                  cachestate[NUMLINES - 1:0];
+  logic [INSTSIZE - 1:0] curr_inst;
+
+always_comb begin
+	case(c_state) begin
+		INIT				: begin
+			
+		end
+		BUSY				:	begin
+			
+		end
+		FOUND				: begin
+		end
+		REQ_BUS			: begin
+		end
+		UPDATE_CACHE: begin
+			cachedata[index] = data_in;
+			
+		end
+	endcase
+end
 
 always_ff @(posedge clk) begin
 	if (rst == 1) begin
@@ -27,11 +56,13 @@ always_ff @(posedge clk) begin
 end
 
 always_comb begin
-	if (wr_en) begin
-		addr_out = w_addr;
-	end
-	else begin
-		addr_out = r_addr;
+	FOUND					: begin
+		if (wr_en) begin
+			addr_out = w_addr;
+		end
+		else begin
+			addr_out = r_addr;
+		end
 	end
 end
 

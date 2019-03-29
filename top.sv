@@ -106,13 +106,13 @@ module top
 
   end
 
-  inc_pc pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag_pc_inc));
+  inc_pc 	pc_add(.pc_in(pc), .next_pc(next_pc), .sig_recvd(flag_pc_inc));
 
   decoder decoder_instance(.instr(data_out[31:0]), .clk(flag_pc_inc), .rs1(decoder_regA), .rs2(decoder_regB), .rd(decoder_regDest), .opcode(decoder_opcode));
 
-  alu 	 alu_instance(.regA(decoder_regA), .regB(decoder_regB), .opcode(decoder_opcode), .regDest(decoder_regDest), .clk(flag_pc_inc));
+  alu 	 	alu_instance(.regA(decoder_regA), .regB(decoder_regB), .opcode(decoder_opcode), .regDest(decoder_regDest), .clk(flag_pc_inc));
 
-	wb		 wb_instance(.clk(clk), .rst(reset), .lddata_in(0), .alures_in(0), .ld_or_alu(0), .rd(decoder_regDest), .data_out(wb_dataOut), .destReg(wb_regDest));
+	wb		 	wb_instance(.clk(clk), .rst(reset), .lddata_in(0), .alures_in(0), .ld_or_alu(0), .rd(decoder_regDest), .data_out(wb_dataOut), .destReg(wb_regDest));
 
   always_comb begin
 	case(b_state)

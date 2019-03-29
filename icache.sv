@@ -10,6 +10,7 @@ i_cache
   OFFWIDTH = 6,
   IDXBITS  = 15:6,
   TAGBITS  = 63:16,
+	OFFBITS	 = 5:0,
   INSTSIZE = 32
 )
 (
@@ -39,6 +40,7 @@ i_cache
         value       = 0;
       end
       BUSY         : begin
+				
         if ((cachestate[i_pc[IDXBITS]] == 1) & (cachetag[i_pc[IDXBITS] == i_pc[TAGBITS])) begin
           c_hit = 1;
         end
@@ -102,6 +104,7 @@ i_cache
       FOUND      : begin
         if (c_hit) begin
           pass = 1;
+					
         end
         else begin
           pass = 0;
