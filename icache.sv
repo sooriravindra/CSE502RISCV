@@ -84,7 +84,7 @@ i_cache
     else begin
       c_state   <= c_next_state;
       out_instr <= curr_instr;
-      flag_rdy 	<= update_done;	
+      flag_rdy 	<= pass;	
     end
   end
   always_comb begin
@@ -103,7 +103,7 @@ i_cache
         end
       end
       FOUND      : begin
-        if (c_hit) begin
+        if (c_hit | update_done) begin
           pass = 1;
 					
         end

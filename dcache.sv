@@ -1,69 +1,155 @@
-`include "states.sv"
-
 module 
 dcache
+#(
+  BLOCKSZ  = 64*8,
+  WIDTH    = 64,
+  NUMLINES = 512,
+  TAGWIDTH = 49,
+  IDXWIDTH = 9,
+  OFFWIDTH = 6,
+  IDXBITS  = 14:6,
+  TAGBITS  = 63:15,
+  OFFBITS  = 5:0,
+  ADDRESSSIZE  = 64,
+)
 (
-		 	 input 											clk,
-			 input 											wr_en,
-			 input 				[WIDTH-1:0] 	data_in, 
-			 input				[LOGSIZE-1:0] r_addr, 
-			 input				[LOGSIZE-1:0] w_addr, 
-			 input											rst,
-			 output logic [WIDTH-1:0] 	data_out,
-			 output logic [LOGSIZE-1:0]	addr_out
-);
-parameter  WIDTH=16, LOGSIZE=8;
-localparam SIZE=2**LOGSIZE;
-logic [WIDTH-1:0] mem[SIZE-1:0];
+       input                      clk,
+       input                      wr_en,
+       input        [WIDTH-1:0]   data_in, 
+       input        [ADDRESSSIZE-1:0] r_addr, 
+       input        [ADDRESSSIZE-1:0] w_addr, 
+       input                      rst,
+       input                      enable,
+       output logic [WIDTH-1:0]   data_out,
+       output logic               operation_complete,
 
-  logic                  c_hit, pass, on_req, bus_respack, update_done;
-  logic [NUMLINES - 1:0] value;
-  logic [WIDTH - 1:0]    cachedata [NUMLINES - 1:0];
-  logic [TAGWIDTH - 1:0] cachetag  [NUMLINES - 1:0];
-  logic                  cachestate[NUMLINES - 1:0];
-  logic [INSTSIZE - 1:0] curr_inst;
+       // All the following outputs go to the memory module
+       output logic [ADDRESSSIZE-1:0] mem_address,
+       output  logic [WIDTH-1:0]     mem_data_out,
+       output  logic                 mem_wr_en,
+       input  logic [BLOCKSZ-1:0]     mem_data_in,
+       input  logic                   mem_data_valid
+
+);
+enum {INIT, BUSY, FOUND, REQ_BUS, UPDATE_CACHE} c_state = INIT, c_next_state;
+
+logic                  c_hit, pass, on_req, update_done ;
+logic [NUMLINES - 1:0] value;
+logic [WIDTH-1:0] final_value;
+logic             final_state;
+logic [BLOCKSZ - 1:0]  cachedata [NUMLINES - 1:0];
+logic [TAGWIDTH - 1:0] cachetag  [NUMLINES - 1:0];
+logic                  cachestate[NUMLINES - 1:0];
 
 always_comb begin
-	case(c_state) begin
-		INIT				: begin
-			
-		end
-		BUSY				:	begin
-			
-		end
-		FOUND				: begin
-		end
-		REQ_BUS			: begin
-		end
-		UPDATE_CACHE: begin
-			cachedata[index] = data_in;
-			
-		end
-	endcase
+  case(c_state) begin
+    INIT        : begin
+        operation_complete = 0; 
+        data_out       = 0; 
+        mem_address    = 0;
+        c_hit = 0;
+        pass = 0;
+        on_req = 0;
+        update_done = 0;
+        mem_wr_en    = 0;
+    end
+    BUSY        :  begin
+        if (wr_en) begin
+            // Treat all writes as Cache hits
+            c_hit = 1;
+        end
+        else begin
+            if ((cachestate[r_addr[IDXBITS]] == 1) & 
+                (cachetag[r_addr[IDXBITS]] == r_addr[TAGBITS])) begin
+                c_hit = 1;
+            end
+            else begin
+                c_hit = 0;
+            end
+        end
+    end
+    FOUND        : begin
+        if (wr_en) begin
+            mem_address  = w_addr; 
+            mem_wr_en    = 1;
+            mem_data_out = data_in;
+        end
+        if (pass) begin
+            if (wr_en) begin
+                final_state = 1;
+            end
+            else begin
+                final_value = cachedata[r_addr[IDXBITS]][r_addr[OFFBITS]];
+            end
+        end
+    end
+    REQ_BUS      : begin
+        mem_address = r_addr;
+        mem_wr_en = 0;
+    end
+    UPDATE_CACHE: begin
+      final_value = data_in;
+      update_done = 1;
+    end
+  endcase
 end
 
 always_ff @(posedge clk) begin
-	if (rst == 1) begin
-		data_out <= 0;
-	end
-	else begin
-		data_out <= mem[r_addr];
+  if (rst == 1) begin
+    data_out <= 0;
+    c_state <= INIT;
+  end
+  else begin
 
-		if (wr_en) begin
-			mem[w_addr] <= data_in;
-		end
-	end
+    if (wr_en) begin
+      cachedata[w_addr[IDXBITS]][w_addr[OFFBITS]] <= data_in;
+      cachestate[w_addr[IDXBITS]] <= final_state;
+      cachetag [w_addr[IDXBITS]] <= w_addr[TAGBITS];
+      
+    end
+    else begin
+        data_out <= final_value;
+    end
+
+    operation_complete <= pass;
+    c_state <= c_next_state;
+  end
 end
 
 always_comb begin
-	FOUND					: begin
-		if (wr_en) begin
-			addr_out = w_addr;
-		end
-		else begin
-			addr_out = r_addr;
-		end
-	end
+    case(c_state)
+        INIT: begin
+            if(enable) begin
+                c_next_state = BUSY;
+            end
+        end
+        BUSY: begin
+            if (c_hit) begin
+                c_next_state = FOUND;
+            end
+            else begin
+                c_next_state = REQ_BUS;
+            end
+        end
+        FOUND: begin
+            if (!wr_en | mem_data_valid) begin
+              pass = 1;
+              c_next_state = INITIAL;
+            end
+            else begin
+              pass = 0;
+            end
+        end
+        REQ_BUS: begin
+            if (mem_data_valid) begin
+                c_next_state = UPDATE_CACHE;
+            end
+        end
+        UPDATE_CACHE: begin
+            if (update_done) begin
+                c_next_state = FOUND;
+            end
+        end
 end
 
 endmodule
