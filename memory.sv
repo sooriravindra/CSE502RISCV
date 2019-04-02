@@ -5,6 +5,7 @@ module memory_fetch
 )
 (
     input  clk,
+		input	 rst,
     input  [63:0] in_address,
     //output data and signal if valid
     output [511:0] data_out,
@@ -24,7 +25,6 @@ logic [511:0] data_out;
 logic data_valid;
 integer count, next_count;
 enum {INITIAL, WAIT_RESP, GOT_RESP} b_state, b_next_state;
-
 
 always_comb begin
     case(b_state)
@@ -49,8 +49,14 @@ always_comb begin
     endcase
 end
 always_ff @ (posedge clk) begin
-        b_state <= b_next_state;
-        count <= next_count;
+	if (rst) begin
+		b_state <= INITIAL;
+		count <= 0;
+	end
+	else begin
+		b_state <= b_next_state;
+		count <= next_count;
+	end
 end
 
 always_comb begin

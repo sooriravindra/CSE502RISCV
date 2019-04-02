@@ -1,48 +1,49 @@
-`include "states.sv"
-
 module 
 i_cache
 #(
+	BLOCKSZ	 = 64*8,
   WIDTH    = 64,
   NUMLINES = 512,
-  TAGWIDTH = 48,
-  IDXWIDTH = 10,
+  TAGWIDTH = 49,
+  IDXWIDTH = 9,
   OFFWIDTH = 6,
-  IDXBITS  = 15:6,
-  TAGBITS  = 63:16,
+  IDXBITS  = 14:6,
+  TAGBITS  = 63:15,
 	OFFBITS	 = 5:0,
   INSTSIZE = 32
 )
 (
-    input  logic[WIDTH - 1:0]     i_pc,
     input  logic                  clk,
+    input  logic[BLOCKSZ - 1:0]   i_block,
     input  logic                  reset,
     input  logic                  req_recvd,
-    input  logic[INSTSIZE - 1:0] 	inp_instr,
+		input  logic									mem_data_valid,
     output logic[INSTSIZE - 1:0]  out_instr,
-//  output logic[WIDTH - 1:0]     o_pc,
-    output logic                  flag_rdy
+    output logic                  flag_rdy,
 );
-  logic                  c_hit, pass, on_req, bus_respack, update_done;
+  logic                  c_hit, pass, on_req, update_done;
+	logic [WIDTH - 1: 0]	 curr_word;
   logic [NUMLINES - 1:0] value;
-  logic [WIDTH - 1:0]    cachedata [NUMLINES - 1:0];
+  logic [BLOCKSZ - 1:0]  cachedata [NUMLINES - 1:0];
   logic [TAGWIDTH - 1:0] cachetag	 [NUMLINES - 1:0];
   logic                  cachestate[NUMLINES - 1:0];
   logic [INSTSIZE - 1:0] curr_inst;
-  enum {INIT, BUSY, FOUND, REQ_BUS, UPDATE_CACHE} c_state, c_next_state;
+  enum {INIT, BUSY, FOUND, REQ_BUS, UPDATE_CACHE} c_state = INIT, c_next_state;
   always_comb begin
     case(c_state)
       INIT        : begin
-        o_pc        = 0;
-        c_hit       = 0;
         pass        = 0;
-        bus_respack = 0;
-        update_done = 0;
+        c_hit       = 0;
         value       = 0;
+				on_req			= 0;
+				flag_rdy		= 0;
+        out_instr   = 0;
+        update_done = 0;
+				curr_inst		= {32'h00000000, i_block[INSTSIZE - 1:0]};
       end
       BUSY         : begin
-				
-        if ((cachestate[i_pc[IDXBITS]] == 1) & (cachetag[i_pc[IDXBITS] == i_pc[TAGBITS])) begin
+        if ((cachestate[curr_inst[IDXBITS]] == 1) & 
+						(cachetag[curr_inst[IDXBITS]] == curr_inst[TAGBITS])) begin
           c_hit = 1;
         end
         else begin
@@ -52,10 +53,10 @@ i_cache
       FOUND        : begin
         if (pass) begin
           // Now that the value is found
-          curr_instr = inp_instr;
+          curr_word = cachedata[i_block[IDXBITS]][i_block[OFFBITS]];
         end
         else begin
-          curr_instr = 64'hAAAAAAAAAAAAAAAA;
+          curr_word = 64'hAAAAAAAAAAAAAAAA;
         end
       end
       REQ_BUS      : begin
@@ -73,6 +74,7 @@ i_cache
 				else begin
 					update_done = 1;
 				end
+			end
     endcase
   end
   always_ff @(posedge clk) begin
@@ -90,7 +92,7 @@ i_cache
   always_comb begin
     case(c_state)
       INIT      : begin
-        if (on_req) begin
+        if (req_recvd) begin
           c_next_state = BUSY;
         end
       end
@@ -103,19 +105,16 @@ i_cache
         end
       end
       FOUND      : begin
-        if (c_hit | update_done) begin
+        if (mem_data_valid) begin
           pass = 1;
-					
+          c_next_state = INITIAL;
         end
         else begin
           pass = 0;
         end
-        if (pass) begin
-          c_next_state = INITIAL;
-        end
       end
       REQ_BUS    : begin
-        if (bus_respack) begin
+        if (mem_data_valid) begin
           c_next_state = UPDATE_CACHE;
         end
       end

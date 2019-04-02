@@ -6,36 +6,42 @@
 
 module top
 #(
-  BUS_DATA_WIDTH = 64,
-  BUS_TAG_WIDTH = 13
+	REGSZ					 = 5,
+	INSTSZ				 = 32,
+	REGBSZ				 = 12,
+	WORDSZ				 = 64
+	OPFUNC				 = 9:0,
+	BLOCKSZ				 = 64*8,
+  BUS_TAG_WIDTH  = 13,
+  BUS_DATA_WIDTH = 64
 )
 (
   input  clk,
          reset,
 
   // 64-bit addresses of the program entry point and initial stack pointer
-  input  [63:0] entry,
-  input  [63:0] stackptr,
-  input  [63:0] satp,
+  input  [WORDSZ - 1:0] entry,
+  input  [WORDSZ - 1:0] stackptr,
+  input  [WORDSZ - 1:0] satp,
   
   // interface to connect to the bus
   output bus_reqcyc,
   output bus_respack,
   output [BUS_DATA_WIDTH-1:0] bus_req,
-  output [BUS_TAG_WIDTH-1:0] bus_reqtag,
+  output [BUS_TAG_WIDTH-1:0]  bus_reqtag,
   input  bus_respcyc,
   input  bus_reqack,
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
-  input  [BUS_TAG_WIDTH-1:0] bus_resptag
+  input  [BUS_TAG_WIDTH-1:0]  bus_resptag
 );
-
-  logic [4:0]  decoder_regA;
-  logic [11:0] decoder_regB;
-  logic [4:0]  decoder_regDest;
-  logic [9:0]  decoder_opcode;
-  logic [63:0] pc, next_pc; 
-  logic [511:0] data_from_mem;
-  logic data_mem_valid;
+  logic 								 data_mem_valid;
+  logic [OPFUNC] 				 decoder_opcode;
+  logic [REGSZ - 1: 0]   decoder_regA;
+  logic [REGSZ - 1: 0]   decoder_regDest;
+	logic [INSTSZ - 1: 0]  inst;
+  logic [WORDSZ - 1: 0]  pc, next_pc; 
+  logic [REGBSZ - 1: 0]  decoder_regB;
+  logic [BLOCKSZ - 1: 0] data_from_mem;
 
   always_ff @ (posedge clk) begin
     if (reset) begin
@@ -89,6 +95,7 @@ module top
 
   memory_fetch memory_instace(
     .clk(clk),
+		.rst(reset),
     .in_address(pc),
     .data_out(data_from_mem),
     .data_valid(data_mem_valid),
@@ -102,9 +109,35 @@ module top
     .bus_resptag(bus_resptag)
   );
 
+	i_cache instcache(
+		.clk(clk),
+		.i_block(bus_req),
+		.reset(reset),
+		.req_recvd(bus_resp),
+		.mem_data_valid(),
+		.out_instr(inst),
+		.flag_rdy(data_mem_valid)
+	);
+
+	dcache datacache(
+		.clk(clk),
+		.wr_en(wr_en),
+		.data_in(),
+		.r_addr(),
+		.w_addr(),
+		.rst(reset),
+		.enable(),
+		.data_out(),
+		.operation_complete(),
+		.mem_address(),
+		.mem_data_out(),
+		.mem_wr_en(),
+		.mem_data_in(),
+		.mem_data_valid()
+	);
  
  decoder decoder_instance(
-    .instr(data_from_mem[31:0]),
+    .instr(inst),
     .clk(data_mem_valid),
     .rs1(decoder_regA),
     .rs2(decoder_regB),

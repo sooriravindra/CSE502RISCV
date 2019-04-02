@@ -1,42 +1,42 @@
 module 
 dcache
 #(
-  BLOCKSZ  = 64*8,
-  WIDTH    = 64,
-  NUMLINES = 512,
-  TAGWIDTH = 49,
-  IDXWIDTH = 9,
-  OFFWIDTH = 6,
-  IDXBITS  = 14:6,
-  TAGBITS  = 63:15,
-  OFFBITS  = 5:0,
-  ADDRESSSIZE  = 64,
+  BLOCKSZ  		= 64*8,
+  WIDTH    		= 64,
+  NUMLINES 		= 512,
+  TAGWIDTH 		= 49,
+  IDXWIDTH 		= 9,
+  OFFWIDTH 		= 6,
+  IDXBITS  		= 14:6,
+  TAGBITS  		= 63:15,
+  OFFBITS  	 	= 5:0,
+  ADDRESSSIZE	= 64
 )
 (
-       input                      clk,
-       input                      wr_en,
-       input        [WIDTH-1:0]   data_in, 
+       input                      		clk,
+       input                      		wr_en,
+       input        [WIDTH-1:0]   		data_in, 
        input        [ADDRESSSIZE-1:0] r_addr, 
        input        [ADDRESSSIZE-1:0] w_addr, 
-       input                      rst,
-       input                      enable,
-       output logic [WIDTH-1:0]   data_out,
-       output logic               operation_complete,
+       input                      		rst,
+       input                      		enable,
+       output logic [WIDTH-1:0]   		data_out,
+       output logic               		operation_complete,
 
        // All the following outputs go to the memory module
        output logic [ADDRESSSIZE-1:0] mem_address,
-       output  logic [WIDTH-1:0]     mem_data_out,
-       output  logic                 mem_wr_en,
+       output logic [WIDTH-1:0]     	mem_data_out,
+       output logic                 	mem_wr_en,
        input  logic [BLOCKSZ-1:0]     mem_data_in,
        input  logic                   mem_data_valid
 
 );
 enum {INIT, BUSY, FOUND, REQ_BUS, UPDATE_CACHE} c_state = INIT, c_next_state;
 
-logic                  c_hit, pass, on_req, update_done ;
+logic                  c_hit, pass, update_done ;
 logic [NUMLINES - 1:0] value;
-logic [WIDTH-1:0] final_value;
-logic             final_state;
+logic [WIDTH-1:0] 		 final_value;
+logic             		 final_state;
 logic [BLOCKSZ - 1:0]  cachedata [NUMLINES - 1:0];
 logic [TAGWIDTH - 1:0] cachetag  [NUMLINES - 1:0];
 logic                  cachestate[NUMLINES - 1:0];
@@ -44,14 +44,13 @@ logic                  cachestate[NUMLINES - 1:0];
 always_comb begin
   case(c_state) begin
     INIT        : begin
+        pass 							 = 0;
+        c_hit 						 = 0;
+        data_out       		 = 0; 
+        mem_wr_en    			 = 0;
+        mem_address    		 = 0;
+        update_done 			 = 0;
         operation_complete = 0; 
-        data_out       = 0; 
-        mem_address    = 0;
-        c_hit = 0;
-        pass = 0;
-        on_req = 0;
-        update_done = 0;
-        mem_wr_en    = 0;
     end
     BUSY        :  begin
         if (wr_en) begin
@@ -98,6 +97,7 @@ always_ff @(posedge clk) begin
   if (rst == 1) begin
     data_out <= 0;
     c_state <= INIT;
+		operation_complete <= 0;
   end
   else begin
 
@@ -110,9 +110,8 @@ always_ff @(posedge clk) begin
     else begin
         data_out <= final_value;
     end
-
-    operation_complete <= pass;
-    c_state <= c_next_state;
+    c_state 					 <= c_next_state;
+		operation_complete <= pass;
   end
 end
 
