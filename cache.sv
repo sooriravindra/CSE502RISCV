@@ -1,5 +1,5 @@
 module 
-dcache
+cache
 #(
   BLOCKSZ  		= 64*8,
   WIDTH    		= 64,

@@ -34,7 +34,7 @@ module top
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
   input  [BUS_TAG_WIDTH-1:0]  bus_resptag
 );
-  logic 								 data_mem_valid;
+  logic 								 got_inst, data_mem_valid, wr_data;
   logic [OPFUNC] 				 decoder_opcode;
   logic [REGSZ - 1: 0]   decoder_regA;
   logic [REGSZ - 1: 0]   decoder_regDest;
@@ -93,7 +93,7 @@ module top
     .sig_recvd(data_mem_valid)
     );
 
-  memory_fetch memory_instace(
+  memory_fetch memory_instance(
     .clk(clk),
 		.rst(reset),
     .in_address(pc),
@@ -109,19 +109,26 @@ module top
     .bus_resptag(bus_resptag)
   );
 
-	i_cache instcache(
+	cache instcache(
 		.clk(clk),
-		.i_block(bus_req),
-		.reset(reset),
-		.req_recvd(bus_resp),
-		.mem_data_valid(),
-		.out_instr(inst),
-		.flag_rdy(data_mem_valid)
+		.wr_en(0),
+		.data_in(0),
+		.r_addr(pc),
+		.w_addr(0),
+		.rst(reset),
+		.enable(data_mem_valid),
+		.data_out(pc),
+		.operation_complete(got_inst),
+		.mem_address(),
+		.mem_data_out(),
+		.mem_wr_en(wr_data),
+		.mem_data_in(),
+		.mem_data_valid(),		
 	);
 
-	dcache datacache(
+	cache datacache(
 		.clk(clk),
-		.wr_en(wr_en),
+		.wr_en(wr_data),
 		.data_in(),
 		.r_addr(),
 		.w_addr(),
@@ -131,7 +138,7 @@ module top
 		.operation_complete(),
 		.mem_address(),
 		.mem_data_out(),
-		.mem_wr_en(),
+		.mem_wr_en(wr_data),
 		.mem_data_in(),
 		.mem_data_valid()
 	);
