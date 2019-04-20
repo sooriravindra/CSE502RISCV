@@ -1,24 +1,56 @@
 //register file module
 
-module register_file(clk, wrt_high_enable, rd_reg_A, rd_reg_B, destn_reg, destn_data, rd_data_A, rd_data_B);
+module register_file(clk, reset, wrt_high_enable, rd_reg_A, rd_reg_B, destn_reg, destn_data, rd_data_A, rd_data_B);
 	
 	logic [63:0] register_set [31:0]; // set of all registers (32 registers of 64 bit each)
-	input clk, wrt_high_enable; //general inputs
+	input clk, reset, wrt_high_enable; //general inputs
 	input [4:0] rd_reg_A, rd_reg_B, destn_reg; // specify the input and output registers
 	input [63:0] destn_data; 
 	output [63:0] rd_data_A, rd_data_B; //output data
 
-	always_ff @(posedge clk) begin //this always block is for write. we would write to the register in every postive edge of the clock
-		if (wrt_high_enable == 1) begin
-			register_set[destn_reg] <= destn_data; //write the data into the destination register
+	always_ff @(posedge clk or posedge reset) begin //this always block is for write. we would write to the register in every postive edge of the clock
+		if (reset) begin
+			 register_set[0] = 64'b0;
+			 register_set[1] = 64'b0;
+			 register_set[2] = 64'b0;
+			 register_set[3] = 64'b0;
+			 register_set[4] = 64'b0;
+			 register_set[5] = 64'b0;
+			 register_set[6] = 64'b0;
+			 register_set[7] = 64'b0;
+			 register_set[8] = 64'b0;
+			 register_set[9] = 64'b0;
+			 register_set[10] = 64'b0;
+			 register_set[11] = 64'b0;
+			 register_set[12] = 64'b0;
+			 register_set[13] = 64'b0;
+			 register_set[14] = 64'b0;
+			 register_set[15] = 64'b0;
+			 register_set[16] = 64'b0;	
+			 register_set[17] = 64'b0;
+			 register_set[18] = 64'b0;
+			 register_set[19] = 64'b0;
+			 register_set[20] = 64'b0;
+			 register_set[21] = 64'b0;
+			 register_set[22] = 64'b0;
+			 register_set[23] = 64'b0;
+			 register_set[24] = 64'b0;
+			 register_set[25] = 64'b0;
+			 register_set[26] = 64'b0;
+			 register_set[27] = 64'b0;
+			 register_set[28] = 64'b0;
+			 register_set[29] = 64'b0;
+			 register_set[30] = 64'b0;
+			 register_set[31] = 64'b0;
+		end else begin
+			if (wrt_high_enable) begin
+				register_set[destn_reg] <= destn_data; //write the data into the destination register
+			end
 		end 
 	end //always_ff block end
-
-	always_comb begin //combinational read
-		if (wrt_high_enable == 0) begin
-			assign rd_data_A = register_set[rd_reg_A];//read the data from register A to data A
-			assign rd_data_B = register_set[rd_reg_B];//read the data from register B to data B 
-		end
-	end //always_comb block end
+	
+	//combinational read
+	assign rd_data_A = register_set[rd_reg_A];//read the data from register A to data A
+	assign rd_data_B = register_set[rd_reg_B];//read the data from register B to data B 
 
 endmodule

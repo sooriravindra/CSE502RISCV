@@ -5,7 +5,8 @@ module alu
     input [11:0] regB,
     input [9:0] opcode,
     input [4:0] regDest,
-    input clk
+    input clk,
+    input reset
 );
 
 enum {
@@ -37,7 +38,16 @@ enum {
 } opcodes;
 
 logic [63:0] temp_dest;
-logic sign_extend;
+logic sign_extend, wr_en;
+
+//instantiate register file
+register_file reg_file(.clk(clk),
+			 .reset(reset),
+			 .wrt_high_enable(wr_en),
+			 .rd_reg_A(regA),
+			 .rd_reg_B(regB[4:0]),
+			 .destn_reg(regDest),
+			 .destn_data(temp_dest));
 
 always_ff @(posedge clk) begin
     if (sign_extend) begin
