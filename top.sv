@@ -119,6 +119,17 @@ module top
     .clk(data_mem_valid)
   );
 
+  //instantiate register file
+  register_file regfile_instance(
+    .clk(clk),
+    .reset(reset),
+    .wrt_high_enable(wr_en),
+    .rd_reg_A(decoder_regA),
+    .rd_reg_B(decoder_regB[4:0]),
+    .destn_reg(decoder_regDest),
+    .destn_data(temp_dest)
+  );
+
   /*
   wb wb_instance(
     .clk(clk),
