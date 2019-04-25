@@ -1,12 +1,15 @@
-`include "registers.sv"
+
 module alu
 (
     input [4:0] regA,
     input [11:0] regB,
     input [9:0] opcode,
     input [4:0] regDest,
+    input [63:0] regA_value,
+    input [63:0] regB_value,
     input clk,
-    input reset
+    input reset,
+    output [63:0] data_out
 );
 
 enum {
@@ -37,50 +40,50 @@ enum {
 	opcode_sllw				 = 10'h0bb
 } opcodes;
 
-logic [63:0] temp_dest;
+wire [63:0] temp_dest;
 logic sign_extend, wr_en;
 
 always_ff @(posedge clk) begin
     if (sign_extend) begin
-        register_file[regDest] = {{32{temp_dest[31]}}, temp_dest[31:0]}; 
+        data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]}; 
     end    
     else begin
-        register_file[regDest] = temp_dest;
+        data_out <= temp_dest;
     end
 end
 
 always_comb begin
     case (opcode)
         opcode_addi: begin
-            temp_dest = register_file[regA] + {{52{regB[11]}}, regB};
+            temp_dest = regA_value + {{52{regB[11]}}, regB};
             sign_extend = 0;
         end
         opcode_addiw: begin
-            temp_dest = register_file[regA][31:0] + {{20{regB[11]}}, regB};
+            temp_dest = regA_value[31:0] + {{20{regB[11]}}, regB};
             sign_extend = 1;
         end
         opcode_addsubmulw: begin
             case(regB[11:5])
                 7'b0000000: begin
-                    temp_dest = register_file[regA][31:0] + register_file[regB[4:0]][31:0];
+                    temp_dest = regA_value[31:0] + regB_value[31:0];
                     sign_extend = 1;
                 end
                 7'b0000001: begin
-                    temp_dest = register_file[regA][31:0] * register_file[regB[4:0]][31:0];
+                    temp_dest = regA_value[31:0] * regB_value[31:0];
                     sign_extend = 1;
                 end
                 7'b0100000: begin
-                    temp_dest = register_file[regA][31:0] - register_file[regB[4:0]][31:0];
+                    temp_dest = regA_value[31:0] - regB_value[31:0];
                     sign_extend = 1;
                 end
             endcase
         end
         opcode_andi: begin
-            temp_dest = register_file[regA] & {{52{regB[11]}}, regB};
+            temp_dest = regA_value & {{52{regB[11]}}, regB};
             sign_extend = 0;
         end
 	opcode_slti: begin
-		if ($signed(register_file[regA]) < $signed({{52{regB[11]}}, regB})) begin
+		if ($signed(regA_value) < $signed({{52{regB[11]}}, regB})) begin
                         temp_dest = 1;
                 end else begin
                         temp_dest = 0;
@@ -88,7 +91,7 @@ always_comb begin
                 sign_extend = 0;	
 	end
 	opcode_sltiu: begin
-		if (register_file[regA] < {{52{regB[11]}}, regB}) begin
+		if (regA_value < {{52{regB[11]}}, regB}) begin
 			temp_dest = 1;
 		end else begin
 			temp_dest = 0;
@@ -96,25 +99,25 @@ always_comb begin
 		sign_extend = 0;
 	end
 	opcode_xori: begin
-		temp_dest = register_file[regA] ^ {{52{regB[11]}}, regB};
+		temp_dest = regA_value ^ {{52{regB[11]}}, regB};
 		sign_extend = 0;
 	end
 	opcode_ori: begin
-		temp_dest = register_file[regA] | {{52{regB[11]}}, regB};
+		temp_dest = regA_value | {{52{regB[11]}}, regB};
 		sign_extend = 0;
 	end
 	opcode_addsubmul: begin
 		case(regB[11:5])
 			7'b0000000: begin
-                    		temp_dest = register_file[regA] + register_file[regB[4:0]];
+                    		temp_dest = regA_value + regB_value;
                     		sign_extend = 0;
                 	end
                 	7'b0000001: begin
-                    		temp_dest = register_file[regA] * register_file[regB[4:0]];
+                    		temp_dest = regA_value * regB_value;
                     		sign_extend = 0;
                 	end
                 	7'b0100000: begin
-                    		temp_dest = register_file[regA] - register_file[regB[4:0]];
+                    		temp_dest = regA_value - regB_value;
                     		sign_extend = 0;
                 	end
 		endcase
@@ -122,10 +125,10 @@ always_comb begin
 	opcode_sllmulh: begin
 		case(regB[11:5])
                 	7'b0000000: begin
-                    		temp_dest = register_file[regA] << register_file[regB[4:0]];
+                    		temp_dest = regA_value << regB_value;
                 	end
                 	7'b0000001: begin
-				logic [63:0] product = $signed(register_file[regA]) * $signed(register_file[regB[4:0]]); 
+				logic [63:0] product = $signed(regA_value) * $signed(regB_value); 
                     		temp_dest = product[63:32];
                 	end
 		endcase
@@ -134,14 +137,14 @@ always_comb begin
 	opcode_sltmulhsu: begin
 		case(regB[11:5])
                         7'b0000000: begin
-                                if ($signed(register_file[regA]) < $signed(register_file[regB[4:0]])) begin
+                                if ($signed(regA_value) < $signed(regB_value)) begin
                         		temp_dest = 1;
                 		end else begin
                         		temp_dest = 0;
                 		end
                         end
                         7'b0000001: begin
-                                logic [63:0] product = $signed(register_file[regA]) * register_file[regB[4:0]];
+                                logic [63:0] product = $signed(regA_value) * regB_value;
                                 temp_dest = product[63:32];
                         end
                 endcase
@@ -150,14 +153,14 @@ always_comb begin
 	opcode_sltumulhu: begin
 		case(regB[11:5])
                         7'b0000000: begin
-                                if (register_file[regA] < register_file[regB[4:0]]) begin
+                                if (regA_value < regB_value) begin
                                         temp_dest = 1;
                                 end else begin
                                         temp_dest = 0;
                                 end
                         end
                         7'b0000001: begin
-                                logic [63:0] product = register_file[regA] * register_file[regB[4:0]];
+                                logic [63:0] product = regA_value * regB_value;
                                 temp_dest = product[63:32];
                         end
                 endcase
@@ -166,11 +169,11 @@ always_comb begin
 	opcode_xordiv: begin 
 		case(regB[11:5])
                         7'b0000000: begin
-                                temp_dest = register_file[regA] ^ register_file[regB[4:0]];
+                                temp_dest = regA_value ^ regB_value;
                                 sign_extend = 0;
                         end
                         7'b0000001: begin
-                                temp_dest = $signed(register_file[regA]) / $signed(register_file[regB[4:0]]);
+                                temp_dest = $signed(regA_value) / $signed(regB_value);
                                 sign_extend = 0;
                         end
                  endcase
@@ -178,15 +181,15 @@ always_comb begin
 	opcode_srlsradivu: begin
 		 case(regB[11:5])
                         7'b0000000: begin
-                                temp_dest = register_file[regA] >> register_file[regB[4:0]];
+                                temp_dest = regA_value >> regB_value;
                                 sign_extend = 0;
                         end
                         7'b0100000: begin
-                                temp_dest = $signed(register_file[regA]) >> register_file[regB[4:0]];
+                                temp_dest = $signed(regA_value) >> regB_value;
                                 sign_extend = 0;
                         end
                         7'b0000001: begin
-                                temp_dest = register_file[regA] / register_file[regB[4:0]];
+                                temp_dest = regA_value / regB_value;
                                 sign_extend = 0;
                         end
                 endcase
@@ -194,11 +197,11 @@ always_comb begin
 	opcode_orrem: begin
 		case(regB[11:5])
                         7'b0000000: begin
-                                temp_dest = register_file[regA] | register_file[regB[4:0]];
+                                temp_dest = regA_value | regB_value;
                                 sign_extend = 0;
                         end
                         7'b0000001: begin
-				temp_dest =$signed(register_file[regA]) % $signed(register_file[regB[4:0]]);
+				temp_dest =$signed(regA_value) % $signed(regB_value);
 				sign_extend = 0;
                         end
                 endcase
@@ -206,55 +209,55 @@ always_comb begin
 	opcode_andremu: begin
 		 case(regB[11:5])
                         7'b0000000: begin
-                                temp_dest = register_file[regA] & register_file[regB[4:0]];
+                                temp_dest = regA_value & regB_value;
                                 sign_extend = 0;
                         end
                         7'b0000001: begin
-                                temp_dest = register_file[regA] % register_file[regB[4:0]];
+                                temp_dest = regA_value % regB_value;
                                 sign_extend = 0;
                         end
                  endcase
 	end
 	opcode_divw: begin
-		temp_dest = $signed(register_file[regA][31:0]) / $signed(register_file[regB[4:0]][31:0]);
+		temp_dest = $signed(regA_value[31:0]) / $signed(regB_value[31:0]);
 		sign_extend = 1; 
 	end
 	opcode_srlsradivuw: begin
 		 case(regB[11:5])
                         7'b0000000: begin
-                                temp_dest = register_file[regA][31:0] >> register_file[regB[4:0]][31:0];
+                                temp_dest = regA_value[31:0] >> regB_value[31:0];
                                 sign_extend = 1;
                         end
                         7'b0100000: begin
-                                temp_dest = $signed(register_file[regA][31:0]) >> register_file[regB[4:0]][31:0];
+                                temp_dest = $signed(regA_value[31:0]) >> regB_value[31:0];
                                 sign_extend = 1;
                         end
                         7'b0000001: begin
-                                temp_dest = register_file[regA][31:0] / register_file[regB[4:0]][31:0];
+                                temp_dest = regA_value[31:0] / regB_value[31:0];
                                 sign_extend = 1;
                         end
                 endcase
 	end
 	opcode_remw: begin
-		temp_dest = $signed(register_file[regA][31:0]) % $signed(register_file[regB[4:0]][31:0]);
+		temp_dest = $signed(regA_value[31:0]) % $signed(regB_value[31:0]);
                 sign_extend = 1;
 	end
 	opcode_remuw: begin
-		temp_dest = register_file[regA][31:0] % register_file[regB[4:0]][31:0];
+		temp_dest = regA_value[31:0] % regB_value[31:0];
                 sign_extend = 1;
 	end
 	opcode_slli: begin
-		temp_dest = register_file[regA] << regB[4:0];
+		temp_dest = regA_value << regB[4:0];
 		sign_extend = 0;
 	end
 	opcode_srlsrai: begin
 		case(regB[11:5])
 		 	7'b0000000: begin
-				temp_dest = register_file[regA] >> regB[4:0];
+				temp_dest = regA_value >> regB[4:0];
                 		sign_extend = 0;                 
                  	end
                  	7'b0100000: begin
-				temp_dest = $signed(register_file[regA]) >> regB[4:0];
+				temp_dest = $signed(regA_value) >> regB[4:0];
                         	sign_extend = 0;
                  	end
 		endcase
@@ -262,21 +265,21 @@ always_comb begin
 	opcode_srlsraiw: begin
 		case(regB[11:5]) 
 		 	7'b0000000: begin
-                        	temp_dest = register_file[regA][31:0] >> regB[5:0]; // 6 bits immediate value
+                        	temp_dest = regA_value[31:0] >> regB[5:0]; // 6 bits immediate value
                         	sign_extend = 1;
                  	end
                  	7'b0100000: begin
-                        	temp_dest = $signed(register_file[regA][31:0]) >> regB[5:0]; // 6 bits immediate value
+                        	temp_dest = $signed(regA_value[31:0]) >> regB[5:0]; // 6 bits immediate value
                         	sign_extend = 1;
                  	end
 		endcase
 	end
 	opcode_slliw: begin
-		temp_dest = register_file[regA][31:0] << regB[5:0]; //6 bits immediate value
+		temp_dest = regA_value[31:0] << regB[5:0]; //6 bits immediate value
 		sign_extend = 1; 
 	end
 	opcode_sllw:begin
-		temp_dest = register_file[regA][31:0] << register_file[regB[4:0]][31:0];
+		temp_dest = regA_value[31:0] << regB_value[31:0];
                	sign_extend = 1;
 	end
         default: begin
