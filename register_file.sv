@@ -1,9 +1,9 @@
 //register file module
 
-module register_file(clk, reset, wrt_high_enable, rd_reg_A, rd_reg_B, destn_reg, destn_data, rd_data_A, rd_data_B, instr_bits, prog_counter);
+module register_file(clk, reset, wr_en, rd_reg_A, rd_reg_B, destn_reg, destn_data, rd_data_A, rd_data_B, instr_bits, prog_counter);
 	
 	reg [63:0] register_set [31:0]; // set of all registers (32 registers of 64 bit each)
-	input clk, reset, wrt_high_enable; //general inputs
+	input clk, reset, wr_en; //general inputs
 	input [4:0] rd_reg_A, rd_reg_B, destn_reg; // specify the input and output registers
 	input [63:0] destn_data, prog_counter; 
 	output [63:0] rd_data_A, rd_data_B; //output data
@@ -77,7 +77,7 @@ module register_file(clk, reset, wrt_high_enable, rd_reg_A, rd_reg_B, destn_reg,
          		 	$display("t6   = %x", register_set[31]);
          		 	$finish;
    		 end else begin
-			if (wrt_high_enable) begin
+			if (wr_en) begin
 				register_set[destn_reg] <= destn_data; //write the data into the destination register
 			end
 		 end 

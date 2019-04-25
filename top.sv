@@ -47,6 +47,7 @@ module top
 
   //connect alu output to register file input/output
   wire [63:0] data_wire, regA_val, regB_val;
+  wire wr_enable;
 
   inc_pc pc_add(
     .pc_in(pc),
@@ -86,14 +87,15 @@ module top
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
     .data_out(data_wire),
-    .clk(data_mem_valid)
+    .clk(data_mem_valid),
+    .wr_en(wr_enable)
   );
 
   //instantiate register file
   register_file regfile_instance(
     .clk(clk),
     .reset(reset),
-    .wrt_high_enable(wr_en),
+    .wr_en(wr_enable),
     .rd_reg_A(decoder_regA),
     .rd_reg_B(decoder_regB[4:0]),
     .rd_data_A(regA_val),

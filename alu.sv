@@ -9,7 +9,8 @@ module alu
     input [63:0] regB_value,
     input clk,
     input reset,
-    output [63:0] data_out
+    output [63:0] data_out,
+    output wr_en
 );
 
 enum {
@@ -41,14 +42,16 @@ enum {
 } opcodes;
 
 wire [63:0] temp_dest;
-logic sign_extend, wr_en;
+logic sign_extend;
 
 always_ff @(posedge clk) begin
     if (sign_extend) begin
-        data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]}; 
+        data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
+	wr_en <= 1; 
     end    
     else begin
         data_out <= temp_dest;
+	wr_en<=1;
     end
 end
 
