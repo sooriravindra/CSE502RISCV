@@ -119,28 +119,28 @@ module top
 		.enable(data_mem_valid),
 		.data_out(pc),
 		.operation_complete(got_inst),
-		.mem_address(),
-		.mem_data_out(),
+		.mem_address(mem_addr),
+		.mem_data_out(data_out),
 		.mem_wr_en(wr_data),
-		.mem_data_in(),
-		.mem_data_valid(),		
+		.mem_data_in(0),
+		.mem_data_valid(data_mem_valid)
 	);
 
 	cache datacache(
 		.clk(clk),
 		.wr_en(wr_data),
-		.data_in(),
-		.r_addr(),
-		.w_addr(),
+		.data_in(bus_resp),
+		.r_addr(decoder_regA),
+		.w_addr(decoder_regDest),
 		.rst(reset),
-		.enable(),
-		.data_out(),
-		.operation_complete(),
-		.mem_address(),
-		.mem_data_out(),
+		.enable(data_mem_valid),
+		.data_out(dcache_data),
+		.operation_complete(data_ready),
+		.mem_address(mem_addr),
+		.mem_data_out(data_out),
 		.mem_wr_en(wr_data),
-		.mem_data_in(),
-		.mem_data_valid()
+		.mem_data_in(data_in),
+		.mem_data_valid(data_mem_valid)
 	);
  
  decoder decoder_instance(
