@@ -5,6 +5,7 @@ module alu
     input [11:0] regB,
     input [9:0] opcode,
     input [4:0] regDest,
+    input [19:0] uimm,
     input clk
 );
 
@@ -68,10 +69,10 @@ logic sign_extend;
 
 always_ff @(posedge clk) begin
   if (sign_extend) begin
-    register_file[regDest] = {{32{temp_dest[31]}}, temp_dest[31:0]}; 
+    register_file[regDest] <= {{32{temp_dest[31]}}, temp_dest[31:0]}; 
   end    
   else begin
-    register_file[regDest] = temp_dest;
+    register_file[regDest] <= temp_dest;
   end
 end
 
@@ -85,233 +86,290 @@ always_comb begin
       temp_dest = register_file[regA][31:0] + {{20{regB[11]}}, regB};
       sign_extend = 1;
     end
+    opcode_lui  : begin
+      temp_dest = {uimm, 12'h000};
+      sign_extend = 0;
+    end
+    opcode_jalauipc : begin
+      temp_dest = 
+    end
+    opcode_jalr : begin
+    end       
+    opcode_beq  : begin
+    end      
+    opcode_blt  : begin
+    end      
+    opcode_bge  : begin
+    end      
+    opcode_bltu : begin
+    end      
+    opcode_bgeu : begin
+    end      
+    opcode_lb   : begin
+    end      
+    opcode_lh   : begin
+    end      
+    opcode_lw   : begin
+    end      
+    opcode_lbulwu : begin
+    end    
+    opcode_lhu  : begin
+    end      
+    opcode_sb   : begin
+    end      
+    opcode_sh   : begin
+    end      
+    opcode_sw   : begin
+    end      
+    opcode_ld   : begin
+    end      
+    opcode_sd   : begin
+    end      
+    opcode_fence: begin
+    end      
+    opcode_fencei : begin
+    end    
+    opcode_ecallebreak : begin
+    end
+    opcode_csrrw  : begin
+    end     
+    opcode_csrrs  : begin
+    end 
+    opcode_csrrc  : begin
+    end 
+    opcode_csrrwi : begin
+    end 
+    opcode_csrrsi : begin
+    end 
+    opcode_csrrci : begin
+    end 
     opcode_addsubmulw: begin
       case(regB[11:5])
         7'b0000000: begin
       	  temp_dest = register_file[regA][31:0] + register_file[regB[4:0]][31:0];
-          	sign_extend = 1;
+      	  sign_extend = 1;
+        end
+        7'b0000001: begin
+          temp_dest = register_file[regA][31:0] * register_file[regB[4:0]][31:0];
+          sign_extend = 1;
+        end
+        7'b0100000: begin
+          temp_dest = register_file[regA][31:0] - register_file[regB[4:0]][31:0];
+          sign_extend = 1;
+        end
+      endcase
+    end
+    opcode_andi: begin
+      temp_dest = register_file[regA] & {{52{regB[11]}}, regB};
+      sign_extend = 0;
+    end
+    opcode_slti: begin
+      if ($signed(register_file[regA]) < $signed({{52{regB[11]}}, regB})) begin
+        temp_dest = 1;
+    	end 
+      else begin
+        temp_dest = 0;
+    	end
+    	sign_extend = 0;	
+    end
+    opcode_sltiu: begin
+      if (register_file[regA] < {{52{regB[11]}}, regB}) begin
+        temp_dest = 1;
+      end 
+      else begin
+        temp_dest = 0;
+      end
+      sign_extend = 0;
+      end
+      opcode_xori: begin
+        temp_dest = register_file[regA] ^ {{52{regB[11]}}, regB};
+        sign_extend = 0;
+      end
+      opcode_ori: begin
+        temp_dest = register_file[regA] | {{52{regB[11]}}, regB};
+        sign_extend = 0;
+      end
+      opcode_addsubmul: begin
+        case(regB[11:5])
+          7'b0000000: begin
+            temp_dest = register_file[regA] + register_file[regB[4:0]];
+            sign_extend = 0;
           end
           7'b0000001: begin
-            temp_dest = register_file[regA][31:0] * register_file[regB[4:0]][31:0];
+            temp_dest = register_file[regA] * register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+          7'b0100000: begin
+            temp_dest = register_file[regA] - register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+        endcase
+      end
+      opcode_sllmulh: begin
+        case(regB[11:5])
+          7'b0000000: begin
+            temp_dest = register_file[regA] << register_file[regB[4:0]];
+          end
+          7'b0000001: begin
+            logic [63:0] product = $signed(register_file[regA]) * $signed(register_file[regB[4:0]]); 
+            temp_dest = product[63:32];
+          end
+        endcase
+        sign_extend = 0;
+      end
+      opcode_sltmulhsu: begin
+        case(regB[11:5])
+          7'b0000000: begin
+            if ($signed(register_file[regA]) < $signed(register_file[regB[4:0]])) begin
+	        temp_dest = 1;
+   	      end 
+            else begin
+      	temp_dest = 0;
+            end
+          end
+          7'b0000001: begin
+            logic [63:0] product = $signed(register_file[regA]) * register_file[regB[4:0]];
+            temp_dest = product[63:32];
+          end
+        endcase
+        sign_extend = 0;
+    	end
+    	opcode_sltumulhu: begin
+    	  case(regB[11:5])
+          7'b0000000: begin
+            if (register_file[regA] < register_file[regB[4:0]]) begin
+              temp_dest = 1;
+            end 
+    	      else begin
+              temp_dest = 0;
+            end
+          end
+          7'b0000001: begin
+            logic [63:0] product = register_file[regA] * register_file[regB[4:0]];
+            temp_dest = product[63:32];
+          end
+        endcase
+          sign_extend = 0;
+      end
+      opcode_xordiv: begin 
+        case(regB[11:5])
+          7'b0000000: begin
+            temp_dest = register_file[regA] ^ register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+          7'b0000001: begin
+            temp_dest = $signed(register_file[regA]) / $signed(register_file[regB[4:0]]);
+            sign_extend = 0;
+          end
+        endcase
+      end
+      opcode_srlsradivu: begin
+        case(regB[11:5])
+          7'b0000000: begin
+            temp_dest = register_file[regA] >> register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+          7'b0100000: begin
+            temp_dest = $signed(register_file[regA]) >> register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+          7'b0000001: begin
+            temp_dest = register_file[regA] / register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+        endcase
+      end
+      opcode_orrem: begin
+        case(regB[11:5])
+          7'b0000000: begin
+            temp_dest = register_file[regA] | register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+          7'b0000001: begin
+            temp_dest =$signed(register_file[regA]) % $signed(register_file[regB[4:0]]);
+            sign_extend = 0;
+          end
+        endcase
+      end
+      opcode_andremu: begin
+        case(regB[11:5])
+          7'b0000000: begin
+            temp_dest = register_file[regA] & register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+          7'b0000001: begin
+            temp_dest = register_file[regA] % register_file[regB[4:0]];
+            sign_extend = 0;
+          end
+        endcase
+      end
+      opcode_divw: begin
+        temp_dest = $signed(register_file[regA][31:0]) / $signed(register_file[regB[4:0]][31:0]);
+        sign_extend = 1; 
+      end
+      opcode_srlsradivuw: begin
+        case(regB[11:5])
+          7'b0000000: begin
+            temp_dest = register_file[regA][31:0] >> register_file[regB[4:0]][31:0];
             sign_extend = 1;
           end
           7'b0100000: begin
-            temp_dest = register_file[regA][31:0] - register_file[regB[4:0]][31:0];
+            temp_dest = $signed(register_file[regA][31:0]) >> register_file[regB[4:0]][31:0];
+            sign_extend = 1;
+          end
+          7'b0000001: begin
+            temp_dest = register_file[regA][31:0] / register_file[regB[4:0]][31:0];
             sign_extend = 1;
           end
         endcase
       end
-      opcode_andi: begin
-        temp_dest = register_file[regA] & {{52{regB[11]}}, regB};
+      opcode_remw: begin
+        temp_dest = $signed(register_file[regA][31:0]) % $signed(register_file[regB[4:0]][31:0]);
+        sign_extend = 1;
+      end
+      opcode_remuw: begin
+        temp_dest = register_file[regA][31:0] % register_file[regB[4:0]][31:0];
+        sign_extend = 1;
+      end
+      opcode_slli: begin
+        temp_dest = register_file[regA] << regB[4:0];
         sign_extend = 0;
       end
-      opcode_slti: begin
-	if ($signed(register_file[regA]) < $signed({{52{regB[11]}}, regB})) begin
-          temp_dest = 1;
-      	end 
-	else begin
-          temp_dest = 0;
-      	end
-      	sign_extend = 0;	
+      opcode_srlsrai: begin
+        case(regB[11:5])
+          7'b0000000: begin
+            temp_dest = register_file[regA] >> regB[4:0];
+            sign_extend = 0;                 
+          end
+          7'b0100000: begin
+            temp_dest = $signed(register_file[regA]) >> regB[4:0];
+	      sign_extend = 0;
+          end
+        endcase
       end
-      opcode_sltiu: begin
-	if (register_file[regA] < {{52{regB[11]}}, regB}) begin
-	  temp_dest = 1;
-	end 
-        else begin
-	  temp_dest = 0;
-	end
-	sign_extend = 0;
-	end
-	opcode_xori: begin
-	  temp_dest = register_file[regA] ^ {{52{regB[11]}}, regB};
-	  sign_extend = 0;
-	end
-	opcode_ori: begin
-	  temp_dest = register_file[regA] | {{52{regB[11]}}, regB};
-	  sign_extend = 0;
-	end
-	opcode_addsubmul: begin
-	  case(regB[11:5])
-	    7'b0000000: begin
-	      temp_dest = register_file[regA] + register_file[regB[4:0]];
-	      sign_extend = 0;
-	    end
-	    7'b0000001: begin
-	      temp_dest = register_file[regA] * register_file[regB[4:0]];
-	      sign_extend = 0;
-	    end
-	    7'b0100000: begin
-	      temp_dest = register_file[regA] - register_file[regB[4:0]];
-	      sign_extend = 0;
-	    end
-	  endcase
-	end
-	opcode_sllmulh: begin
-	  case(regB[11:5])
-	    7'b0000000: begin
-	      temp_dest = register_file[regA] << register_file[regB[4:0]];
-	    end
-	    7'b0000001: begin
-	      logic [63:0] product = $signed(register_file[regA]) * $signed(register_file[regB[4:0]]); 
-	      temp_dest = product[63:32];
-	    end
-	  endcase
-	  sign_extend = 0;
-	end
-	opcode_sltmulhsu: begin
-	  case(regB[11:5])
-	    7'b0000000: begin
-              if ($signed(register_file[regA]) < $signed(register_file[regB[4:0]])) begin
-  	        temp_dest = 1;
-     	      end 
-	      else begin
-        	temp_dest = 0;
-              end
-            end
-            7'b0000001: begin
-              logic [63:0] product = $signed(register_file[regA]) * register_file[regB[4:0]];
-              temp_dest = product[63:32];
-            end
-          endcase
-	  sign_extend = 0;
-      	end
-      	opcode_sltumulhu: begin
-      	  case(regB[11:5])
-            7'b0000000: begin
-              if (register_file[regA] < register_file[regB[4:0]]) begin
-                temp_dest = 1;
-              end 
-      	      else begin
-                temp_dest = 0;
-              end
-            end
-            7'b0000001: begin
-              logic [63:0] product = register_file[regA] * register_file[regB[4:0]];
-              temp_dest = product[63:32];
-            end
-          endcase
-	    sign_extend = 0;
-	end
-	opcode_xordiv: begin 
-	  case(regB[11:5])
-	    7'b0000000: begin
-	      temp_dest = register_file[regA] ^ register_file[regB[4:0]];
-	      sign_extend = 0;
-	    end
-	    7'b0000001: begin
-	      temp_dest = $signed(register_file[regA]) / $signed(register_file[regB[4:0]]);
-	      sign_extend = 0;
-	    end
-          endcase
-	end
-	opcode_srlsradivu: begin
-	  case(regB[11:5])
-            7'b0000000: begin
-              temp_dest = register_file[regA] >> register_file[regB[4:0]];
-              sign_extend = 0;
-            end
-            7'b0100000: begin
-              temp_dest = $signed(register_file[regA]) >> register_file[regB[4:0]];
-              sign_extend = 0;
-            end
-            7'b0000001: begin
-              temp_dest = register_file[regA] / register_file[regB[4:0]];
-              sign_extend = 0;
-            end
-          endcase
-	end
-	opcode_orrem: begin
-	  case(regB[11:5])
-            7'b0000000: begin
-              temp_dest = register_file[regA] | register_file[regB[4:0]];
-              sign_extend = 0;
-            end
-            7'b0000001: begin
-	      temp_dest =$signed(register_file[regA]) % $signed(register_file[regB[4:0]]);
-	      sign_extend = 0;
-            end
-          endcase
-	end
-	opcode_andremu: begin
-	  case(regB[11:5])
-            7'b0000000: begin
-              temp_dest = register_file[regA] & register_file[regB[4:0]];
-              sign_extend = 0;
-            end
-            7'b0000001: begin
-              temp_dest = register_file[regA] % register_file[regB[4:0]];
-              sign_extend = 0;
-            end
-          endcase
-	end
-	opcode_divw: begin
-	  temp_dest = $signed(register_file[regA][31:0]) / $signed(register_file[regB[4:0]][31:0]);
-	  sign_extend = 1; 
-	end
-	opcode_srlsradivuw: begin
-	  case(regB[11:5])
-            7'b0000000: begin
-              temp_dest = register_file[regA][31:0] >> register_file[regB[4:0]][31:0];
-              sign_extend = 1;
-            end
-            7'b0100000: begin
-              temp_dest = $signed(register_file[regA][31:0]) >> register_file[regB[4:0]][31:0];
-              sign_extend = 1;
-            end
-            7'b0000001: begin
-              temp_dest = register_file[regA][31:0] / register_file[regB[4:0]][31:0];
-              sign_extend = 1;
-            end
-          endcase
-	end
-	opcode_remw: begin
-	  temp_dest = $signed(register_file[regA][31:0]) % $signed(register_file[regB[4:0]][31:0]);
-          sign_extend = 1;
-	end
-	opcode_remuw: begin
-          temp_dest = register_file[regA][31:0] % register_file[regB[4:0]][31:0];
-          sign_extend = 1;
-	end
-	opcode_slli: begin
-	  temp_dest = register_file[regA] << regB[4:0];
-	  sign_extend = 0;
-	end
-	opcode_srlsrai: begin
-	  case(regB[11:5])
-	    7'b0000000: begin
-	      temp_dest = register_file[regA] >> regB[4:0];
-              sign_extend = 0;                 
-            end
-            7'b0100000: begin
-	      temp_dest = $signed(register_file[regA]) >> regB[4:0];
-  	      sign_extend = 0;
-            end
-          endcase
-	end
-	opcode_srlsraiw: begin
-          case(regB[11:5]) 
-            7'b0000000: begin
-	      temp_dest = register_file[regA][31:0] >> regB[5:0]; // 6 bits immediate value
-	      sign_extend = 1;
-            end
-            7'b0100000: begin
-              temp_dest = $signed(register_file[regA][31:0]) >> regB[5:0]; // 6 bits immediate value
-              sign_extend = 1;
-            end
-          endcase
-	end
-	opcode_slliw: begin
-	  temp_dest = register_file[regA][31:0] << regB[5:0]; //6 bits immediate value
-	  sign_extend = 1; 
-	end
-	opcode_sllw:begin
-	  temp_dest = register_file[regA][31:0] << register_file[regB[4:0]][31:0];
-          sign_extend = 1;
-	end
-        default: begin
-        end
-      endcase
-    end
+      opcode_srlsraiw: begin
+        case(regB[11:5]) 
+          7'b0000000: begin
+            temp_dest = register_file[regA][31:0] >> regB[5:0]; // 6 bits immediate value
+            sign_extend = 1;
+          end
+          7'b0100000: begin
+            temp_dest = $signed(register_file[regA][31:0]) >> regB[5:0]; // 6 bits immediate value
+            sign_extend = 1;
+          end
+        endcase
+      end
+      opcode_slliw: begin
+        temp_dest = register_file[regA][31:0] << regB[5:0]; //6 bits immediate value
+        sign_extend = 1; 
+      end
+      opcode_sllw:begin
+        temp_dest = register_file[regA][31:0] << register_file[regB[4:0]][31:0];
+        sign_extend = 1;
+      end
+      default: begin
+      end
+    endcase
+  end
 endmodule
 

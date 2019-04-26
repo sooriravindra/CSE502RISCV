@@ -12,6 +12,7 @@ module top
 	WORDSZ				 = 64
 	OPFUNC				 = 9:0,
 	BLOCKSZ				 = 64*8,
+        UIMM                             = 20,
   BUS_TAG_WIDTH  = 13,
   BUS_DATA_WIDTH = 64
 )
@@ -34,13 +35,14 @@ module top
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
   input  [BUS_TAG_WIDTH-1:0]  bus_resptag
 );
-  logic 								 got_inst, data_mem_valid, wr_data;
-  logic [OPFUNC] 				 decoder_opcode;
-  logic [REGSZ - 1: 0]   decoder_regA;
-  logic [REGSZ - 1: 0]   decoder_regDest;
-	logic [INSTSZ - 1: 0]  inst;
-  logic [WORDSZ - 1: 0]  pc, next_pc; 
-  logic [REGBSZ - 1: 0]  decoder_regB;
+  logic got_inst, data_mem_valid, wr_data;
+  logic [OPFUNC] decoder_opcode;
+  logic [REGSZ - 1: 0] decoder_regA;
+  logic [REGSZ - 1: 0] decoder_regDest;
+  logic [INSTSZ - 1: 0] inst;
+  logic [UIMM - 1: 0] u_imm;
+  logic [WORDSZ - 1: 0] pc, next_pc; 
+  logic [REGBSZ - 1: 0] decoder_regB;
   logic [BLOCKSZ - 1: 0] data_from_mem;
 
   always_ff @ (posedge clk) begin
@@ -149,6 +151,7 @@ module top
     .rs1(decoder_regA),
     .rs2(decoder_regB),
     .rd(decoder_regDest),
+    .uimm(u_imm),
     .opcode(decoder_opcode)
   );
 
@@ -157,6 +160,7 @@ module top
     .regB(decoder_regB),
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
+    .uimm(u_imm),
     .clk(data_mem_valid)
   );
 

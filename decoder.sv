@@ -6,6 +6,7 @@ decoder
 	REGBITS =  5,
 	IMMREG  = 12,
 	OPFUNC	= 10,
+        UIMM    = 20,
 	INSTRSZ = 32
 )
 (
@@ -15,6 +16,7 @@ decoder
   output [REGBITS-1:0] rs1, 
   output [IMMREG-1:0]  rs2, 
   output [REGBITS-1:0] rd, //registers
+  output [UIMM - 1: 0] uimm,
   output [OPFUNC-1:0]  opcode
 );
 enum {
@@ -336,6 +338,7 @@ enum {
 
     opcodeU1: begin
         //opcode = "U";
+        uimm <= $signed(instr[31:12]);
         $display("LUI rd, 0x%h", $signed(instr[31:12]));
     end
 
