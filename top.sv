@@ -32,6 +32,7 @@ module top
   logic [4:0]  decoder_regA;
   logic [11:0] decoder_regB;
   logic [4:0]  decoder_regDest;
+  logic [4:0]  alu_regDest;
   logic [9:0]  decoder_opcode;
   logic [63:0] pc, next_pc; 
   logic [511:0] data_from_mem;
@@ -86,6 +87,7 @@ module top
     .regB_value(regB_val),
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
+    .aluRegDest(alu_regDest),
     .data_out(data_wire),
     .clk(data_mem_valid),
     .wr_en(wr_enable)
@@ -100,7 +102,7 @@ module top
     .rd_reg_B(decoder_regB[4:0]),
     .rd_data_A(regA_val),
     .rd_data_B(regB_val),
-    .destn_reg(decoder_regDest),
+    .destn_reg(alu_regDest),
     .destn_data(data_wire),
     .instr_bits(data_from_mem[7:0]),
     .prog_counter(pc)

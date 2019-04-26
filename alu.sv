@@ -10,6 +10,7 @@ module alu
     input clk,
     input reset,
     output [63:0] data_out,
+    output [4:0] aluRegDest,
     output wr_en
 );
 
@@ -47,10 +48,12 @@ logic sign_extend;
 always_ff @(posedge clk) begin
     if (sign_extend) begin
         data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
+        aluRegDest <= regDest;
 	wr_en <= 1; 
     end    
     else begin
         data_out <= temp_dest;
+        aluRegDest <= regDest;
 	wr_en<=1;
     end
 end
