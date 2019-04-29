@@ -15,7 +15,8 @@ decoder
   output [REGBITS-1:0] rs1, 
   output [IMMREG-1:0]  rs2, 
   output [REGBITS-1:0] rd, //registers
-  output [OPFUNC-1:0]  opcode
+  output [OPFUNC-1:0]  opcode,
+  output ld_or_alu //to distinguish between load instructions and ALU instructions
 );
 enum {
     opcodeR1 = 7'b0110011, 
@@ -32,6 +33,7 @@ enum {
     } OPS;
 
  assign OPS = instr[6:0];
+ assign ld_or_alu = 0; //hardcoded to low, so that for now only ALU operations pass through. Have to make this high for memory operations.
  always_ff @(posedge clk) begin
    
   case(OPS)

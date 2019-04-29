@@ -1,8 +1,9 @@
 `include "Sysbus.defs"
 `include "fetch.sv"
 `include "decoder.sv"
-//`include "wb.sv"
+`include "wb.sv"
 `include "memory.sv"
+`include "register_file.sv"
 
 module top
 #(
@@ -31,8 +32,8 @@ module top
 
   logic [4:0]  decoder_regA;
   logic [11:0] decoder_regB;
-  logic [4:0]  decoder_regDest;
-  logic [4:0]  alu_regDest;
+  wire [4:0]  decoder_regDest;
+  wire [4:0]  alu_regDest, wb_regDest;
   logic [9:0]  decoder_opcode;
   logic [63:0] pc, next_pc; 
   logic [511:0] data_from_mem;
@@ -47,8 +48,12 @@ module top
   end
 
   //connect alu output to register file input/output
-  wire [63:0] data_wire, regA_val, regB_val;
+  wire [63:0] data_wire, regA_val, regB_val, wb_dataOut;
   wire wr_enable;
+
+  //connect the decoder with the write-back stage, to understand whether
+  //this is a memory instruction or an ALU operation
+  wire ld_or_alu;
 
   inc_pc pc_add(
     .pc_in(pc),
@@ -77,7 +82,8 @@ module top
     .rs1(decoder_regA),
     .rs2(decoder_regB),
     .rd(decoder_regDest),
-    .opcode(decoder_opcode)
+    .opcode(decoder_opcode),
+    .ld_or_alu(ld_or_alu)
   );
 
   alu alu_instance(
@@ -102,23 +108,22 @@ module top
     .rd_reg_B(decoder_regB[4:0]),
     .rd_data_A(regA_val),
     .rd_data_B(regB_val),
-    .destn_reg(alu_regDest),
-    .destn_data(data_wire),
+    .destn_reg(wb_regDest),
+    .destn_data(wb_dataOut),
     .instr_bits(data_from_mem[7:0]),
     .prog_counter(pc)
   );
 
-  /*
   wb wb_instance(
     .clk(clk),
     .rst(reset),
-    .lddata_in(0),
-    .alures_in(0),
-    .ld_or_alu(0),
-    .rd(decoder_regDest),
+    .lddata_in(0),//load instructions not yet done. we need data cache to be in place for this
+    .alures_in(data_wire),
+    .ld_or_alu(ld_or_alu),
+    .rd_alu(alu_regDest),//in case of an ALU operation
+    .rd_mem(0), //in case of a memory opration, not done yet. This would be the deoder value passed through memory module 
     .data_out(wb_dataOut),
     .destReg(wb_regDest)
   );
-  */
 
 endmodule
