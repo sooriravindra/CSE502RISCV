@@ -11,13 +11,14 @@ decoder
 )
 (
 // output [15:0] opcode, // opcode with instructions
-	input  [INSTRSZ-1:0] instr, //input 32 bit instruction from PC
-  input 							 clk,
-  output [REGBITS-1:0] rs1, 
-  output [IMMREG-1:0]  rs2, 
-  output [REGBITS-1:0] rd, //registers
-  output [UIMM - 1: 0] uimm,
-  output [OPFUNC-1:0]  opcode
+  input  [INSTRSZ-1:0]    instr, //input 32 bit instruction from PC
+  input                   clk,
+  output [REGBITS-1:0]    rs1, 
+  output [IMMREG-1:0]     rs2, 
+  output [REGBITS-1:0]    rd, //registers
+  output [UIMM - 1: 0]    uimm,
+  output [INSTRSZ - 1: 0] imm32,
+  output [OPFUNC-1:0]     opcode
 );
 enum {
     opcodeR1 = 7'b0110011, 
@@ -293,66 +294,68 @@ enum {
         endcase
     end
     opcodeS: begin
-        //opcode = "S";
-        case(instr[14:12])
-            3'b000: begin
-                $display("SB rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
-            end
-            3'b001: begin 
-		$display("SH rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
-            end
-            3'b010: begin 
-		$display("SW rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
-            end
-            3'b011: begin 
-		$display("SD rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
-            end
-            default: $display("Unknown opcode\n");
-        endcase
+      //opcode = "S";
+      case(instr[14:12])
+        3'b000: begin
+          $display("SB rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
+        end
+        3'b001: begin 
+          $display("SH rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
+        end
+        3'b010: begin 
+          $display("SW rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
+        end
+        3'b011: begin 
+          $display("SD rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
+        end
+        default: $display("Unknown opcode\n");
+      endcase
     end
 
     opcodeSB: begin
-        //opcode = "SB";
-        case(instr[14:12])
-            3'b000: begin
-                $display("BEQ rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
-            end
-            3'b001: begin
-                $display("BNE rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
-            end
-            3'b100: begin
-                $display("BLT rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
-            end
-            3'b101: begin
-                $display("BGE rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
-            end
-            3'b110: begin
-                $display("BLTU rs1, rs2, 0x%h", $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
-            end
-            3'b111: begin
-                $display("BGEU rs1, rs2, 0x%h", $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
-            end
-            default: $display("Unknown opcode\n");
-        endcase
+      //opcode = "SB";
+      case(instr[14:12])
+        imm32 <= $signed({instr[31], instr[7], instr[30:25], instr[11:8]});
+        3'b000: begin
+          $display("BEQ rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
+        end
+        3'b001: begin
+          $display("BNE rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
+        end
+        3'b100: begin
+          $display("BLT rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
+        end
+        3'b101: begin
+          $display("BGE rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
+        end
+        3'b110: begin
+          $display("BLTU rs1, rs2, 0x%h", $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
+        end
+        3'b111: begin
+          $display("BGEU rs1, rs2, 0x%h", $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
+        end
+        default: $display("Unknown opcode\n");
+      endcase
     end
 
     opcodeU1: begin
-        //opcode = "U";
-        uimm <= $signed(instr[31:12]);
-        $display("LUI rd, 0x%h", $signed(instr[31:12]));
+      //opcode = "U";
+      uimm <= $signed(instr[31:12]);
+      $display("LUI rd, 0x%h", $signed(instr[31:12]));
     end
 
     opcodeU2: begin
-        //opcode = "U";
-        $display("AUIPC rd, 0x%h", $signed(instr[31:12]));
+      //opcode = "U";
+      $display("AUIPC rd, 0x%h", $signed(instr[31:12]));
     end
 
     opcodeUJ: begin
-        //opcode = "UJ";
-        $display("JAL rd, 0x%h", $signed({instr[31], instr[19:12], instr[20], instr[30:21], 1'b0}));
+      //opcode = "UJ";
+      imm32 <= {{11{instr[31]}}, {instr[31], instr[19:12], instr[20], instr[30:21], 1'b0}};
+      $display("JAL rd, 0x%h", $signed({instr[31], instr[19:12], instr[20], instr[30:21], 1'b0}));
     end
 
-   endcase
- end
+  endcase
+end
 
 endmodule

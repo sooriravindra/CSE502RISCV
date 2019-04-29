@@ -6,6 +6,7 @@ module alu
     input [9:0] opcode,
     input [4:0] regDest,
     input [19:0] uimm,
+    input [31:0] i_pc,
     input clk
 );
 
@@ -36,9 +37,11 @@ enum {
 	opcode_slliw	   = 10'h09b,
 	opcode_sllw	   = 10'h0bb,
 	opcode_lui	   = 10'bxxx0110111,
-        opcode_jalauipc    = 10'bxxx0010111,
+        opcode_auipc       = 10'bxxx0010111,
+        opcode_jal         = 10'bxxx1101111,
         opcode_jalr        = 10'h067,
         opcode_beq         = 10'h063,
+        opcode_bne         = 10'h0e3
         opcode_blt         = 10'h0e3,
         opcode_bge         = 10'h2e3,
         opcode_bltu        = 10'h363,
@@ -86,24 +89,70 @@ always_comb begin
       temp_dest = register_file[regA][31:0] + {{20{regB[11]}}, regB};
       sign_extend = 1;
     end
+/* After WP2 */
     opcode_lui  : begin
       temp_dest = {uimm, 12'h000};
       sign_extend = 0;
     end
-    opcode_jalauipc : begin
-      temp_dest = 
+    opcode_auipc : begin
+      temp_dest = {uimm, 12'h000} + i_pc;
+    end
+    opcode_jal : begin
+      temp_dest = i_pc + 4;
+
+      ret = /* register_file[register_enum.ra] = */imm32 * 2; 
     end
     opcode_jalr : begin
+      temp_dest = i_pc + 4;
+      ret = register_file[register_enum.ra]({{52{regB[11]}}, regB} + register_file[regA]);
     end       
     opcode_beq  : begin
+      if (register_file[regA] == register_file[regB[4:0]]) begin
+        temp_dest = i_pc + imm32;
+      end
+      else begin
+        temp_dest = i_pc + 4;
+      end
+    end
+    opcode_bne  : begin
+      if (register_file[regA] != register_file[regB[4:0]]) begin
+        temp_dest = i_pc + imm32;
+      end
+      else begin
+        temp_dest = i_pc + 4;
+      end
     end      
     opcode_blt  : begin
+      if ($signed(register_file[regA]) < $signed(register_file[regB[4:0]])) begin
+        temp_dest = i_pc + imm32;
+      end
+      else begin
+        temp_dest = i_pc + 4;
+      end
     end      
     opcode_bge  : begin
+      if ($signed(register_file[regA]) >= $signed(register_file[regB[4:0]])) begin
+        temp_dest = i_pc + imm32;
+      end
+      else begin
+        temp_dest = i_pc + 4;
+      end
     end      
     opcode_bltu : begin
+      if (register_file[regA] < register_file[regB[4:0]]) begin
+        temp_dest = i_pc + imm32;
+      end
+      else begin
+        temp_dest = i_pc + 4;
+      end
     end      
     opcode_bgeu : begin
+      if (register_file[regA] >= register_file[regB[4:0]]) begin
+        temp_dest = i_pc + imm32;
+      end
+      else begin
+        temp_dest = i_pc + 4;
+      end
     end      
     opcode_lb   : begin
     end      
@@ -143,6 +192,7 @@ always_comb begin
     end 
     opcode_csrrci : begin
     end 
+/* Until here */
     opcode_addsubmulw: begin
       case(regB[11:5])
         7'b0000000: begin
