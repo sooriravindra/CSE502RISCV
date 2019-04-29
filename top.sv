@@ -9,8 +9,8 @@ module top
 	REGSZ					 = 5,
 	INSTSZ				 = 32,
 	REGBSZ				 = 12,
-	WORDSZ				 = 64
-	OPFUNC				 = 9:0,
+	WORDSZ				 = 64,
+	OPFUNC				 = 10,
 	BLOCKSZ				 = 64*8,
         UIMM                             = 20,
   BUS_TAG_WIDTH  = 13,
@@ -35,8 +35,9 @@ module top
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
   input  [BUS_TAG_WIDTH-1:0]  bus_resptag
 );
+
   logic got_inst, data_mem_valid, wr_data;
-  logic [OPFUNC] decoder_opcode;
+  logic [OPFUNC -1 : 0] decoder_opcode;
   logic [REGSZ - 1: 0] decoder_regA;
   logic [REGSZ - 1: 0] decoder_regDest;
   logic [INSTSZ - 1: 0] inst;
@@ -44,50 +45,19 @@ module top
   logic [WORDSZ - 1: 0] pc, next_pc; 
   logic [REGBSZ - 1: 0] decoder_regB;
   logic [BLOCKSZ - 1: 0] data_from_mem;
+  logic [REGSZ - 1:0]  alu_regDest;
 
   always_ff @ (posedge clk) begin
-    if (reset) begin
-        pc <= entry;
-    end else begin
-        pc <= next_pc;
-    end
-    if ((data_from_mem[7:0] == 0) & pc != 0) begin
-          $display("zero = %x", register_file[0]);
-          $display("ra   = %x", register_file[1]);
-          $display("sp   = %x", register_file[2]);
-          $display("gp   = %x", register_file[3]);
-          $display("tp   = %x", register_file[4]);
-          $display("t0   = %x", register_file[5]);
-          $display("t1   = %x", register_file[6]);
-          $display("t2   = %x", register_file[7]);
-          $display("s0   = %x", register_file[8]);
-          $display("s1   = %x", register_file[9]);
-          $display("a0   = %x", register_file[10]);
-          $display("a1   = %x", register_file[11]);
-          $display("a2   = %x", register_file[12]);
-          $display("a3   = %x", register_file[13]);
-          $display("a4   = %x", register_file[14]);
-          $display("a5   = %x", register_file[15]);
-          $display("a6   = %x", register_file[16]);
-          $display("a7   = %x", register_file[17]);
-          $display("s2   = %x", register_file[18]);
-          $display("s3   = %x", register_file[19]);
-          $display("s4   = %x", register_file[20]);
-          $display("s5   = %x", register_file[21]);
-          $display("s6   = %x", register_file[22]);
-          $display("s7   = %x", register_file[23]);
-          $display("s8   = %x", register_file[24]);
-          $display("s9   = %x", register_file[25]);
-          $display("s10  = %x", register_file[26]);
-          $display("s11  = %x", register_file[27]);
-          $display("t3   = %x", register_file[28]);
-          $display("t4   = %x", register_file[29]);
-          $display("t5   = %x", register_file[30]);
-          $display("t6   = %x", register_file[31]);
-          $finish;
-    end
-
+    	if (reset) begin
+        	pc <= entry;
+    	end else begin
+        	pc <= next_pc;
+    	end
   end
+
+  //connect alu output to register file input/output
+  wire [63:0] data_wire, regA_val, regB_val;
+  wire wr_enable;
 
   inc_pc pc_add(
     .pc_in(pc),
@@ -158,10 +128,30 @@ module top
   alu alu_instance(
     .regA(decoder_regA),
     .regB(decoder_regB),
+    .regA_value(regA_val),
+    .regB_value(regB_val),
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
     .uimm(u_imm),
-    .clk(data_mem_valid)
+    .clk(data_mem_valid),
+    .aluRegDest(alu_regDest),
+    .data_out(data_wire),
+    .wr_en(wr_enable)
+  );
+
+  //instantiate register file
+  register_file regfile_instance(
+    .clk(clk),
+    .reset(reset),
+    .wr_en(wr_enable),
+    .rd_reg_A(decoder_regA),
+    .rd_reg_B(decoder_regB[4:0]),
+    .rd_data_A(regA_val),
+    .rd_data_B(regB_val),
+    .destn_reg(alu_regDest),
+    .destn_data(data_wire),
+    .instr_bits(data_from_mem[7:0]),
+    .prog_counter(pc)
   );
 
   /*
