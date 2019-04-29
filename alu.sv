@@ -1,4 +1,4 @@
-
+'include "registers.sv"
 module alu
 (
     input [4:0] regA,
@@ -89,7 +89,6 @@ always_ff @(posedge clk) begin
 end
 
 always_comb begin
-<<<<<<< HEAD
   case (opcode)
 /* After WP2 */
     opcode_lui  : begin
