@@ -100,14 +100,13 @@ always_comb begin
       sign_extend = 0;
     end
     opcode_jal : begin
-      temp_dest = i_pc + 4;
-      ret = /* register_file[register_enum.ra] = */{{11{uimm[19]}}, uimm} * 2;
+      temp_dest = i_pc + ({{11{uimm[19]}}, uimm} * 2) + 4;
+//      ret = {{11{uimm[19]}}, uimm} * 2;
       sign_extend = 0;
     end
     opcode_jalr : begin
-      temp_dest = i_pc + 4;
-      ret = {{52{regB[11]}}, regB} + regA_value;
-      retReg = register_enum.ra; 
+      temp_dest = i_pc + 4 + ({{52{regB[11]}}, regB} + regA_value);
+//      retReg = register_enum.ra; 
       sign_extend = 0;
     end       
     opcode_beq  : begin
