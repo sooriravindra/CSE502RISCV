@@ -1,4 +1,4 @@
-'include "registers.sv"
+`include "registers.sv"
 module alu
 (
     input [4:0] regA,
@@ -44,10 +44,12 @@ enum {
     opcode_slliw       = 10'h09b,
     opcode_sllw        = 10'h0bb,
     opcode_lui         = 10'bxxx0110111,
-    opcode_jalauipc    = 10'bxxx0010111,
+    opcode_auipc       = 10'bxxx0010111,
+    opcode_jal         = 10'bxxx1101111,
     opcode_jalr        = 10'h067,
     opcode_beq         = 10'h063,
-    opcode_blt         = 10'h0e3,
+    opcode_bne         = 10'h0e3,
+    opcode_blt         = 10'h263,
     opcode_bge         = 10'h2e3,
     opcode_bltu        = 10'h363,
     opcode_bgeu        = 10'h3e3,
@@ -128,7 +130,7 @@ always_comb begin
       sign_extend = 0;
     end      
     opcode_blt  : begin
-      if ($signed(regA_value < $signed(register_file[regB[4:0]])) begin
+      if ($signed(regA_value) < $signed(register_file[regB[4:0]])) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin

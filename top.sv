@@ -80,41 +80,41 @@ module top
     .bus_resp(bus_resp),
     .bus_resptag(bus_resptag)
   );
+/*
+cache instcache(
+	.clk(clk),
+	.wr_en(0),
+	.data_in(0),
+	.r_addr(pc),
+	.w_addr(0),
+	.rst(reset),
+	.enable(data_mem_valid),
+	.data_out(pc),
+	.operation_complete(got_inst),
+	.mem_address(mem_addr),
+	.mem_data_out(data_out),
+	.mem_wr_en(wr_data),
+	.mem_data_in(0),
+	.mem_data_valid(data_mem_valid)
+);
 
-	cache instcache(
-		.clk(clk),
-		.wr_en(0),
-		.data_in(0),
-		.r_addr(pc),
-		.w_addr(0),
-		.rst(reset),
-		.enable(data_mem_valid),
-		.data_out(pc),
-		.operation_complete(got_inst),
-		.mem_address(mem_addr),
-		.mem_data_out(data_out),
-		.mem_wr_en(wr_data),
-		.mem_data_in(0),
-		.mem_data_valid(data_mem_valid)
-	);
-
-	cache datacache(
-		.clk(clk),
-		.wr_en(wr_data),
-		.data_in(bus_resp),
-		.r_addr(decoder_regA),
-		.w_addr(decoder_regDest),
-		.rst(reset),
-		.enable(data_mem_valid),
-		.data_out(dcache_data),
-		.operation_complete(data_ready),
-		.mem_address(mem_addr),
-		.mem_data_out(data_out),
-		.mem_wr_en(wr_data),
-		.mem_data_in(data_in),
-		.mem_data_valid(data_mem_valid)
-	);
- 
+cache datacache(
+	.clk(clk),
+	.wr_en(wr_data),
+	.data_in(bus_resp),
+	.r_addr(decoder_regA),
+	.w_addr(decoder_regDest),
+	.rst(reset),
+	.enable(data_mem_valid),
+	.data_out(dcache_data),
+	.operation_complete(data_ready),
+	.mem_address(mem_addr),
+	.mem_data_out(data_out),
+	.mem_wr_en(wr_data),
+	.mem_data_in(data_in),
+	.mem_data_valid(data_mem_valid)
+);
+ */
  decoder decoder_instance(
     .instr(inst),
     .clk(data_mem_valid),

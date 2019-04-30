@@ -1,15 +1,15 @@
+//`define IDXBITS 14:6
+//`define TAGBITS 63:15
+//`define OFFBITS 5:
 module 
 cache
 #(
-  BLOCKSZ  		= 64*8,
-  WIDTH    		= 64,
-  NUMLINES 		= 512,
-  TAGWIDTH 		= 49,
-  IDXWIDTH 		= 9,
-  OFFWIDTH 		= 6,
-  IDXBITS  		= 14:6,
-  TAGBITS  		= 63:15,
-  OFFBITS  	 	= 5:0,
+  BLOCKSZ  	= 64*8,
+  WIDTH    	= 64,
+  NUMLINES 	= 512,
+  TAGWIDTH 	= 49,
+  IDXWIDTH 	= 9,
+  OFFWIDTH 	= 6,
   ADDRESSSIZE	= 64
 )
 (
@@ -42,14 +42,14 @@ logic [TAGWIDTH - 1:0] cachetag  [NUMLINES - 1:0];
 logic                  cachestate[NUMLINES - 1:0];
 
 always_comb begin
-  case(c_state) begin
+  case(c_state) 
     INIT        : begin
-        pass 							 = 0;
-        c_hit 						 = 0;
-        data_out       		 = 0; 
-        mem_wr_en    			 = 0;
-        mem_address    		 = 0;
-        update_done 			 = 0;
+        pass    	   = 0;
+        c_hit 		   = 0;
+        data_out           = 0; 
+        mem_wr_en    	   = 0;
+        mem_address    	   = 0;
+        update_done 	   = 0;
         operation_complete = 0; 
     end
     BUSY        :  begin
@@ -58,8 +58,8 @@ always_comb begin
             c_hit = 1;
         end
         else begin
-            if ((cachestate[r_addr[IDXBITS]] == 1) & 
-                (cachetag[r_addr[IDXBITS]] == r_addr[TAGBITS])) begin
+            if ((cachestate[r_addr[/*IDXBITS*/14:6]] == 1) & 
+                (cachetag[r_addr[/*IDXBITS*/14:6]] == r_addr[63:15/*TAGBITS*/])) begin
                 c_hit = 1;
             end
             else begin
@@ -78,7 +78,7 @@ always_comb begin
                 final_state = 1;
             end
             else begin
-                final_value = cachedata[r_addr[IDXBITS]][r_addr[OFFBITS]];
+                final_value = cachedata[r_addr[14:6/*IDXBITS*/]][r_addr[5:0/*OFFBITS*/]];
             end
         end
     end
@@ -102,9 +102,9 @@ always_ff @(posedge clk) begin
   else begin
 
     if (wr_en) begin
-      cachedata[w_addr[IDXBITS]][w_addr[OFFBITS]] <= data_in;
-      cachestate[w_addr[IDXBITS]] <= final_state;
-      cachetag [w_addr[IDXBITS]] <= w_addr[TAGBITS];
+      cachedata[w_addr[14:6/*IDXBITS*/]][w_addr[5:0/*OFFBITS*/]] <= data_in;
+      cachestate[w_addr[14:6/*IDXBITS*/]] <= final_state;
+      cachetag [w_addr[14:6/*IDXBITS*/]] <= w_addr[63:15/*TAGBITS*/];
       
     end
     else begin
@@ -133,7 +133,7 @@ always_comb begin
         FOUND: begin
             if (!wr_en | mem_data_valid) begin
               pass = 1;
-              c_next_state = INITIAL;
+              c_next_state = INIT;
             end
             else begin
               pass = 0;
@@ -149,6 +149,7 @@ always_comb begin
                 c_next_state = FOUND;
             end
         end
+    endcase
 end
 
 endmodule

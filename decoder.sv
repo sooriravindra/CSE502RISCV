@@ -324,11 +324,11 @@ enum
 
     opcodeSB: begin
       //opcode = "SB";
+      rs1    <= instr[19:15];
+      rs2    <= {instr[31], instr[7], instr[30:25], instr[11:8]};
+      rd     <= instr[11:7];
+      opcode <= { instr[14:12] , instr[6:0] };
       case(instr[14:12])
-        rs1    <= instr[19:15];
-        rs2    <= {instr[31], instr[7], instr[30:25], instr[11:8]};
-        rd     <= instr[11:7];
-        opcode <= { instr[14:12] , instr[6:0] };
         3'b000: begin
           $display("BEQ rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
         end
