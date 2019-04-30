@@ -11,35 +11,42 @@ decoder
 )
 (
 // output [15:0] opcode, // opcode with instructions
-  input  [INSTRSZ-1:0]    instr, //input 32 bit instruction from PC
+  input  [INSTRSZ - 1:0]  instr, //input 32 bit instruction from PC
   input                   clk,
-  output [REGBITS-1:0]    rs1, 
-  output [IMMREG-1:0]     rs2, 
-  output [REGBITS-1:0]    rd, //registers
+  output [REGBITS - 1:0]  rs1, 
+  output [IMMREG - 1:0]   rs2, 
+  output [REGBITS - 1:0]  rd, //registers
   output [UIMM - 1: 0]    uimm,
   output [INSTRSZ - 1: 0] imm32,
-  output [OPFUNC-1:0]     opcode
+  output [OPFUNC - 1:0]   opcode
 );
-enum {
-    opcodeR1 = 7'b0110011, 
-    opcodeR2 = 7'b0111011, 
-    opcodeI1 = 7'b1100111, 
-    opcodeI2 = 7'b0000011,
-    opcodeI3 = 7'b0010011, 
-    opcodeI4 = 7'b0011011, 
-    opcodeS  = 7'b0100011, 
-    opcodeSB = 7'b1100011, 
-    opcodeU1 = 7'b0110111, 
-    opcodeU2 = 7'b0010111, 
-    opcodeUJ = 7'b1101111
-    } OPS;
+enum 
+{
+  opcodeR1 = 7'b0110011, 
+  opcodeR2 = 7'b0111011, 
+  opcodeI1 = 7'b1100111, 
+  opcodeI2 = 7'b0000011,
+  opcodeI3 = 7'b0010011, 
+  opcodeI4 = 7'b0011011, 
+  opcodeS  = 7'b0100011, 
+  opcodeSB = 7'b1100011, 
+  opcodeU1 = 7'b0110111, 
+  opcodeU2 = 7'b0010111, 
+  opcodeUJ = 7'b1101111,
+  opcodeFE = 7'b0001111,
+  opcodeSY = 7'b1110011
+} OPS;
 
- assign OPS = instr[6:0];
- always_ff @(posedge clk) begin
+  assign OPS = instr[6:0];
+  always_ff @(posedge clk) begin
    
   case(OPS)
       opcodeR1: begin 
         //opcode = "R";
+        rs1    <= instr[19:15];
+        rs2    <= instr[31:20];
+        rd     <= instr[11:7];
+        opcode <= { instr[14:12], instr[6:0] };
         case(instr[14:12])
             3'b000: begin
 		case(instr[31:25])
@@ -189,13 +196,12 @@ enum {
         endcase
     end
 
-
-    opcodeI1: begin
-        // opcode = "I";
-        $display("JALR rd, rs1, 0x%h", $signed(instr[31:20]));
-        end
     opcodeI2: begin
         //opcode = "I";
+        rs1    <= instr[19:15];
+        rd     <= instr[11:7];
+        rs2    <= instr[31:20];
+        opcode <= { instr[14:12], instr[6:0] };
         case(instr[14:12])
             3'b000: begin
                 $display("LB rd, %d(rs1)", $signed(instr[31:20]));
@@ -222,9 +228,9 @@ enum {
         endcase
     end
     opcodeI3: begin
-        rs1 <= instr[19:15];
-        rs2 <= instr[31:20];
-        rd <= instr[11:7];
+        rs1    <= instr[19:15];
+        rs2    <= instr[31:20];
+        rd     <= instr[11:7];
         opcode <= { instr[14:12] , instr[6:0] }; 
         //opcode = "I";
         case(instr[14:12])
@@ -295,6 +301,10 @@ enum {
     end
     opcodeS: begin
       //opcode = "S";
+      rs1    <= instr[19:15];
+      rs2    <= instr[31:20];
+      rd     <= instr[11:7];
+      opcode <= { instr[14:12] , instr[6:0] }; 
       case(instr[14:12])
         3'b000: begin
           $display("SB rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
@@ -315,7 +325,10 @@ enum {
     opcodeSB: begin
       //opcode = "SB";
       case(instr[14:12])
-        imm32 <= $signed({instr[31], instr[7], instr[30:25], instr[11:8]});
+        rs1    <= instr[19:15];
+        rs2    <= {instr[31], instr[7], instr[30:25], instr[11:8]};
+        rd     <= instr[11:7];
+        opcode <= { instr[14:12] , instr[6:0] };
         3'b000: begin
           $display("BEQ rs1, rs2, 0x%h",  $signed({instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}));
         end
@@ -340,19 +353,91 @@ enum {
 
     opcodeU1: begin
       //opcode = "U";
-      uimm <= $signed(instr[31:12]);
+      uimm   <= instr[31:12];
+      rd     <= instr[11:7];
+      opcode <= {3'bxxx, instr[6:0]};
+      rs1    <= 0;
+      rs2    <= 0;
       $display("LUI rd, 0x%h", $signed(instr[31:12]));
     end
 
     opcodeU2: begin
       //opcode = "U";
+      uimm   <= instr[31:12];
+      rd     <= instr[11:7];
+      opcode <= {3'bxxx, instr[6:0]};
+      rs1    <= 0;
+      rs2    <= 0;
       $display("AUIPC rd, 0x%h", $signed(instr[31:12]));
     end
 
     opcodeUJ: begin
       //opcode = "UJ";
-      imm32 <= {{11{instr[31]}}, {instr[31], instr[19:12], instr[20], instr[30:21], 1'b0}};
+      rd     <= instr[11:7];
+      uimm   <= {instr[31], instr[19:12], instr[20], instr[30:21]};
+      opcode <= {3'bxxx, instr[6:0]};
+      rs2    <= 0;
+      rs1    <= 0;
       $display("JAL rd, 0x%h", $signed({instr[31], instr[19:12], instr[20], instr[30:21], 1'b0}));
+    end
+
+    opcodeI1: begin
+        // opcode = "I";
+      rd     <= instr[11:7];
+      uimm   <= {instr[31], instr[19:12], instr[20], instr[30:21]};
+      opcode <= {3'bxxx, instr[6:0]};
+      rs2    <= 0;
+      rs1    <= 0;
+      $display("JALR rd, rs1, 0x%h", $signed(instr[31:20]));
+    end
+    
+    opcodeFE: begin
+      //opcode = "FENCE AND FENCE.I";
+      rd     <= 5'b00000;
+      opcode <= {instr[14:12], instr[6:0]};
+      rs1    <= 5'b00000;
+      rs2    <= instr[31:20];
+      case(instr[14:12])
+        3'b000: begin
+          $display("FENCE 0x%h", $signed(rs2));
+        end
+        3'b001: begin
+          $display("FENCE 0x%h", $signed(rs2));
+        end
+      endcase
+    end
+    
+    opcodeSY: begin
+      rd     <= instr[11:7];
+      rs1    <= instr[19:15];
+      rs2    <= instr[31:20];
+      opcode <= {instr[14:12], instr[6:0]};
+      case(instr[14:12])
+        3'b000: begin
+          $display("ECALL 0x%h", rs2);
+        end
+        3'b001: begin
+          $display("EBREAK 0x%h", rs2);
+        end
+        3'b010: begin
+          $display("CSRRW 0x%h", rs2);
+        end
+        3'b011: begin
+          $display("CSRRS 0x%h", rs2);
+        end
+        3'b100: begin
+          $display("CSRRC 0x%h", rs2);
+        end
+        3'b101: begin
+          $display("CSRRWI 0x%h", rs2);
+        end
+        3'b110: begin
+          $display("CSRRSI 0x%h", rs2);
+        end
+        3'b111: begin
+          $display("CSRRCI 0x%h", rs2);
+        end
+      endcase
     end
 
   endcase

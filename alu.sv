@@ -72,7 +72,7 @@ enum {
     opcode_csrrci      = 10'h3f3
 } opcodes; 
 
-wire [63:0] temp_dest;
+logic [63:0] temp_dest;
 logic sign_extend;
 
 always_ff @(posedge clk) begin
@@ -84,7 +84,7 @@ always_ff @(posedge clk) begin
     else begin
         data_out <= temp_dest;
         aluRegDest <= regDest;
-        wr_en<=1;
+        wr_en <= 1;
     end
 end
 
@@ -97,65 +97,75 @@ always_comb begin
     end
     opcode_auipc : begin
       temp_dest = {uimm, 12'h000} + i_pc;
+      sign_extend = 0;
     end
     opcode_jal : begin
       temp_dest = i_pc + 4;
-
-      ret = /* register_file[register_enum.ra] = */imm32 * 2; 
+      ret = /* register_file[register_enum.ra] = */{{11{uimm[19]}}, uimm} * 2;
+      sign_extend = 0;
     end
     opcode_jalr : begin
       temp_dest = i_pc + 4;
-      ret = register_file[register_enum.ra]({{52{regB[11]}}, regB} + register_file[regA]);
+      ret = {{52{regB[11]}}, regB} + regA_value;
+      retReg = register_enum.ra; 
+      sign_extend = 0;
     end       
     opcode_beq  : begin
-      if (register_file[regA] == register_file[regB[4:0]]) begin
-        temp_dest = i_pc + imm32;
+      if (regA_value == register_file[regB[4:0]]) begin
+        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
         temp_dest = i_pc + 4;
       end
+      sign_extend = 0;
     end
     opcode_bne  : begin
-      if (register_file[regA] != register_file[regB[4:0]]) begin
-        temp_dest = i_pc + imm32;
+      if (regA_value != register_file[regB[4:0]]) begin
+        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
         temp_dest = i_pc + 4;
       end
+      sign_extend = 0;
     end      
     opcode_blt  : begin
-      if ($signed(register_file[regA]) < $signed(register_file[regB[4:0]])) begin
-        temp_dest = i_pc + imm32;
+      if ($signed(regA_value < $signed(register_file[regB[4:0]])) begin
+        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
         temp_dest = i_pc + 4;
       end
+      sign_extend = 0;
     end      
     opcode_bge  : begin
-      if ($signed(register_file[regA]) >= $signed(register_file[regB[4:0]])) begin
-        temp_dest = i_pc + imm32;
+      if ($signed(regA_value) >= $signed(register_file[regB[4:0]])) begin
+        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
         temp_dest = i_pc + 4;
       end
+      sign_extend = 0;
     end      
     opcode_bltu : begin
-      if (register_file[regA] < register_file[regB[4:0]]) begin
-        temp_dest = i_pc + imm32;
+      if (regA_value < register_file[regB[4:0]]) begin
+        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
         temp_dest = i_pc + 4;
       end
+      sign_extend = 0;
     end      
     opcode_bgeu : begin
-      if (register_file[regA] >= register_file[regB[4:0]]) begin
-        temp_dest = i_pc + imm32;
+      if (regA_value >= register_file[regB[4:0]]) begin
+        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
         temp_dest = i_pc + 4;
       end
+      sign_extend = 0;
     end      
     opcode_lb   : begin
+      
     end      
     opcode_lh   : begin
     end      
@@ -166,6 +176,7 @@ always_comb begin
     opcode_lhu  : begin
     end      
     opcode_sb   : begin
+      
     end      
     opcode_sh   : begin
     end      
