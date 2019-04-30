@@ -112,7 +112,7 @@ always_comb begin
       sign_extend = 0;
     end       
     opcode_beq  : begin
-      if (regA_value == register_file[regB[4:0]]) begin
+      if (regA_value == regB_value) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
@@ -121,7 +121,7 @@ always_comb begin
       sign_extend = 0;
     end
     opcode_bne  : begin
-      if (regA_value != register_file[regB[4:0]]) begin
+      if (regA_value != regB_value) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
@@ -130,7 +130,7 @@ always_comb begin
       sign_extend = 0;
     end      
     opcode_blt  : begin
-      if ($signed(regA_value) < $signed(register_file[regB[4:0]])) begin
+      if ($signed(regA_value) < $signed(regB_value)) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
@@ -139,7 +139,7 @@ always_comb begin
       sign_extend = 0;
     end      
     opcode_bge  : begin
-      if ($signed(regA_value) >= $signed(register_file[regB[4:0]])) begin
+      if ($signed(regA_value) >= $signed(regB_value)) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
@@ -148,7 +148,7 @@ always_comb begin
       sign_extend = 0;
     end      
     opcode_bltu : begin
-      if (regA_value < register_file[regB[4:0]]) begin
+      if (regA_value < regB_value) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
@@ -157,7 +157,7 @@ always_comb begin
       sign_extend = 0;
     end      
     opcode_bgeu : begin
-      if (regA_value >= register_file[regB[4:0]]) begin
+      if (regA_value >= regB_value) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
       end
       else begin
