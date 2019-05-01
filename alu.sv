@@ -54,7 +54,8 @@ enum {
     opcode_lb          = 10'h003,
     opcode_lh          = 10'h083,
     opcode_lw          = 10'h103,
-    opcode_lbulwu      = 10'h203,
+    opcode_lbu         = 10'h203,
+    opcode_lwu         = 10'h303,
     opcode_lhu         = 10'h283,
     opcode_sb          = 10'h023,
     opcode_sh          = 10'h0a3,
@@ -73,6 +74,8 @@ enum {
 } opcodes;
 
 logic [63:0] temp_dest;
+logic [63:0] quart_temp_dest;
+logic [63:0] half_temp_dest;
 logic sign_extend;
 
 always_ff @(posedge clk) begin
@@ -164,24 +167,36 @@ always_comb begin
       sign_extend = 0;
     end
     opcode_lb   : begin
-
+      quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
+      temp_dest = {{24{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
     end
     opcode_lh   : begin
+      half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
+      temp_dest = {{16{half_temp_dest[15]}}, half_temp_dest[15:0]};
     end
     opcode_lw   : begin
+      temp_dest = (regA_value + {{52{regB[11]}}, regB}) | (64'hffffffff);
     end
-    opcode_lbulwu : begin
+    opcode_lbu : begin
+      quart_temp_dest = (regA_value + {52'h0000000000000, regB});
+      temp_dest = {{24'h000000, quart_temp_dest[7:0]}};
+    end
+    opcode_lwu : begin
+      temp_dest = (regA_value + {52'h0000000000000, regB}) | (64'hffffffff);
     end
     opcode_lhu  : begin
+      half_temp_dest = (regA_value + {52'h0000000000000, regB});
+      temp_dest = {16'h0000, half_temp_dest[15:0]};
     end
     opcode_sb   : begin
-
+      temp_dest = (regA_value + {52{regB[11:5], regDest}});
     end
     opcode_sh   : begin
     end
     opcode_sw   : begin
     end
     opcode_ld   : begin
+      temp_dest = regA_value + {{52{regB[11]}}, regB};
     end
     opcode_sd   : begin
     end
