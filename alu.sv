@@ -70,7 +70,7 @@ enum {
     opcode_csrrwi      = 10'h273,
     opcode_csrrsi      = 10'h373,
     opcode_csrrci      = 10'h3f3
-} opcodes; 
+} opcodes;
 
 logic [63:0] temp_dest;
 logic sign_extend;
@@ -79,8 +79,8 @@ always_ff @(posedge clk) begin
     if (sign_extend) begin
         data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
         aluRegDest <= regDest;
-        wr_en <= 1; 
-    end    
+        wr_en <= 1;
+    end
     else begin
         data_out <= temp_dest;
         aluRegDest <= regDest;
@@ -106,9 +106,9 @@ always_comb begin
     end
     opcode_jalr : begin
       temp_dest = i_pc + 4 + ({{52{regB[11]}}, regB} + regA_value);
-//      retReg = register_enum.ra; 
+//      retReg = register_enum.ra;
       sign_extend = 0;
-    end       
+    end
     opcode_beq  : begin
       if (regA_value == regB_value) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
@@ -126,7 +126,7 @@ always_comb begin
         temp_dest = i_pc + 4;
       end
       sign_extend = 0;
-    end      
+    end
     opcode_blt  : begin
       if ($signed(regA_value) < $signed(regB_value)) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
@@ -135,7 +135,7 @@ always_comb begin
         temp_dest = i_pc + 4;
       end
       sign_extend = 0;
-    end      
+    end
     opcode_bge  : begin
       if ($signed(regA_value) >= $signed(regB_value)) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
@@ -144,7 +144,7 @@ always_comb begin
         temp_dest = i_pc + 4;
       end
       sign_extend = 0;
-    end      
+    end
     opcode_bltu : begin
       if (regA_value < regB_value) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
@@ -153,7 +153,7 @@ always_comb begin
         temp_dest = i_pc + 4;
       end
       sign_extend = 0;
-    end      
+    end
     opcode_bgeu : begin
       if (regA_value >= regB_value) begin
         temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
@@ -162,49 +162,49 @@ always_comb begin
         temp_dest = i_pc + 4;
       end
       sign_extend = 0;
-    end      
+    end
     opcode_lb   : begin
-      
-    end      
+
+    end
     opcode_lh   : begin
-    end      
+    end
     opcode_lw   : begin
-    end      
+    end
     opcode_lbulwu : begin
-    end    
+    end
     opcode_lhu  : begin
-    end      
+    end
     opcode_sb   : begin
-      
-    end      
+
+    end
     opcode_sh   : begin
-    end      
+    end
     opcode_sw   : begin
-    end      
+    end
     opcode_ld   : begin
-    end      
+    end
     opcode_sd   : begin
-    end      
+    end
     opcode_fence: begin
-    end      
+    end
     opcode_fencei : begin
-    end    
+    end
     opcode_ecallebreak : begin
     end
     opcode_csrrw  : begin
-    end     
+    end
     opcode_csrrs  : begin
-    end 
+    end
     opcode_csrrc  : begin
-    end 
+    end
     opcode_csrrwi : begin
-    end 
+    end
     opcode_csrrsi : begin
-    end 
+    end
     opcode_csrrci : begin
-    end 
+    end
 /* Until here */
-    
+
     opcode_addi: begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
       sign_extend = 0;
@@ -239,7 +239,7 @@ always_comb begin
       end else begin
           temp_dest = 0;
       end
-      sign_extend = 0;    
+      sign_extend = 0;
     end
     opcode_sltiu: begin
       if (regA_value < {{52{regB[11]}}, regB}) begin
@@ -279,7 +279,7 @@ always_comb begin
           temp_dest = regA_value << regB_value;
         end
         7'b0000001: begin
-          logic [63:0] product = $signed(regA_value) * $signed(regB_value); 
+          logic [63:0] product = $signed(regA_value) * $signed(regB_value);
           temp_dest = product[63:32];
         end
       endcase
@@ -317,7 +317,7 @@ always_comb begin
       endcase
       sign_extend = 0;
     end
-    opcode_xordiv: begin 
+    opcode_xordiv: begin
         case(regB[11:5])
             7'b0000000: begin
                 temp_dest = regA_value ^ regB_value;
@@ -371,7 +371,7 @@ always_comb begin
     end
     opcode_divw: begin
         temp_dest = $signed(regA_value[31:0]) / $signed(regB_value[31:0]);
-        sign_extend = 1; 
+        sign_extend = 1;
     end
     opcode_srlsradivuw: begin
         case(regB[11:5])
@@ -405,7 +405,7 @@ always_comb begin
         case(regB[11:5])
             7'b0000000: begin
                 temp_dest = regA_value >> regB[4:0];
-                sign_extend = 0;                 
+                sign_extend = 0;
             end
             7'b0100000: begin
                 temp_dest = $signed(regA_value) >> regB[4:0];
@@ -414,7 +414,7 @@ always_comb begin
         endcase
     end
     opcode_srlsraiw: begin
-        case(regB[11:5]) 
+        case(regB[11:5])
             7'b0000000: begin
                 temp_dest = regA_value[31:0] >> regB[5:0]; // 6 bits immediate value
                 sign_extend = 1;
@@ -427,7 +427,7 @@ always_comb begin
     end
     opcode_slliw: begin
         temp_dest = regA_value[31:0] << regB[5:0]; //6 bits immediate value
-        sign_extend = 1; 
+        sign_extend = 1;
     end
     opcode_sllw:begin
         temp_dest = regA_value[31:0] << regB_value[31:0];

@@ -8,36 +8,38 @@ module register_decode
 	INSTRSZ = 32
 )
 (
+    //general inputs
     input  clk,
     input  reset,
     input  [INSTRSZ - 1:0] instr,
     input  [63:0] prog_counter,
-    //input  [4:0] rd_reg_A,
-    //input  [4:0] rd_reg_B,
-    input  wr_en, //general inputs
-    input  [4:0] destn_reg, // specify the input and output registers
+    input  wr_en,
+    // specify the register number and data to write
+    input  [4:0] destn_reg,
     input  [63:0] destn_data,
 
+    // output data
     output [63:0] rd_data_A,
-    output [63:0] rd_data_B, //output data
-    output [REGBITS - 1:0]  reg_dest, //registers
+    output [63:0] rd_data_B,
+    // control logic
+    output [REGBITS - 1:0]  reg_dest,
     output [UIMM - 1: 0]    uimm,
     output [INSTRSZ - 1: 0] imm32,
     output [OPFUNC - 1:0]   opcode,
     output [IMMREG - 1:0]   regB
 );
-    enum 
+    enum
     {
-      opcodeR1 = 7'b0110011, 
-      opcodeR2 = 7'b0111011, 
-      opcodeI1 = 7'b1100111, 
+      opcodeR1 = 7'b0110011,
+      opcodeR2 = 7'b0111011,
+      opcodeI1 = 7'b1100111,
       opcodeI2 = 7'b0000011,
-      opcodeI3 = 7'b0010011, 
-      opcodeI4 = 7'b0011011, 
-      opcodeS  = 7'b0100011, 
-      opcodeSB = 7'b1100011, 
-      opcodeU1 = 7'b0110111, 
-      opcodeU2 = 7'b0010111, 
+      opcodeI3 = 7'b0010011,
+      opcodeI4 = 7'b0011011,
+      opcodeS  = 7'b0100011,
+      opcodeSB = 7'b1100011,
+      opcodeU1 = 7'b0110111,
+      opcodeU2 = 7'b0010111,
       opcodeUJ = 7'b1101111,
       opcodeFE = 7'b0001111,
       opcodeSY = 7'b1110011
@@ -49,12 +51,12 @@ module register_decode
     logic[11:0] temp_regB;
     logic [OPFUNC -1:0] temp_opcode;
     logic [UIMM -1:0] temp_uimm;
-    
+
     always_comb begin
       OPS = instr[6:0];
       temp_regB   = instr[31:20];
       case(OPS)
-          opcodeR1: begin 
+          opcodeR1: begin
             //temp_opcode = "R";
             rd_reg_A    = instr[19:15];
             rd_reg_B    = instr[24:20];
@@ -90,7 +92,7 @@ module register_decode
                 3'b011: begin
                     case(instr[31:25])
                         7'b0000000: begin
-                        end	
+                        end
                         7'b0000001: begin
                         end
                     endcase
@@ -136,7 +138,7 @@ module register_decode
             rd_reg_A = instr[19:15];
             rd_reg_B = instr[31:20];
             reg_dest  = instr[11:7];
-            temp_opcode = { instr[14:12] , instr[6:0] }; 
+            temp_opcode = { instr[14:12] , instr[6:0] };
             case(instr[14:12])
                 3'b000: begin
                     case(instr[31:25])
@@ -196,7 +198,7 @@ module register_decode
             rd_reg_A    = instr[19:15];
             rd_reg_B    = instr[31:20];
             reg_dest     = instr[11:7];
-            temp_opcode = { instr[14:12] , instr[6:0] }; 
+            temp_opcode = { instr[14:12] , instr[6:0] };
             //temp_opcode = "I";
             case(instr[14:12])
                 3'b000: begin
@@ -231,7 +233,7 @@ module register_decode
             rd_reg_A = instr[19:15];
             rd_reg_B = instr[31:20];
             reg_dest  = instr[11:7];
-            temp_opcode = { instr[14:12] , instr[6:0] }; 
+            temp_opcode = { instr[14:12] , instr[6:0] };
             //temp_opcode = "I";
             case(instr[14:12])
                 3'b000: begin
@@ -255,15 +257,15 @@ module register_decode
           rd_reg_A    = instr[19:15];
           rd_reg_B    = instr[31:20];
           reg_dest     = instr[11:7];
-          temp_opcode = { instr[14:12] , instr[6:0] }; 
+          temp_opcode = { instr[14:12] , instr[6:0] };
           case(instr[14:12])
             3'b000: begin
             end
-            3'b001: begin 
+            3'b001: begin
             end
-            3'b010: begin 
+            3'b010: begin
             end
-            3'b011: begin 
+            3'b011: begin
             end
           endcase
         end
@@ -325,7 +327,7 @@ module register_decode
           rd_reg_B    = 0;
           rd_reg_A    = 0;
         end
-        
+
         opcodeFE: begin
           //temp_opcode = "FENCE AND FENCE.I";
           reg_dest     = 5'b00000;
@@ -339,7 +341,7 @@ module register_decode
             end
           endcase
         end
-        
+
         opcodeSY: begin
           reg_dest     = instr[11:7];
           rd_reg_A    = instr[19:15];
@@ -386,7 +388,7 @@ module register_decode
             register_set[13] = 64'b0;
             register_set[14] = 64'b0;
             register_set[15] = 64'b0;
-            register_set[16] = 64'b0;    
+            register_set[16] = 64'b0;
             register_set[17] = 64'b0;
             register_set[18] = 64'b0;
             register_set[19] = 64'b0;
@@ -437,18 +439,18 @@ module register_decode
             $display("t5   = %x", register_set[30]);
             $display("t6   = %x", register_set[31]);
             $finish;
-        end 
+        end
         else begin
             uimm      <= temp_uimm;
             opcode    <= temp_opcode;
             rd_data_A <= register_set[rd_reg_A];//read the data from register A to data A
-            rd_data_B <= register_set[rd_reg_B];//read the data from register B to data B 
+            rd_data_B <= register_set[rd_reg_B];//read the data from register B to data B
             regB      <= temp_regB;
             if (wr_en & destn_reg != 0) begin
                 register_set[destn_reg] <= destn_data; //write the data into the destination register
             end
-       end 
+       end
     end //always_ff block end
-    
+
 
 endmodule

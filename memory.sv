@@ -61,7 +61,7 @@ end
 
 always_comb begin
     case(b_state)
-        INITIAL: begin 
+        INITIAL: begin
             if (bus_reqack) begin
                 next_count = 0;
                 b_next_state = WAIT_RESP;
@@ -69,7 +69,7 @@ always_comb begin
             end
         end
         WAIT_RESP: begin
-            if (bus_respcyc) begin 
+            if (bus_respcyc) begin
                 b_next_state = GOT_RESP;
                 data_valid = 0;
                 if (count == 0) begin
@@ -91,9 +91,9 @@ always_comb begin
             else if (!bus_respcyc) begin
                 data_valid = 1;
                 b_next_state = INITIAL;
-            end    
+            end
         end
-        default: begin 
+        default: begin
             b_next_state = INITIAL;
         end
     endcase

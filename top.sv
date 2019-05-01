@@ -23,7 +23,7 @@ module top
   input  [WORDSZ - 1:0] entry,
   input  [WORDSZ - 1:0] stackptr,
   input  [WORDSZ - 1:0] satp,
-  
+
   // interface to connect to the bus
   output bus_reqcyc,
   output bus_respack,
@@ -49,7 +49,7 @@ module top
   logic alu_wr_enable;
 
 
-  logic [WORDSZ - 1: 0] pc, next_pc; 
+  logic [WORDSZ - 1: 0] pc, next_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
 
   always_ff @ (posedge clk) begin
@@ -98,7 +98,7 @@ module top
     .mem_data_in(0),
     .mem_data_valid(data_mem_valid)
  );
- 
+
  cache datacache(
     .clk(clk),
     .wr_en(wr_data),
