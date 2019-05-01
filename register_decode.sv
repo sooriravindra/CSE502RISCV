@@ -1,0 +1,454 @@
+//register_decode module
+module register_decode
+#(
+	REGBITS =  5,
+	IMMREG  = 12,
+	OPFUNC	= 10,
+        UIMM    = 20,
+	INSTRSZ = 32
+)
+(
+    input  clk,
+    input  reset,
+    input  [INSTRSZ - 1:0] instr,
+    input  [63:0] prog_counter,
+    //input  [4:0] rd_reg_A,
+    //input  [4:0] rd_reg_B,
+    input  wr_en, //general inputs
+    input  [4:0] destn_reg, // specify the input and output registers
+    input  [63:0] destn_data,
+
+    output [63:0] rd_data_A,
+    output [63:0] rd_data_B, //output data
+    output [REGBITS - 1:0]  reg_dest, //registers
+    output [UIMM - 1: 0]    uimm,
+    output [INSTRSZ - 1: 0] imm32,
+    output [OPFUNC - 1:0]   opcode,
+    output [IMMREG - 1:0]   regB
+);
+    enum 
+    {
+      opcodeR1 = 7'b0110011, 
+      opcodeR2 = 7'b0111011, 
+      opcodeI1 = 7'b1100111, 
+      opcodeI2 = 7'b0000011,
+      opcodeI3 = 7'b0010011, 
+      opcodeI4 = 7'b0011011, 
+      opcodeS  = 7'b0100011, 
+      opcodeSB = 7'b1100011, 
+      opcodeU1 = 7'b0110111, 
+      opcodeU2 = 7'b0010111, 
+      opcodeUJ = 7'b1101111,
+      opcodeFE = 7'b0001111,
+      opcodeSY = 7'b1110011
+    } OPS;
+
+    reg [63:0] register_set [31:0]; // (32 registers of 64 bit each)
+    logic[4:0] rd_reg_A;
+    logic[4:0] rd_reg_B;
+    logic[11:0] temp_regB;
+    logic [OPFUNC -1:0] temp_opcode;
+    logic [UIMM -1:0] temp_uimm;
+    
+    always_comb begin
+      OPS = instr[6:0];
+      temp_regB   = instr[31:20];
+      case(OPS)
+          opcodeR1: begin 
+            //temp_opcode = "R";
+            rd_reg_A    = instr[19:15];
+            rd_reg_B    = instr[24:20];
+            reg_dest    = instr[11:7];
+            temp_opcode = { instr[14:12], instr[6:0] };
+            case(instr[14:12])
+                3'b000: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0100000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b001: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b010: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b011: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end	
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b100: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b101: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0100000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b110: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b111: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                 end
+             endcase
+         end
+         opcodeR2: begin
+            //temp_opcode = "R";
+            rd_reg_A = instr[19:15];
+            rd_reg_B = instr[31:20];
+            reg_dest  = instr[11:7];
+            temp_opcode = { instr[14:12] , instr[6:0] }; 
+            case(instr[14:12])
+                3'b000: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0100000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b001: begin
+                end
+                3'b100: begin
+                end
+                3'b101: begin
+                    case(instr[31:25])
+                        7'b0000000: begin
+                        end
+                        7'b0100000: begin
+                        end
+                        7'b0000001: begin
+                        end
+                    endcase
+                end
+                3'b110: begin
+                end
+                3'b111: begin
+                end
+            endcase
+        end
+
+        opcodeI2: begin
+            //temp_opcode = "I";
+            rd_reg_A    = instr[19:15];
+            reg_dest     = instr[11:7];
+            rd_reg_B    = instr[31:20];
+            temp_opcode = { instr[14:12], instr[6:0] };
+            case(instr[14:12])
+                3'b000: begin
+                end
+                3'b001: begin
+                end
+                3'b010: begin
+                end
+                3'b011: begin
+                end
+                3'b100: begin
+                end
+                3'b101: begin
+                end
+                3'b110: begin
+                end
+            endcase
+        end
+        opcodeI3: begin
+            rd_reg_A    = instr[19:15];
+            rd_reg_B    = instr[31:20];
+            reg_dest     = instr[11:7];
+            temp_opcode = { instr[14:12] , instr[6:0] }; 
+            //temp_opcode = "I";
+            case(instr[14:12])
+                3'b000: begin
+                end
+                //shift immediate instructions should only use lowest 5 bits
+                //of the immediate value
+                3'b001: begin
+                end
+                3'b010: begin
+                end
+                3'b011: begin
+                end
+                3'b100: begin
+                end
+                3'b101: begin
+                    case(instr[30])
+                        //shift immediate instructions should only use lowest 5 bits
+                        0'b1: begin
+                        end
+                        1'b1: begin
+                        end
+                    endcase
+                end
+                3'b110: begin
+                end
+                3'b111: begin
+                end
+            endcase
+        end
+
+        opcodeI4: begin
+            rd_reg_A = instr[19:15];
+            rd_reg_B = instr[31:20];
+            reg_dest  = instr[11:7];
+            temp_opcode = { instr[14:12] , instr[6:0] }; 
+            //temp_opcode = "I";
+            case(instr[14:12])
+                3'b000: begin
+                end
+                //shift instructions use lowest 5 bits for immediate
+                3'b001: begin
+                end
+                3'b101: begin
+                    case(instr[30])
+                        //shift instructions use lowest 5 bits for immediate
+                        0'b1: begin
+                        end
+                        1'b1: begin
+                        end
+                    endcase
+                end
+            endcase
+        end
+        opcodeS: begin
+          //temp_opcode = "S";
+          rd_reg_A    = instr[19:15];
+          rd_reg_B    = instr[31:20];
+          reg_dest     = instr[11:7];
+          temp_opcode = { instr[14:12] , instr[6:0] }; 
+          case(instr[14:12])
+            3'b000: begin
+            end
+            3'b001: begin 
+            end
+            3'b010: begin 
+            end
+            3'b011: begin 
+            end
+          endcase
+        end
+
+        opcodeSB: begin
+          //temp_opcode = "SB";
+          rd_reg_A    = instr[19:15];
+          rd_reg_B    = {instr[31], instr[7], instr[30:25], instr[11:8]};
+          reg_dest     = instr[11:7];
+          temp_opcode = { instr[14:12] , instr[6:0] };
+          case(instr[14:12])
+            3'b000: begin
+            end
+            3'b001: begin
+            end
+            3'b100: begin
+            end
+            3'b101: begin
+            end
+            3'b110: begin
+            end
+            3'b111: begin
+            end
+          endcase
+        end
+
+        opcodeU1: begin
+          //temp_opcode = "U";
+          temp_uimm   = instr[31:12];
+          reg_dest     = instr[11:7];
+          temp_opcode = {3'bxxx, instr[6:0]};
+          rd_reg_A    = 0;
+          rd_reg_B    = 0;
+        end
+
+        opcodeU2: begin
+          //temp_opcode = "U";
+          temp_uimm   = instr[31:12];
+          reg_dest     = instr[11:7];
+          temp_opcode = {3'bxxx, instr[6:0]};
+          rd_reg_A    = 0;
+          rd_reg_B    = 0;
+        end
+
+        opcodeUJ: begin
+          //temp_opcode = "UJ";
+          reg_dest     = instr[11:7];
+          temp_uimm   = {instr[31], instr[19:12], instr[20], instr[30:21]};
+          temp_opcode = {3'bxxx, instr[6:0]};
+          rd_reg_B    = 0;
+          rd_reg_A    = 0;
+        end
+
+        opcodeI1: begin
+            // temp_opcode = "I";
+          reg_dest     = instr[11:7];
+          temp_uimm   = {instr[31], instr[19:12], instr[20], instr[30:21]};
+          temp_opcode = {3'bxxx, instr[6:0]};
+          rd_reg_B    = 0;
+          rd_reg_A    = 0;
+        end
+        
+        opcodeFE: begin
+          //temp_opcode = "FENCE AND FENCE.I";
+          reg_dest     = 5'b00000;
+          temp_opcode = {instr[14:12], instr[6:0]};
+          rd_reg_A    = 5'b00000;
+          rd_reg_B    = instr[31:20];
+          case(instr[14:12])
+            3'b000: begin
+            end
+            3'b001: begin
+            end
+          endcase
+        end
+        
+        opcodeSY: begin
+          reg_dest     = instr[11:7];
+          rd_reg_A    = instr[19:15];
+          rd_reg_B    = instr[31:20];
+          temp_opcode = {instr[14:12], instr[6:0]};
+          case(instr[14:12])
+            3'b000: begin
+            end
+            3'b001: begin
+            end
+            3'b010: begin
+            end
+            3'b011: begin
+            end
+            3'b100: begin
+            end
+            3'b101: begin
+            end
+            3'b110: begin
+            end
+            3'b111: begin
+            end
+          endcase
+        end
+
+      endcase
+    end
+
+    always_ff @(posedge clk) begin //this always block is for write. we would write to the register in every postive edge of the clock
+        if (reset) begin
+            register_set[0]  = 64'b0;
+            register_set[1]  = 64'b0;
+            register_set[2]  = 64'b0;
+            register_set[3]  = 64'b0;
+            register_set[4]  = 64'b0;
+            register_set[5]  = 64'b0;
+            register_set[6]  = 64'b0;
+            register_set[7]  = 64'b0;
+            register_set[8]  = 64'b0;
+            register_set[9]  = 64'b0;
+            register_set[10] = 64'b0;
+            register_set[11] = 64'b0;
+            register_set[12] = 64'b0;
+            register_set[13] = 64'b0;
+            register_set[14] = 64'b0;
+            register_set[15] = 64'b0;
+            register_set[16] = 64'b0;    
+            register_set[17] = 64'b0;
+            register_set[18] = 64'b0;
+            register_set[19] = 64'b0;
+            register_set[20] = 64'b0;
+            register_set[21] = 64'b0;
+            register_set[22] = 64'b0;
+            register_set[23] = 64'b0;
+            register_set[24] = 64'b0;
+            register_set[25] = 64'b0;
+            register_set[26] = 64'b0;
+            register_set[27] = 64'b0;
+            register_set[28] = 64'b0;
+            register_set[29] = 64'b0;
+            register_set[30] = 64'b0;
+            register_set[31] = 64'b0;
+        end
+        if ((instr[7:0] == 0) & prog_counter != 0) begin
+            $display("zero = %x", register_set[0]);
+            $display("ra   = %x", register_set[1]);
+            $display("sp   = %x", register_set[2]);
+            $display("gp   = %x", register_set[3]);
+            $display("tp   = %x", register_set[4]);
+            $display("t0   = %x", register_set[5]);
+            $display("t1   = %x", register_set[6]);
+            $display("t2   = %x", register_set[7]);
+            $display("s0   = %x", register_set[8]);
+            $display("s1   = %x", register_set[9]);
+            $display("a0   = %x", register_set[10]);
+            $display("a1   = %x", register_set[11]);
+            $display("a2   = %x", register_set[12]);
+            $display("a3   = %x", register_set[13]);
+            $display("a4   = %x", register_set[14]);
+            $display("a5   = %x", register_set[15]);
+            $display("a6   = %x", register_set[16]);
+            $display("a7   = %x", register_set[17]);
+            $display("s2   = %x", register_set[18]);
+            $display("s3   = %x", register_set[19]);
+            $display("s4   = %x", register_set[20]);
+            $display("s5   = %x", register_set[21]);
+            $display("s6   = %x", register_set[22]);
+            $display("s7   = %x", register_set[23]);
+            $display("s8   = %x", register_set[24]);
+            $display("s9   = %x", register_set[25]);
+            $display("s10  = %x", register_set[26]);
+            $display("s11  = %x", register_set[27]);
+            $display("t3   = %x", register_set[28]);
+            $display("t4   = %x", register_set[29]);
+            $display("t5   = %x", register_set[30]);
+            $display("t6   = %x", register_set[31]);
+            $finish;
+        end 
+        else begin
+            uimm      <= temp_uimm;
+            opcode    <= temp_opcode;
+            rd_data_A <= register_set[rd_reg_A];//read the data from register A to data A
+            rd_data_B <= register_set[rd_reg_B];//read the data from register B to data B 
+            regB      <= temp_regB;
+            if (wr_en & destn_reg != 0) begin
+                register_set[destn_reg] <= destn_data; //write the data into the destination register
+            end
+       end 
+    end //always_ff block end
+    
+
+endmodule

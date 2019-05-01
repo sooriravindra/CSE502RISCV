@@ -5,7 +5,7 @@ module memory_fetch
 )
 (
     input  clk,
-		input	 rst,
+    input  rst,
     input  [63:0] in_address,
     //output data and signal if valid
     output [511:0] data_out,
@@ -49,14 +49,14 @@ always_comb begin
     endcase
 end
 always_ff @ (posedge clk) begin
-	if (rst) begin
-		b_state <= INITIAL;
-		count <= 0;
-	end
-	else begin
-		b_state <= b_next_state;
-		count <= next_count;
-	end
+    if (rst) begin
+        b_state <= INITIAL;
+        count <= 0;
+    end
+    else begin
+        b_state <= b_next_state;
+        count <= next_count;
+    end
 end
 
 always_comb begin
