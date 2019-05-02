@@ -46,11 +46,9 @@ always_comb begin
     INIT        : begin
         pass    	   = 0;
         c_hit 		   = 0;
-        data_out           = 0; 
         mem_wr_en    	   = 0;
         mem_address    	   = 0;
         update_done 	   = 0;
-        operation_complete = 0; 
     end
     BUSY        :  begin
         if (wr_en) begin
@@ -97,9 +95,15 @@ always_ff @(posedge clk) begin
   if (rst == 1) begin
     data_out <= 0;
     c_state <= INIT;
-		operation_complete <= 0;
+    operation_complete <= 0;
   end
   else begin
+
+    if (mem_data_valid) begin
+      cachedata[mem_address[14:6/*IDXBITS*/]] <= mem_data_in;
+      cachestate[mem_address[14:6/*IDXBITS*/]] <= 1;
+      cachetag [mem_address[14:6/*IDXBITS*/]] <= mem_address[63:15/*TAGBITS*/];
+    end
 
     if (wr_en) begin
       cachedata[w_addr[14:6/*IDXBITS*/]][w_addr[5:0/*OFFBITS*/]] <= data_in;
@@ -110,8 +114,8 @@ always_ff @(posedge clk) begin
     else begin
         data_out <= final_value;
     end
-    c_state 					 <= c_next_state;
-		operation_complete <= pass;
+    c_state <= c_next_state;
+    operation_complete <= pass;
   end
 end
 

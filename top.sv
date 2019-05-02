@@ -35,7 +35,9 @@ module top
   input  [BUS_TAG_WIDTH-1:0]  bus_resptag
 );
 
-  logic got_inst, data_mem_valid, wr_data;
+  logic data_mem_valid;
+  logic wr_data;
+  logic got_inst;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
   logic [REGSZ - 1: 0] decoder_regDest;
@@ -51,6 +53,7 @@ module top
 
   logic [WORDSZ - 1: 0] pc, next_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
+  logic [INSTSZ - 1: 0] icache_instr;
 
   always_ff @ (posedge clk) begin
       if (reset) begin
@@ -63,7 +66,7 @@ module top
   inc_pc pc_add(
     .pc_in(pc),
     .next_pc(next_pc),
-    .sig_recvd(data_mem_valid)
+    .sig_recvd(got_inst)
   );
 
   memory_fetch memory_instance(
@@ -81,7 +84,7 @@ module top
     .bus_resp(bus_resp),
     .bus_resptag(bus_resptag)
   );
- /*
+
  cache instcache(
     .clk(clk),
     .wr_en(0),
@@ -89,16 +92,15 @@ module top
     .r_addr(pc),
     .w_addr(0),
     .rst(reset),
-    .enable(data_mem_valid),
-    .data_out(pc),
+    .enable(clk),
+    .data_out(icache_instr),
     .operation_complete(got_inst),
     .mem_address(mem_addr),
-    .mem_data_out(data_out),
-    .mem_wr_en(wr_data),
-    .mem_data_in(0),
+    .mem_data_in(data_from_mem),
     .mem_data_valid(data_mem_valid)
  );
 
+ /*
  cache datacache(
     .clk(clk),
     .wr_en(wr_data),
@@ -121,7 +123,7 @@ module top
  register_decode decoder_instance(
     .clk(clk),
     .reset(reset),
-    .instr(data_from_mem[31:0]),
+    .instr(icache_instr),
     .prog_counter(pc),
     .wr_en(alu_wr_enable),
     .destn_reg(alu_regDest),
