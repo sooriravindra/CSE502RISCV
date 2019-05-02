@@ -8,6 +8,7 @@ module memory_fetch
     input  rst,
     input  [63:0] in_address,
     input  [511:0] data_in,
+    input  start_req,
     input  wr_en,
 
     //output data and signal if valid
@@ -52,7 +53,7 @@ always_comb begin
             else begin
                 bus_reqtag  = {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
             end
-            bus_reqcyc  = 1;
+            bus_reqcyc  = start_req;
             bus_respack = 0;
             data_valid = 0;
         end

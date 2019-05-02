@@ -38,6 +38,8 @@ module top
   logic data_mem_valid;
   logic wr_data;
   logic got_inst;
+  logic  [63:0] mem_addr;
+  logic  mem_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
   logic [REGSZ - 1: 0] decoder_regDest;
@@ -72,7 +74,8 @@ module top
   memory_fetch memory_instance(
     .clk(clk),
     .rst(reset),
-    .in_address(pc),
+    .in_address(mem_addr),
+    .start_req(mem_req),
     .data_out(data_from_mem),
     .data_valid(data_mem_valid),
     .bus_reqcyc(bus_reqcyc),
@@ -96,6 +99,7 @@ module top
     .data_out(icache_instr),
     .operation_complete(got_inst),
     .mem_address(mem_addr),
+    .mem_req(mem_req),
     .mem_data_in(data_from_mem),
     .mem_data_valid(data_mem_valid)
  );
@@ -143,7 +147,7 @@ module top
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
     .uimm(decoder_uimm),
-    .clk(data_mem_valid),
+    .clk(got_inst),
     .aluRegDest(alu_regDest),
     .data_out(alu_dataout),
     .wr_en(alu_wr_enable)
