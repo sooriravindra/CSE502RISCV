@@ -41,7 +41,7 @@ module top
   logic [REGSZ - 1: 0] decoder_regDest;
   logic [UIMM - 1: 0] decoder_uimm;
   logic [REGBSZ - 1: 0] decoder_regB;
-  logic [WORDSZ - 1:0] decoder_regA_val, decoder_regB_val;
+  logic [WORDSZ - 1:0] decoder_regA_val, decoder_regB_val, wr_to_mem;
 
   //connect alu output to register file input
   logic [63:0] alu_dataout;
@@ -136,14 +136,17 @@ module top
 
  alu alu_instance(
     .regB(decoder_regB),
-    .regA_value(decoder_regA_val),
-    .regB_value(decoder_regB_val),
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
     .uimm(decoder_uimm),
+    .i_pc(prog_counter),
+    .regA_value(decoder_regA_val),
+    .regB_value(decoder_regB_val),
     .clk(data_mem_valid),
-    .aluRegDest(alu_regDest),
+    .reset(reset),
     .data_out(alu_dataout),
+    .aluRegDest(alu_regDest),
+    .mem_out(wr_to_mem),
     .wr_en(alu_wr_enable)
  );
 

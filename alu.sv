@@ -1,3 +1,4 @@
+//`include "Sysbus.defs"
 module alu
 (
     input [11:0] regB,
@@ -12,6 +13,7 @@ module alu
     input reset,
     output [63:0] data_out,
     output [4:0] aluRegDest,
+    output [63:0] mem_out,
     output wr_en
 );
 
@@ -73,21 +75,29 @@ enum {
     opcode_csrrci      = 10'h3f3
 } opcodes;
 
-logic [63:0] temp_dest;
-logic [63:0] quart_temp_dest;
-logic [63:0] half_temp_dest;
+logic [63:0] temp_dest, quart_temp_dest, half_temp_dest, word_temp_dest, mem_dest;
 logic sign_extend;
-
+logic is_store;
+logic[11:0] off_dest12;
+logic[63:0] off_dest64;
 always_ff @(posedge clk) begin
-    if (sign_extend) begin
-        data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
-        aluRegDest <= regDest;
-        wr_en <= 1;
+    if (sign_extend && is_store == 0) begin
+      data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
+      aluRegDest <= regDest;
+      mem_out <= 0;
+      wr_en <= 1;
     end
-    else begin
-        data_out <= temp_dest;
-        aluRegDest <= regDest;
-        wr_en <= 1;
+    else if (sign_extend == 0 && is_store == 0) begin
+      data_out <= temp_dest;
+      aluRegDest <= regDest;
+      mem_out <= 0;
+      wr_en <= 1;
+    end
+    else if (is_store) begin
+      data_out <= temp_dest;
+      aluRegDest <= 0;
+      mem_out <= mem_dest;
+      wr_en <= 1;
     end
 end
 
@@ -166,45 +176,69 @@ always_comb begin
       end
       sign_extend = 0;
     end
+     
     opcode_lb   : begin
       quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{24{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
-    end
+      temp_dest = {{56{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
+    end      
     opcode_lh   : begin
       half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{16{half_temp_dest[15]}}, half_temp_dest[15:0]};
-    end
+      temp_dest = {{48{half_temp_dest[15]}}, half_temp_dest[15:0]};
+    end      
     opcode_lw   : begin
-      temp_dest = (regA_value + {{52{regB[11]}}, regB}) | (64'hffffffff);
-    end
+      word_temp_dest = (regA_value + {{52{regB[11]}}, regB});
+      temp_dest = {{32{word_temp_dest[31]}}, word_temp_dest[31:0]};
+    end      
     opcode_lbu : begin
       quart_temp_dest = (regA_value + {52'h0000000000000, regB});
-      temp_dest = {{24'h000000, quart_temp_dest[7:0]}};
-    end
+      temp_dest = {24'h000000, quart_temp_dest};
+    end    
     opcode_lwu : begin
-      temp_dest = (regA_value + {52'h0000000000000, regB}) | (64'hffffffff);
+      temp_dest = (regA_value + {52'h0000000000000, regB});
     end
     opcode_lhu  : begin
       half_temp_dest = (regA_value + {52'h0000000000000, regB});
-      temp_dest = {16'h0000, half_temp_dest[15:0]};
+      temp_dest = {16'h0000, half_temp_dest};
     end
     opcode_sb   : begin
-      temp_dest = (regA_value + {52{regB[11:5], regDest}});
+      is_store = 1;
+      off_dest12 = {regB[11:5], regDest};
+      off_dest64 = {{52{off_dest12[11]}}, off_dest12};
+      mem_dest   = regA_value + off_dest64;
+      temp_dest  = $signed(regB_value[7:0]);
     end
     opcode_sh   : begin
+      is_store = 1;
+      off_dest12 = {regB[11:5], regDest};
+      off_dest64 = {{52{off_dest12[11]}}, off_dest12};
+      mem_dest   = regA_value + off_dest64;
+      temp_dest  = $signed(regB_value[15:0]);
     end
     opcode_sw   : begin
+      is_store = 1;
+      off_dest12 = {regB[11:5], regDest};
+      off_dest64 = {{52{off_dest12[11]}}, off_dest12};
+      mem_dest   = regA_value + off_dest64;
+      temp_dest  = $signed(regB_value[31:0]);
     end
     opcode_ld   : begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
     end
     opcode_sd   : begin
+      is_store = 1;
+      off_dest12 = {regB[11:5], regDest};
+      off_dest64 = {{52{off_dest12[11]}}, off_dest12};
+      mem_dest   = regA_value + off_dest64;
+      temp_dest  = regB_value;
     end
     opcode_fence: begin
     end
     opcode_fencei : begin
     end
     opcode_ecallebreak : begin
+//      if (regB[20] == 0) begin
+//        do_ecall();
+//      end
     end
     opcode_csrrw  : begin
     end
