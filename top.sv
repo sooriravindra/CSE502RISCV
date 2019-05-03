@@ -1,6 +1,6 @@
 `include "Sysbus.defs"
 `include "fetch.sv"
-//`include "wb.sv"
+`include "wb.sv"
 `include "memory.sv"
 
 module top
@@ -47,11 +47,22 @@ module top
   logic [REGBSZ - 1: 0] decoder_regB;
   logic [WORDSZ - 1:0] decoder_regA_val, decoder_regB_val;
 
-  //connect alu output to register file input
+  //connect alu output to writeback input
   logic [63:0] alu_dataout;
   logic [REGSZ - 1:0]  alu_regDest;
   logic alu_wr_enable;
 
+  //connect wb output to decoder_register_file input
+  logic [63:0] wb_dataOut;
+  logic [REGSZ - 1:0] wb_regDest;
+  /*
+   * alu write enable directly passed to the regfile,
+   * and not passed through the write-back stage. do we need to pass this thru
+   * write back stage?
+   */
+  
+  //logic to for the wb stage to differentiate between ALU and memory ops
+  wire ld_or_alu;
 
   logic [WORDSZ - 1: 0] pc, next_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
@@ -130,14 +141,15 @@ module top
     .instr(icache_instr),
     .prog_counter(pc),
     .wr_en(alu_wr_enable),
-    .destn_reg(alu_regDest),
-    .destn_data(alu_dataout),
+    .destn_reg(wb_regDest),
+    .destn_data(wb_dataOut),
     .rd_data_A(decoder_regA_val),
     .rd_data_B(decoder_regB_val),
     .reg_dest(decoder_regDest),
     .uimm(decoder_uimm),
     .opcode(decoder_opcode),
-    .regB(decoder_regB)
+    .regB(decoder_regB),
+    .ld_or_alu(ld_or_alu)
  );
 
  alu alu_instance(
@@ -153,17 +165,16 @@ module top
     .wr_en(alu_wr_enable)
  );
 
- /*
- wb wb_instance(
+  wb wb_instance(
     .clk(clk),
     .rst(reset),
-    .lddata_in(0),
-    .alures_in(0),
-    .ld_or_alu(0),
-    .rd(decoder_regDest),
+    .lddata_in(0),//load instructions not yet done. we need data cache to be in place for this
+    .alures_in(alu_dataout),
+    .ld_or_alu(ld_or_alu),
+    .rd_alu(alu_regDest),//in case of an ALU operation
+    .rd_mem(0), //in case of a memory opration, not done yet. This would be the deoder value passed through memory module 
     .data_out(wb_dataOut),
     .destReg(wb_regDest)
  );
- */
 
 endmodule
