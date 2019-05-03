@@ -1,6 +1,6 @@
 `include "Sysbus.defs"
 `include "fetch.sv"
-//`include "wb.sv"
+`include "wb.sv"
 `include "memory.sv"
 
 module top
@@ -35,7 +35,11 @@ module top
   input  [BUS_TAG_WIDTH-1:0]  bus_resptag
 );
 
-  logic got_inst, data_mem_valid, wr_data;
+  logic data_mem_valid;
+  logic wr_data;
+  logic got_inst;
+  logic  [63:0] mem_addr;
+  logic  mem_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
   logic [REGSZ - 1: 0] decoder_regDest;
@@ -43,14 +47,26 @@ module top
   logic [REGBSZ - 1: 0] decoder_regB;
   logic [WORDSZ - 1:0] decoder_regA_val, decoder_regB_val, wr_to_mem;
 
-  //connect alu output to register file input
+  //connect alu output to writeback input
   logic [63:0] alu_dataout;
   logic [REGSZ - 1:0]  alu_regDest;
   logic alu_wr_enable;
 
+  //connect wb output to decoder_register_file input
+  logic [63:0] wb_dataOut;
+  logic [REGSZ - 1:0] wb_regDest;
+  /*
+   * alu write enable directly passed to the regfile,
+   * and not passed through the write-back stage. do we need to pass this thru
+   * write back stage?
+   */
+  
+  //logic to for the wb stage to differentiate between ALU and memory ops
+  wire ld_or_alu;
 
   logic [WORDSZ - 1: 0] pc, next_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
+  logic [INSTSZ - 1: 0] icache_instr;
 
   always_ff @ (posedge clk) begin
       if (reset) begin
@@ -63,13 +79,14 @@ module top
   inc_pc pc_add(
     .pc_in(pc),
     .next_pc(next_pc),
-    .sig_recvd(data_mem_valid)
+    .sig_recvd(got_inst)
   );
 
   memory_fetch memory_instance(
     .clk(clk),
     .rst(reset),
-    .in_address(pc),
+    .in_address(mem_addr),
+    .start_req(mem_req),
     .data_out(data_from_mem),
     .data_valid(data_mem_valid),
     .bus_reqcyc(bus_reqcyc),
@@ -81,7 +98,7 @@ module top
     .bus_resp(bus_resp),
     .bus_resptag(bus_resptag)
   );
- /*
+
  cache instcache(
     .clk(clk),
     .wr_en(0),
@@ -89,16 +106,16 @@ module top
     .r_addr(pc),
     .w_addr(0),
     .rst(reset),
-    .enable(data_mem_valid),
-    .data_out(pc),
+    .enable(clk),
+    .data_out(icache_instr),
     .operation_complete(got_inst),
     .mem_address(mem_addr),
-    .mem_data_out(data_out),
-    .mem_wr_en(wr_data),
-    .mem_data_in(0),
+    .mem_req(mem_req),
+    .mem_data_in(data_from_mem),
     .mem_data_valid(data_mem_valid)
  );
 
+ /*
  cache datacache(
     .clk(clk),
     .wr_en(wr_data),
@@ -121,17 +138,18 @@ module top
  register_decode decoder_instance(
     .clk(clk),
     .reset(reset),
-    .instr(data_from_mem[31:0]),
+    .instr(icache_instr),
     .prog_counter(pc),
     .wr_en(alu_wr_enable),
-    .destn_reg(alu_regDest),
-    .destn_data(alu_dataout),
+    .destn_reg(wb_regDest),
+    .destn_data(wb_dataOut),
     .rd_data_A(decoder_regA_val),
     .rd_data_B(decoder_regB_val),
     .reg_dest(decoder_regDest),
     .uimm(decoder_uimm),
     .opcode(decoder_opcode),
-    .regB(decoder_regB)
+    .regB(decoder_regB),
+    .ld_or_alu(ld_or_alu)
  );
 
  alu alu_instance(
@@ -139,28 +157,32 @@ module top
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
     .uimm(decoder_uimm),
+<<<<<<< HEAD
     .i_pc(prog_counter),
     .regA_value(decoder_regA_val),
     .regB_value(decoder_regB_val),
     .clk(data_mem_valid),
     .reset(reset),
+=======
+    .clk(got_inst),
+    .aluRegDest(alu_regDest),
+>>>>>>> 0b82ffbcfb4414b64df5e0d5fd762cf709c75afe
     .data_out(alu_dataout),
     .aluRegDest(alu_regDest),
     .mem_out(wr_to_mem),
     .wr_en(alu_wr_enable)
  );
 
- /*
- wb wb_instance(
+  wb wb_instance(
     .clk(clk),
     .rst(reset),
-    .lddata_in(0),
-    .alures_in(0),
-    .ld_or_alu(0),
-    .rd(decoder_regDest),
+    .lddata_in(0),//load instructions not yet done. we need data cache to be in place for this
+    .alures_in(alu_dataout),
+    .ld_or_alu(ld_or_alu),
+    .rd_alu(alu_regDest),//in case of an ALU operation
+    .rd_mem(0), //in case of a memory opration, not done yet. This would be the deoder value passed through memory module 
     .data_out(wb_dataOut),
     .destReg(wb_regDest)
  );
- */
 
 endmodule

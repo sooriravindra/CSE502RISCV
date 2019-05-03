@@ -4,60 +4,65 @@
 module 
 cache
 #(
-  BLOCKSZ  	= 64*8,
-  WIDTH    	= 64,
-  NUMLINES 	= 512,
-  TAGWIDTH 	= 49,
-  IDXWIDTH 	= 9,
-  OFFWIDTH 	= 6,
-  ADDRESSSIZE	= 64
+  BLOCKSZ      = 64*8,
+  WIDTH        = 64,
+  NUMLINES     = 512,
+  TAGWIDTH     = 49,
+  IDXWIDTH     = 9,
+  OFFWIDTH     = 6,
+  ADDRESSSIZE  = 64
 )
 (
-       input                      		clk,
-       input                      		wr_en,
-       input        [WIDTH-1:0]   		data_in, 
-       input        [ADDRESSSIZE-1:0] r_addr, 
-       input        [ADDRESSSIZE-1:0] w_addr, 
-       input                      		rst,
-       input                      		enable,
-       output logic [WIDTH-1:0]   		data_out,
-       output logic               		operation_complete,
+       input                   clk,
+       input                   wr_en,
+       input [WIDTH-1:0]       data_in,
+       input [ADDRESSSIZE-1:0] r_addr,
+       input [ADDRESSSIZE-1:0] w_addr,
+       input                   rst,
+       input                   enable,
+       output [WIDTH-1:0]      data_out,
+       output                  operation_complete,
 
        // All the following outputs go to the memory module
-       output logic [ADDRESSSIZE-1:0] mem_address,
-       output logic [WIDTH-1:0]     	mem_data_out,
-       output logic                 	mem_wr_en,
-       input  logic [BLOCKSZ-1:0]     mem_data_in,
-       input  logic                   mem_data_valid
+       output [ADDRESSSIZE-1:0] mem_address,
+       output [WIDTH-1:0]       mem_data_out,
+       output                   mem_wr_en,
+       output                   mem_req,
+       input  [BLOCKSZ-1:0]     mem_data_in,
+       input                    mem_data_valid
 
 );
 enum {INIT, BUSY, FOUND, REQ_BUS, UPDATE_CACHE} c_state = INIT, c_next_state;
 
 logic                  c_hit, pass, update_done ;
-logic [NUMLINES - 1:0] value;
-logic [WIDTH-1:0] 		 final_value;
-logic             		 final_state;
+logic [WIDTH-1:0]      final_value;
+logic                  final_state;
 logic [BLOCKSZ - 1:0]  cachedata [NUMLINES - 1:0];
 logic [TAGWIDTH - 1:0] cachetag  [NUMLINES - 1:0];
 logic                  cachestate[NUMLINES - 1:0];
+logic                  next_mem_req;
 
 always_comb begin
   case(c_state) 
     INIT        : begin
-        pass    	   = 0;
-        c_hit 		   = 0;
-        data_out           = 0; 
-        mem_wr_en    	   = 0;
-        mem_address    	   = 0;
-        update_done 	   = 0;
-        operation_complete = 0; 
+        pass         = 0;
+        c_hit        = 0;
+        mem_wr_en    = 0;
+        mem_address  = 0;
+        update_done  = 0;
+        next_mem_req = 0;
     end
-    BUSY        :  begin
+    BUSY : begin
         if (wr_en) begin
+            mem_address  = w_addr;
+            mem_wr_en    = 1;
+            mem_data_out = data_in;
             // Treat all writes as Cache hits
             c_hit = 1;
         end
         else begin
+            mem_address = r_addr;
+            mem_wr_en = 0;
             if ((cachestate[r_addr[/*IDXBITS*/14:6]] == 1) & 
                 (cachetag[r_addr[/*IDXBITS*/14:6]] == r_addr[63:15/*TAGBITS*/])) begin
                 c_hit = 1;
@@ -67,28 +72,17 @@ always_comb begin
             end
         end
     end
-    FOUND        : begin
+    FOUND : begin
         if (wr_en) begin
-            mem_address  = w_addr; 
-            mem_wr_en    = 1;
-            mem_data_out = data_in;
+            final_state = 1;
         end
-        if (pass) begin
-            if (wr_en) begin
-                final_state = 1;
-            end
-            else begin
-                final_value = cachedata[r_addr[14:6/*IDXBITS*/]][r_addr[5:0/*OFFBITS*/]];
-            end
+        else begin
+            final_value = cachedata[r_addr[14:6/*IDXBITS*/]][(r_addr[5:0/*OFFBITS*/]*8)+:64];
         end
     end
-    REQ_BUS      : begin
-        mem_address = r_addr;
-        mem_wr_en = 0;
+    REQ_BUS : begin
     end
-    UPDATE_CACHE: begin
-      final_value = data_in;
-      update_done = 1;
+    UPDATE_CACHE : begin
     end
   endcase
 end
@@ -97,9 +91,16 @@ always_ff @(posedge clk) begin
   if (rst == 1) begin
     data_out <= 0;
     c_state <= INIT;
-		operation_complete <= 0;
+    operation_complete <= 0;
   end
   else begin
+
+    if (c_state == UPDATE_CACHE) begin
+      cachedata[mem_address[14:6/*IDXBITS*/]] <= mem_data_in;
+      cachestate[mem_address[14:6/*IDXBITS*/]] <= 1;
+      cachetag [mem_address[14:6/*IDXBITS*/]] <= mem_address[63:15/*TAGBITS*/];
+      update_done = 1;
+    end
 
     if (wr_en) begin
       cachedata[w_addr[14:6/*IDXBITS*/]][w_addr[5:0/*OFFBITS*/]] <= data_in;
@@ -110,8 +111,11 @@ always_ff @(posedge clk) begin
     else begin
         data_out <= final_value;
     end
-    c_state 					 <= c_next_state;
-		operation_complete <= pass;
+
+    c_state <= c_next_state;
+    operation_complete <= pass;
+    mem_req <= next_mem_req;
+
   end
 end
 
@@ -128,6 +132,7 @@ always_comb begin
             end
             else begin
                 c_next_state = REQ_BUS;
+                next_mem_req = 1;
             end
         end
         FOUND: begin
@@ -140,6 +145,8 @@ always_comb begin
             end
         end
         REQ_BUS: begin
+            // mem_req needs to be high for only one clock cycle
+            next_mem_req = 0;
             if (mem_data_valid) begin
                 c_next_state = UPDATE_CACHE;
             end
