@@ -499,6 +499,7 @@ module register_decode
             register_set[31] = 64'b0;
         end
         if ((instr[7:0] == 0) & prog_counter != 0) begin
+            /*
             $display("zero = %x", register_set[0]);
             $display("ra   = %x", register_set[1]);
             $display("sp   = %x", register_set[2]);
@@ -532,6 +533,7 @@ module register_decode
             $display("t5   = %x", register_set[30]);
             $display("t6   = %x", register_set[31]);
             $finish;
+            */
         end
         else begin
             uimm      <= temp_uimm;

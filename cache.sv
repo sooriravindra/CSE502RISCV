@@ -66,7 +66,8 @@ always_comb begin
                 c_hit = 1;
             end
             else begin
-                mem_address = r_addr;
+                // Set lower 6 bits to zero, we will read the whole cache line
+                mem_address = r_addr & 64'hffffffffffffffc0;
                 mem_wr_en = 0;
                 c_hit = 0;
             end
