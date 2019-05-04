@@ -48,7 +48,6 @@ always_comb begin
         pass         = 0;
         c_hit        = 0;
         mem_wr_en    = 0;
-        mem_address  = 0;
         update_done  = 0;
         next_mem_req = 0;
     end
