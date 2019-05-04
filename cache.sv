@@ -41,6 +41,7 @@ logic [BLOCKSZ - 1:0]  cachedata [NUMLINES - 1:0];
 logic [TAGWIDTH - 1:0] cachetag  [NUMLINES - 1:0];
 logic                  cachestate[NUMLINES - 1:0];
 logic                  next_mem_req;
+logic [ADDRESSSIZE-1:0] cur_mreq_addr; // Address of the current memory request
 
 always_comb begin
   case(c_state) 
@@ -60,13 +61,13 @@ always_comb begin
             c_hit = 1;
         end
         else begin
-            mem_address = r_addr;
-            mem_wr_en = 0;
             if ((cachestate[r_addr[/*IDXBITS*/14:6]] == 1) & 
                 (cachetag[r_addr[/*IDXBITS*/14:6]] == r_addr[63:15/*TAGBITS*/])) begin
                 c_hit = 1;
             end
             else begin
+                mem_address = r_addr;
+                mem_wr_en = 0;
                 c_hit = 0;
             end
         end
@@ -95,9 +96,9 @@ always_ff @(posedge clk) begin
   else begin
 
     if (c_state == UPDATE_CACHE) begin
-      cachedata[mem_address[14:6/*IDXBITS*/]] <= mem_data_in;
-      cachestate[mem_address[14:6/*IDXBITS*/]] <= 1;
-      cachetag [mem_address[14:6/*IDXBITS*/]] <= mem_address[63:15/*TAGBITS*/];
+      cachedata[cur_mreq_addr[14:6/*IDXBITS*/]] <= mem_data_in;
+      cachestate[cur_mreq_addr[14:6/*IDXBITS*/]] <= 1;
+      cachetag [cur_mreq_addr[14:6/*IDXBITS*/]] <= cur_mreq_addr[63:15/*TAGBITS*/];
       update_done = 1;
     end
 
@@ -132,6 +133,7 @@ always_comb begin
             else begin
                 c_next_state = REQ_BUS;
                 next_mem_req = 1;
+                cur_mreq_addr = mem_address;
             end
         end
         FOUND: begin
