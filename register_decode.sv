@@ -26,12 +26,13 @@ module register_decode
     output [UIMM - 1: 0]    uimm,
     output [INSTRSZ - 1: 0] imm32,
     output [OPFUNC - 1:0]   opcode,
+    output [INSTRSZ - 1: 0] curr_pc,
     output [IMMREG - 1:0]   regB,
     //to differentiate between alu and memory ops, we need the below flag
     //as of now, this is made forcefully low, to indicate that the wb stage
     //only would read inputs from ALU result. Once the memory is implemented,
     //we would have to make this flag conditional.
-    output ld_or_alu = 0 
+    output ld_or_alu
 );
     enum
     {
@@ -57,6 +58,14 @@ module register_decode
     logic [OPFUNC -1:0] temp_opcode;
     logic [UIMM -1:0] temp_uimm;
 
+  always_ff @(posedge clk) begin
+    if (reset) begin
+      curr_pc <= 0;
+    end
+    else begin
+      curr_pc <= prog_counter;
+    end
+  end
     always_comb begin
       OPS = instr[6:0];
       temp_regB   = instr[31:20];

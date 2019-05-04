@@ -62,9 +62,9 @@ module top
    */
   
   //logic to for the wb stage to differentiate between ALU and memory ops
-  wire ld_or_alu;
+  logic ld_or_alu;
 
-  logic [WORDSZ - 1: 0] pc, next_pc;
+  logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
   logic [INSTSZ - 1: 0] icache_instr;
 
@@ -148,6 +148,7 @@ module top
     .reg_dest(decoder_regDest),
     .uimm(decoder_uimm),
     .opcode(decoder_opcode),
+    .curr_pc(curr_pc),
     .regB(decoder_regB),
     .ld_or_alu(ld_or_alu)
  );
@@ -157,16 +158,11 @@ module top
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
     .uimm(decoder_uimm),
-<<<<<<< HEAD
-    .i_pc(prog_counter),
+    .i_pc(curr_pc),
     .regA_value(decoder_regA_val),
     .regB_value(decoder_regB_val),
-    .clk(data_mem_valid),
     .reset(reset),
-=======
     .clk(got_inst),
-    .aluRegDest(alu_regDest),
->>>>>>> 0b82ffbcfb4414b64df5e0d5fd762cf709c75afe
     .data_out(alu_dataout),
     .aluRegDest(alu_regDest),
     .mem_out(wr_to_mem),
