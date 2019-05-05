@@ -115,6 +115,7 @@ module top
     .mem_data_valid(data_mem_valid)
  );
 
+ /*
  cache datacache(
     .clk(clk),
     .wr_en(1),
@@ -131,6 +132,7 @@ module top
     .mem_data_in(data_in),
     .mem_data_valid(data_mem_valid)
  );
+ */
 
  //instantiate decoder
  register_decode decoder_instance(
