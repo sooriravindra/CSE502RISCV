@@ -1,4 +1,4 @@
-module memory_fetch
+module memory_controller
 #(
     BUS_DATA_WIDTH = 64,
     BUS_TAG_WIDTH = 13

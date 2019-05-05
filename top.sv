@@ -1,7 +1,7 @@
 `include "Sysbus.defs"
 `include "fetch.sv"
 `include "wb.sv"
-`include "memory.sv"
+`include "memory_controller.sv"
 
 module top
 #(
@@ -82,7 +82,7 @@ module top
     .sig_recvd(got_inst)
   );
 
-  memory_fetch memory_instance(
+  memory_controller memory_instance(
     .clk(clk),
     .rst(reset),
     .in_address(mem_addr),
@@ -115,10 +115,9 @@ module top
     .mem_data_valid(data_mem_valid)
  );
 
- /*
  cache datacache(
     .clk(clk),
-    .wr_en(wr_data),
+    .wr_en(1),
     .data_in(bus_resp),
     .r_addr(decoder_regA),
     .w_addr(decoder_regDest),
@@ -132,7 +131,6 @@ module top
     .mem_data_in(data_in),
     .mem_data_valid(data_mem_valid)
  );
- */
 
  //instantiate decoder
  register_decode decoder_instance(
