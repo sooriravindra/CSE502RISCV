@@ -66,7 +66,7 @@ module top
 
   logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
-  logic [INSTSZ - 1: 0] icache_instr;
+  logic [INSTSZ - 1: 0] icache_instr, alu_instr;
 
   always_ff @ (posedge clk) begin
       if (reset) begin
@@ -149,6 +149,7 @@ module top
     .uimm(decoder_uimm),
     .opcode(decoder_opcode),
     .curr_pc(curr_pc),
+    .out_instr(alu_instr),
     .regB(decoder_regB),
     .ld_or_alu(ld_or_alu)
  );
@@ -159,6 +160,7 @@ module top
     .regDest(decoder_regDest),
     .uimm(decoder_uimm),
     .i_pc(curr_pc),
+    .i_inst(alu_inst),
     .regA_value(decoder_regA_val),
     .regB_value(decoder_regB_val),
     .reset(reset),

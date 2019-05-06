@@ -26,6 +26,7 @@ module register_decode
     output [UIMM - 1: 0]    uimm,
     output [INSTRSZ - 1: 0] imm32,
     output [OPFUNC - 1:0]   opcode,
+    output [INSTRSZ - 1: 0] out_instr,
     output [INSTRSZ - 1: 0] curr_pc,
     output [IMMREG - 1:0]   regB,
     //to differentiate between alu and memory ops, we need the below flag
@@ -64,6 +65,7 @@ module register_decode
     end
     else begin
       curr_pc <= prog_counter;
+      out_instr <= instr;
     end
   end
     always_comb begin
@@ -413,10 +415,10 @@ module register_decode
         opcodeI1: begin
             // temp_opcode = "I";
           reg_dest     = instr[11:7];
-          temp_uimm   = {instr[31], instr[19:12], instr[20], instr[30:21]};
+          temp_uimm   = 0;//{instr[31], instr[19:12], instr[20], instr[30:21]};
           temp_opcode = {3'bxxx, instr[6:0]};
-          rd_reg_B    = 0;
-          rd_reg_A    = 0;
+          rd_reg_B    = instr[31:20];
+          rd_reg_A    = instr[19:15];
 //          $display("JALR rd, rs1, 0x%h", $signed(instr[31:20]));
         end
 
@@ -508,7 +510,6 @@ module register_decode
             register_set[31] = 64'b0;
         end
         if ((instr[7:0] == 0) & prog_counter != 0) begin
-<<<<<<< HEAD
 //                  $display("zero = %x", register_set[0]);
 //                  $display("ra   = %x", register_set[1]);
 //                  $display("sp   = %x", register_set[2]);
@@ -541,43 +542,6 @@ module register_decode
 //                  $display("t4   = %x", register_set[29]);
 //                  $display("t5   = %x", register_set[30]);
 //                  $display("t6   = %x", register_set[31]);
-=======
-            /*
-            $display("zero = %x", register_set[0]);
-            $display("ra   = %x", register_set[1]);
-            $display("sp   = %x", register_set[2]);
-            $display("gp   = %x", register_set[3]);
-            $display("tp   = %x", register_set[4]);
-            $display("t0   = %x", register_set[5]);
-            $display("t1   = %x", register_set[6]);
-            $display("t2   = %x", register_set[7]);
-            $display("s0   = %x", register_set[8]);
-            $display("s1   = %x", register_set[9]);
-            $display("a0   = %x", register_set[10]);
-            $display("a1   = %x", register_set[11]);
-            $display("a2   = %x", register_set[12]);
-            $display("a3   = %x", register_set[13]);
-            $display("a4   = %x", register_set[14]);
-            $display("a5   = %x", register_set[15]);
-            $display("a6   = %x", register_set[16]);
-            $display("a7   = %x", register_set[17]);
-            $display("s2   = %x", register_set[18]);
-            $display("s3   = %x", register_set[19]);
-            $display("s4   = %x", register_set[20]);
-            $display("s5   = %x", register_set[21]);
-            $display("s6   = %x", register_set[22]);
-            $display("s7   = %x", register_set[23]);
-            $display("s8   = %x", register_set[24]);
-            $display("s9   = %x", register_set[25]);
-            $display("s10  = %x", register_set[26]);
-            $display("s11  = %x", register_set[27]);
-            $display("t3   = %x", register_set[28]);
-            $display("t4   = %x", register_set[29]);
-            $display("t5   = %x", register_set[30]);
-            $display("t6   = %x", register_set[31]);
-            $finish;
-            */
->>>>>>> b16751e052aeca9d833a5ecef3b11f8ce2f2bced
         end
         else begin
             uimm      <= temp_uimm;

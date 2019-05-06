@@ -6,6 +6,7 @@ module alu
     input [4:0] regDest,
     input [19:0] uimm,
     input [31:0] i_pc,
+    input [31:0] i_inst,
 
     input [63:0] regA_value,
     input [63:0] regB_value,
@@ -102,14 +103,22 @@ always_ff @(posedge clk) begin
 end
 
 always_comb begin
+  is_store = 0;
+  mem_dest = 0;
+  temp_dest = 0;
+  off_dest12 = 0; 
+  off_dest64 = 0; 
+  quart_temp_dest = 0;
+  half_temp_dest = 0; 
+  word_temp_dest = 0;
   case (opcode)
 /* After WP2 */
     opcode_lui  : begin
-      temp_dest = {uimm, 12'h000};
+      temp_dest = {32'h00000000, {uimm, 12'h000}};
       sign_extend = 0;
     end
     opcode_auipc : begin
-      temp_dest = {uimm, 12'h000} + i_pc;
+      temp_dest = {32'h00000000, {uimm, 12'h000}} + {32'h00000000, i_pc};
       sign_extend = 0;
     end
     opcode_jal : begin
