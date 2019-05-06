@@ -81,7 +81,7 @@ logic sign_extend;
 logic is_store;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64;
-always_ff @(posedge clk) begin
+always_ff @(negedge clk) begin
     if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
       aluRegDest <= regDest;
@@ -105,7 +105,6 @@ end
 always_comb begin
   is_store = 0;
   mem_dest = 0;
-  temp_dest = 0;
   off_dest12 = 0; 
   off_dest64 = 0; 
   quart_temp_dest = 0;
@@ -129,7 +128,7 @@ always_comb begin
     opcode_jalr : begin
       temp_dest = i_pc + 4 + ({{52{regB[11]}}, regB} + regA_value);
 //      retReg = register_enum.ra;
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_beq  : begin
       if (regA_value == regB_value) begin
@@ -138,7 +137,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_bne  : begin
       if (regA_value != regB_value) begin
@@ -147,7 +146,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_blt  : begin
       if ($signed(regA_value) < $signed(regB_value)) begin
@@ -156,7 +155,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_bge  : begin
       if ($signed(regA_value) >= $signed(regB_value)) begin
@@ -165,7 +164,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_bltu : begin
       if (regA_value < regB_value) begin
@@ -174,7 +173,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_bgeu : begin
       if (regA_value >= regB_value) begin
@@ -183,27 +182,32 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
      
     opcode_lb   : begin
       quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{56{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
+      sign_extend = 0;
     end      
     opcode_lh   : begin
       half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{48{half_temp_dest[15]}}, half_temp_dest[15:0]};
+      sign_extend = 0;
     end      
     opcode_lw   : begin
       word_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{32{word_temp_dest[31]}}, word_temp_dest[31:0]};
+      sign_extend = 0;
     end      
     opcode_lbu : begin
       quart_temp_dest = (regA_value + {52'h0000000000000, regB});
       temp_dest = {24'h000000, quart_temp_dest};
+      sign_extend = 0;
     end    
     opcode_lwu : begin
       temp_dest = (regA_value + {52'h0000000000000, regB});
+      sign_extend = 0;
     end
     opcode_lhu  : begin
       half_temp_dest = (regA_value + {52'h0000000000000, regB});
