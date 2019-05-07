@@ -81,7 +81,7 @@ logic sign_extend;
 logic is_store;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64;
-always_ff @(negedge clk) begin
+always_ff @(posedge clk) begin
     if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
       aluRegDest <= regDest;
@@ -104,7 +104,6 @@ end
 
 always_comb begin
   is_store = 0;
-  mem_dest = 0;
   off_dest12 = 0; 
   off_dest64 = 0; 
   quart_temp_dest = 0;
