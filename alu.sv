@@ -15,6 +15,8 @@ module alu
     output [63:0] data_out,
     output [4:0] aluRegDest,
     output [63:0] mem_out,
+    output [63:0] alu_jmp_target,
+    output is_jmp,
     output wr_en
 );
 
@@ -44,9 +46,9 @@ enum {
     opcode_srlsraiw    = 10'h29b,
     opcode_slliw       = 10'h09b,
     opcode_sllw        = 10'h0bb,
-    opcode_lui         = 10'bxxx0110111,
-    opcode_auipc       = 10'bxxx0010111,
-    opcode_jal         = 10'bxxx1101111,
+    opcode_lui         = 10'b0000110111,
+    opcode_auipc       = 10'b0000010111,
+    opcode_jal         = 10'b0001101111,
     opcode_jalr        = 10'h067,
     opcode_beq         = 10'h063,
     opcode_bne         = 10'h0e3,
@@ -79,10 +81,12 @@ enum {
 logic [63:0] temp_dest, quart_temp_dest, half_temp_dest, word_temp_dest, mem_dest;
 logic sign_extend;
 logic [31:0] auipc_word;
-logic is_store;
+logic is_store, tmp_jmp;
 logic[11:0] off_dest12;
-logic[63:0] off_dest64;
+logic[63:0] off_dest64, tmp_pc;
 always_ff @(posedge clk) begin
+    alu_jmp_target <= tmp_pc;
+    is_jmp <= tmp_jmp;
     if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
       aluRegDest <= regDest;
@@ -111,6 +115,8 @@ always_comb begin
   quart_temp_dest = 0;
   half_temp_dest = 0; 
   word_temp_dest = 0;
+  tmp_jmp = 0;
+  tmp_pc = i_pc + 4;
   case (opcode)
 /* After WP2 */
     opcode_lui  : begin
@@ -119,13 +125,15 @@ always_comb begin
     end
     opcode_auipc : begin
       auipc_word = {uimm, 12'h000};
-      temp_dest = {32{auipc_word[31]}, auipc_word} + {32'h00000000, i_pc};
+      temp_dest = {{32{auipc_word[31]}}, auipc_word} + {32'h00000000, i_pc};
       sign_extend = 0;
     end
     opcode_jal : begin
-      temp_dest = i_pc + ({{11{uimm[19]}}, uimm} * 2) + 4;
+      temp_dest =  i_pc + 4;
 //      ret = {{11{uimm[19]}}, uimm} * 2;
+      tmp_pc = i_pc + ({{11{uimm[19]}}, uimm} * 2);
       sign_extend = 0;
+      tmp_jmp = 1;
     end
     opcode_jalr : begin
       temp_dest = i_pc + 4 + ({{52{regB[11]}}, regB} + regA_value);
