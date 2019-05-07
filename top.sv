@@ -138,7 +138,7 @@ module top
 
  //instantiate decoder
  register_decode decoder_instance(
-    .clk(clk),
+    .clk(got_inst),
     .reset(reset),
     .instr(icache_instr),
     .prog_counter(pc),
