@@ -6,12 +6,14 @@ module memory_controller
 (
     input  clk,
     input  rst,
+
+    // input from arbiter
     input  [63:0] in_address,
     input  [511:0] data_in,
     input  start_req,
     input  wr_en,
 
-    //output data and signal if valid
+    //output data and signal to arbiter
     output [511:0] data_out,
     output data_valid,
 
