@@ -78,6 +78,7 @@ enum {
 
 logic [63:0] temp_dest, quart_temp_dest, half_temp_dest, word_temp_dest, mem_dest;
 logic sign_extend;
+logic [31:0] auipc_word;
 logic is_store;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64;
@@ -104,7 +105,7 @@ end
 
 always_comb begin
   is_store = 0;
-  mem_dest = 0;
+  mem_dest = mem_out;
   off_dest12 = 0; 
   off_dest64 = 0; 
   quart_temp_dest = 0;
@@ -113,11 +114,12 @@ always_comb begin
   case (opcode)
 /* After WP2 */
     opcode_lui  : begin
-      temp_dest = {32'h00000000, {uimm, 12'h000}};
+      temp_dest = $signed({uimm, 12'h000});
       sign_extend = 0;
     end
     opcode_auipc : begin
-      temp_dest = {32'h00000000, {uimm, 12'h000}} + {32'h00000000, i_pc};
+      auipc_word = {uimm, 12'h000};
+      temp_dest = {32{auipc_word[31]}, auipc_word} + {32'h00000000, i_pc};
       sign_extend = 0;
     end
     opcode_jal : begin
