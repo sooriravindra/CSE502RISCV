@@ -2,6 +2,7 @@
 `include "fetch.sv"
 `include "wb.sv"
 `include "memory_controller.sv"
+`include "instructions.sv"
 
 module top
 #(
@@ -71,6 +72,7 @@ module top
   always_ff @ (posedge clk) begin
       if (reset) begin
           pc <= entry;
+          register_set[2] <= stackptr;
       end else begin
           pc <= next_pc;
       end

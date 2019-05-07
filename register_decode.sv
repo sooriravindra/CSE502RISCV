@@ -1,4 +1,5 @@
 //register_decode module
+`include "instructions.sv"
 module register_decode
 #(
 	REGBITS =  5,
@@ -52,7 +53,6 @@ module register_decode
       opcodeSY = 7'b1110011
     } OPS;
 
-    reg [63:0] register_set [31:0]; // (32 registers of 64 bit each)
     logic[4:0] rd_reg_A;
     logic[4:0] rd_reg_B;
     logic[11:0] temp_regB;
