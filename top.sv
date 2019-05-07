@@ -138,7 +138,7 @@ module top
 
  //instantiate decoder
  register_decode decoder_instance(
-    .clk(got_inst),
+    .clk(clk),
     .reset(reset),
     .instr(icache_instr),
     .prog_counter(pc),
@@ -166,7 +166,7 @@ module top
     .regA_value(decoder_regA_val),
     .regB_value(decoder_regB_val),
     .reset(reset),
-    .clk(got_inst),
+    .clk(clk),
     .data_out(alu_dataout),
     .aluRegDest(alu_regDest),
     .mem_out(wr_to_mem),
