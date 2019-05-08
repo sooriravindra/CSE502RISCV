@@ -6,12 +6,14 @@ module memory_controller
 (
     input  clk,
     input  rst,
+
+    // input from arbiter
     input  [63:0] in_address,
     input  [511:0] data_in,
     input  start_req,
     input  wr_en,
 
-    //output data and signal if valid
+    //output data and signal to arbiter
     output [511:0] data_out,
     output data_valid,
 
@@ -32,7 +34,7 @@ module memory_controller
 );
 
 logic [511:0] data_out;
-logic data_valid;
+logic next_data_valid;
 integer count, next_count;
 enum {
     IDLE,
@@ -55,7 +57,7 @@ always_comb begin
             end
             bus_reqcyc  = start_req;
             bus_respack = 0;
-            data_valid = 0;
+            next_data_valid = 0;
         end
         WAIT_RESP: begin
             bus_reqcyc = 0;
@@ -80,6 +82,7 @@ always_ff @ (posedge clk) begin
     else begin
         b_state <= b_next_state;
         count <= next_count;
+        data_valid <= next_data_valid;
     end
 end
 
@@ -89,13 +92,13 @@ always_comb begin
             if (bus_reqack) begin
                 next_count = 0;
                 b_next_state = WAIT_RESP;
-                data_valid = 0;
+                next_data_valid = 0;
             end
         end
         WAIT_RESP: begin
             if (bus_respcyc) begin
                 b_next_state = GOT_RESP;
-                data_valid = 0;
+                next_data_valid = 0;
                 if (count == 0) begin
                     data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
                     next_count = count + 1;
@@ -106,14 +109,14 @@ always_comb begin
             end
         end
         GOT_RESP: begin
-            if ((bus_respcyc & !data_valid) | (bus_respcyc == 0 & count == 7)) begin
+            if ((bus_respcyc & !next_data_valid) | (bus_respcyc == 0 & count == 7)) begin
                 if (count < 8) begin
                     data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
                     next_count = count + 1;
                 end
             end
             else if (!bus_respcyc) begin
-                data_valid = 1;
+                next_data_valid = 1;
                 b_next_state = INIT_REQUEST;
             end
         end

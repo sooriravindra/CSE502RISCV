@@ -2,6 +2,7 @@
 `include "fetch.sv"
 `include "wb.sv"
 `include "memory_controller.sv"
+`include "arbiter.sv"
 `include "instructions.sv"
 
 module top
@@ -40,7 +41,11 @@ module top
   logic wr_data;
   logic got_inst;
   logic [63:0] mem_addr;
+  logic [63:0] icache_address;
+  logic [63:0] dcache_address;
   logic mem_req;
+  logic icache_req;
+  logic dcache_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
   logic [REGSZ - 1: 0] decoder_regDest;
@@ -67,7 +72,13 @@ module top
 
   logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
+  logic [BLOCKSZ - 1: 0] icache_data;
+  logic [BLOCKSZ - 1: 0] dcache_data;
   logic [INSTSZ - 1: 0] icache_instr, alu_instr;
+
+  logic icache_mem_req_complete;
+  logic dcache_mem_req_complete;
+  logic dcache_wren;
 
   always_ff @ (posedge clk) begin
       if (reset) begin
@@ -103,6 +114,34 @@ module top
     .bus_resptag(bus_resptag)
   );
 
+ arbiter arbiter_instance(
+     .clk(clk),
+     .rst(reset),
+    //input from caches
+     .icache_address(icache_address),
+     .dcache_address(dcache_address),
+     .icache_req(icache_req),
+     .dcache_req(dcache_req),
+     .wr_en(dcache_wren),
+     .data_in(dcache_dataout),
+    // output to indicate operation complete to caches
+     .icache_data_out(icache_data),
+     .dcache_data_out(dcache_data), 
+     .icache_operation_complete(icache_mem_req_complete),
+     .dcache_operation_complete(dcache_mem_req_complete),
+
+    //input from memory controller
+     .data_from_mem(data_from_mem),
+     .mem_data_valid(data_mem_valid),
+
+    //output to memory controller
+     .mem_address(mem_addr),
+     .mem_data_out(data_to_mem),
+     .mem_req(mem_req),
+     .mem_wr_en(mem_wr_en)
+
+ );
+
  cache instcache(
     .clk(clk),
     .wr_en(0),
@@ -113,10 +152,10 @@ module top
     .enable(clk),
     .data_out(icache_instr),
     .operation_complete(got_inst),
-    .mem_address(mem_addr),
-    .mem_req(mem_req),
-    .mem_data_in(data_from_mem),
-    .mem_data_valid(data_mem_valid)
+    .mem_address(icache_address),
+    .mem_req(icache_req),
+    .mem_data_in(icache_data),
+    .mem_data_valid(icache_mem_req_complete)
  );
 
  /*
@@ -130,7 +169,7 @@ module top
     .enable(data_mem_valid),
     .data_out(dcache_data),
     .operation_complete(data_ready),
-    .mem_address(mem_addr),
+    .mem_address(dcache_address),
     .mem_data_out(data_out),
     .mem_wr_en(wr_data),
     .mem_data_in(data_in),
