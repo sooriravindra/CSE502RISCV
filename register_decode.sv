@@ -478,7 +478,7 @@ module register_decode
         if (reset) begin
             register_set[0] <= 64'b0;
             register_set[1] <= 64'b0;
-            register_set[2] <= 64'b0;
+//            register_set[2] <= 64'b0;
             register_set[3] <= 64'b0;
             register_set[4] <= 64'b0;
             register_set[5] <= 64'b0;

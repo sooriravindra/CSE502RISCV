@@ -83,7 +83,7 @@ logic sign_extend;
 logic [31:0] auipc_word;
 logic is_store, tmp_jmp;
 logic[11:0] off_dest12;
-logic[63:0] off_dest64, tmp_pc;
+logic[63:0] off_dest64, tmp_pc, tmp_jalr;
 always_ff @(posedge clk) begin
     alu_jmp_target <= tmp_pc;
     is_jmp <= tmp_jmp;
@@ -136,7 +136,10 @@ always_comb begin
       tmp_jmp = 1;
     end
     opcode_jalr : begin
-      temp_dest = i_pc + 4 + ({{52{regB[11]}}, regB} + regA_value);
+      temp_dest = i_pc + 4;
+      tmp_jalr = ({{52{regB[11]}}, regB} + regA_value);
+      tmp_pc = {tmp_jalr[63:1], 1'b0};
+      tmp_jmp = 1;
 //      retReg = register_enum.ra;
       sign_extend = 0;      
     end

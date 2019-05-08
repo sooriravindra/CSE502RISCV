@@ -11,7 +11,7 @@ inc_pc(
   always_comb begin
     if (sig_recvd) begin
       if (is_jmp) begin
-        next_pc = jmp_target;
+        next_pc = jmp_target - 4;
       end
       else begin
         next_pc = pc_in + 4;

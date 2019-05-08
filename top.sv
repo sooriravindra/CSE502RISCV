@@ -39,8 +39,8 @@ module top
   logic data_mem_valid;
   logic wr_data;
   logic got_inst;
-  logic  [63:0] mem_addr;
-  logic  mem_req;
+  logic [63:0] mem_addr;
+  logic mem_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
   logic [REGSZ - 1: 0] decoder_regDest;
