@@ -1,3 +1,5 @@
+`ifndef _INSTRUCTIONS_SV
+`define _INSTRUCTIONS_SV
 `define OPLUI 	7'b0110111
 
 `define OPAUIPC 7'b0010111
@@ -29,4 +31,5 @@
 //	logic[4:0] imm5;
 //	
 //} dec_inst;
- 
+logic [63:0] register_set [31:0]; // (32 registers of 64 bit each) 
+`endif

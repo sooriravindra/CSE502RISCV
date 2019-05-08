@@ -3,6 +3,7 @@
 `include "wb.sv"
 `include "memory_controller.sv"
 `include "arbiter.sv"
+`include "instructions.sv"
 
 module top
 #(
@@ -39,8 +40,8 @@ module top
   logic data_mem_valid;
   logic wr_data;
   logic got_inst;
-  logic  [63:0] mem_addr;
-  logic  mem_req;
+  logic [63:0] mem_addr;
+  logic mem_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
   logic [REGSZ - 1: 0] decoder_regDest;
@@ -54,7 +55,7 @@ module top
   logic alu_wr_enable;
 
   //connect wb output to decoder_register_file input
-  logic [63:0] wb_dataOut;
+  logic [63:0] wb_dataOut, alu_target;
   logic [REGSZ - 1:0] wb_regDest;
   /*
    * alu write enable directly passed to the regfile,
@@ -63,7 +64,7 @@ module top
    */
   
   //logic to for the wb stage to differentiate between ALU and memory ops
-  logic ld_or_alu;
+  logic ld_or_alu, top_jmp;
 
   logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
@@ -72,6 +73,7 @@ module top
   always_ff @ (posedge clk) begin
       if (reset) begin
           pc <= entry;
+          register_set[2] <= stackptr;
       end else begin
           pc <= next_pc;
       end
@@ -79,7 +81,9 @@ module top
 
   inc_pc pc_add(
     .pc_in(pc),
+    .jmp_target(alu_target),
     .next_pc(next_pc),
+    .is_jmp(top_jmp),
     .sig_recvd(got_inst)
   );
 
@@ -197,6 +201,8 @@ module top
     .data_out(alu_dataout),
     .aluRegDest(alu_regDest),
     .mem_out(wr_to_mem),
+    .alu_jmp_target(alu_target),
+    .is_jmp(top_jmp),
     .wr_en(alu_wr_enable)
  );
 
