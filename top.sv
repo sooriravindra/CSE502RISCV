@@ -41,7 +41,11 @@ module top
   logic wr_data;
   logic got_inst;
   logic [63:0] mem_addr;
+  logic [63:0] icache_address;
+  logic [63:0] dcache_address;
   logic mem_req;
+  logic icache_req;
+  logic dcache_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
   logic [REGSZ - 1: 0] decoder_regDest;
@@ -68,7 +72,13 @@ module top
 
   logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
+  logic [BLOCKSZ - 1: 0] icache_data;
+  logic [BLOCKSZ - 1: 0] dcache_data;
   logic [INSTSZ - 1: 0] icache_instr, alu_instr;
+
+  logic icache_mem_req_complete;
+  logic dcache_mem_req_complete;
+  logic dcache_wren;
 
   always_ff @ (posedge clk) begin
       if (reset) begin

@@ -35,6 +35,11 @@ logic is_dcache_req;
 logic is_busy;
 logic next_is_busy;
 logic next_mem_req;
+logic [511:0] next_icache_data_out;
+logic [511:0] next_dcache_data_out;
+logic [63:0] next_mem_address;
+logic next_icache_operation_complete;
+logic next_dcache_operation_complete;
 
 always_comb begin
     next_is_busy = is_busy;
@@ -42,7 +47,7 @@ always_comb begin
         is_icache_req = 1;
         is_dcache_req = 0;
         next_is_busy = 1;
-        mem_address = icache_address;
+        next_mem_address = icache_address;
         mem_data_out = 0;
         next_mem_req = 1;
         mem_wr_en = 0;
@@ -51,40 +56,42 @@ always_comb begin
         is_icache_req = 0;
         is_dcache_req = 1;
         next_is_busy = 1;
-        mem_address = dcache_address;
+        next_mem_address = dcache_address;
         mem_data_out = data_in;
         next_mem_req = 1;
         mem_wr_en = wr_en;
     end
     else begin
-        is_icache_req = 0;
-        is_dcache_req = 0;
         next_is_busy = 0;
-        mem_address = 0;
         next_mem_req = 0;
         mem_wr_en = 0;
         mem_data_out = 0;
     end
 
     if (mem_data_valid == 1 & is_icache_req == 1) begin
-        icache_data_out = data_from_mem;
-        icache_operation_complete = 1;
-        dcache_operation_complete = 0;
+        next_icache_data_out = data_from_mem;
+        next_icache_operation_complete = 1;
+        next_dcache_operation_complete = 0;
     end
     else if (mem_data_valid == 1 & is_dcache_req == 1) begin
-        dcache_data_out = data_from_mem;
-        dcache_operation_complete = 1;
-        icache_operation_complete = 0;
+        next_dcache_data_out = data_from_mem;
+        next_dcache_operation_complete = 1;
+        next_icache_operation_complete = 0;
     end
     else begin
-        icache_operation_complete = 0;
-        dcache_operation_complete = 0;
+        next_icache_operation_complete = 0;
+        next_dcache_operation_complete = 0;
     end
 end
 
 always_ff @(posedge clk) begin
     mem_req <= next_mem_req;
     is_busy  <= next_is_busy;
+    icache_data_out <= next_icache_data_out;
+    dcache_data_out <= next_dcache_data_out;
+    icache_operation_complete <= next_icache_operation_complete;
+    dcache_operation_complete <= next_dcache_operation_complete;
+    mem_address <= next_mem_address;
 end
 
 endmodule
