@@ -25,7 +25,7 @@ module arbiter
     output [63:0] mem_address,
     output [511:0] mem_data_out,
     output mem_req,
-    output mem_wr_en,
+    output mem_wr_en
 
 
 );
@@ -33,22 +33,24 @@ module arbiter
 logic is_icache_req;
 logic is_dcache_req;
 logic is_busy;
+logic next_is_busy;
+logic next_mem_req;
 
 always_comb begin
-
-    if (icache_req == 1 & is_busy == 0) begin
+    next_is_busy = is_busy;
+    if (icache_req == 1 & next_is_busy == 0) begin
         is_icache_req = 1;
         is_dcache_req = 0;
-        is_busy = 1;
+        next_is_busy = 1;
         mem_address = icache_address;
         mem_data_out = 0;
         next_mem_req = 1;
         mem_wr_en = 0;
     end
-    else if (dcache_req == 1 & is_busy == 0) begin
+    else if (dcache_req == 1 & next_is_busy == 0) begin
         is_icache_req = 0;
         is_dcache_req = 1;
-        is_busy = 1;
+        next_is_busy = 1;
         mem_address = dcache_address;
         mem_data_out = data_in;
         next_mem_req = 1;
@@ -57,7 +59,7 @@ always_comb begin
     else begin
         is_icache_req = 0;
         is_dcache_req = 0;
-        is_busy = 0;
+        next_is_busy = 0;
         mem_address = 0;
         next_mem_req = 0;
         mem_wr_en = 0;
@@ -80,9 +82,9 @@ always_comb begin
     end
 end
 
-always_ff begin
+always_ff @(posedge clk) begin
     mem_req <= next_mem_req;
-    next_mem_req <= 0;
+    is_busy  <= next_is_busy;
 end
 
 endmodule
