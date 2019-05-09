@@ -12,7 +12,9 @@ module alu
     input reset,
     output [63:0] data_out,
     output [4:0] aluRegDest,
-    output wr_en
+    output wr_en,
+    output is_ecall = 0//the ECALL bit is set to zero in all normal cases.
+
 );
 
 enum {
@@ -205,6 +207,15 @@ always_comb begin
     opcode_fencei : begin
     end
     opcode_ecallebreak : begin
+	case(regB[11:0])
+		//ECALL - set a specific bit to mark this instruction
+        	7'b000000000000: begin
+          	is_ecall = 1;
+        	end
+		7'b000000000001: begin
+		//EBREAK -- not needed
+        	end
+	endcase
     end
     opcode_csrrw  : begin
     end

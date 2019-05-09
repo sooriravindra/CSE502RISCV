@@ -31,7 +31,8 @@ module register_decode
     //as of now, this is made forcefully low, to indicate that the wb stage
     //only would read inputs from ALU result. Once the memory is implemented,
     //we would have to make this flag conditional.
-    output ld_or_alu = 0 
+    output ld_or_alu = 0,
+    output [63:0] ecall_reg_val [7:0]//this logic would hold eight reg of 64 bits each  
 );
     enum
     {
@@ -538,10 +539,19 @@ module register_decode
             opcode    <= temp_opcode;
             rd_data_A <= register_set[rd_reg_A];//read the data from register A to data A
             rd_data_B <= register_set[rd_reg_B];//read the data from register B to data B
+	    //read operation for ECALL instruction, we have to pass the input values in the logic
+	    ecall_reg_val[0] = register_set[2'd10];
+            ecall_reg_val[1] = register_set[2'd11];
+	    ecall_reg_val[2] = register_set[2'd12];
+	    ecall_reg_val[3] = register_set[2'd13];
+	    ecall_reg_val[4] = register_set[2'd14];
+	    ecall_reg_val[5] = register_set[2'd15];
+ 	    ecall_reg_val[6] = register_set[2'd16];
+	    ecall_reg_val[7] = register_set[2'd17];
             regB      <= temp_regB;
             if (wr_en & destn_reg != 0) begin
                 register_set[destn_reg] <= destn_data; //write the data into the destination register
-            end
+	    end
        end
     end //always_ff block end
 

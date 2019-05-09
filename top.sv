@@ -63,6 +63,9 @@ module top
   
   //logic to for the wb stage to differentiate between ALU and memory ops
   wire ld_or_alu;
+  //logic to detect and write 'ECALL' during writeback stage
+  logic is_ecall; 
+  logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
   logic [WORDSZ - 1: 0] pc, next_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
@@ -149,7 +152,8 @@ module top
     .uimm(decoder_uimm),
     .opcode(decoder_opcode),
     .regB(decoder_regB),
-    .ld_or_alu(ld_or_alu)
+    .ld_or_alu(ld_or_alu),
+    .ecall_reg_val(ecall_reg_set)
  );
 
  alu alu_instance(
@@ -162,7 +166,8 @@ module top
     .clk(got_inst),
     .aluRegDest(alu_regDest),
     .data_out(alu_dataout),
-    .wr_en(alu_wr_enable)
+    .wr_en(alu_wr_enable),
+    .is_ecall(is_ecall)//wire the 'is_ecall' value
  );
 
   wb wb_instance(
@@ -174,7 +179,9 @@ module top
     .rd_alu(alu_regDest),//in case of an ALU operation
     .rd_mem(0), //in case of a memory opration, not done yet. This would be the deoder value passed through memory module 
     .data_out(wb_dataOut),
-    .destReg(wb_regDest)
+    .is_ecall(is_ecall),//wire the 'is_ecall' value to wb stage
+    .destReg(wb_regDest),
+    .ecall_reg_val(ecall_reg_set)
  );
 
 endmodule
