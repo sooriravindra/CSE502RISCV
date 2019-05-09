@@ -4,6 +4,7 @@
 `include "memory_controller.sv"
 `include "arbiter.sv"
 `include "instructions.sv"
+`include "memory.sv"
 
 module top
 #(
@@ -97,7 +98,7 @@ module top
     .sig_recvd(got_inst)
   );
 
-  memory_controller memory_instance(
+  memory_controller memory_controller_instance(
     .clk(clk),
     .rst(reset),
     .in_address(mem_addr),
@@ -215,6 +216,16 @@ module top
     .is_jmp(top_jmp),
     .wr_en(alu_wr_enable)
  );
+
+  memory memory_instance(
+      .clk(clk),
+      .rst(reset),
+      .in_alu_result(alu_dataout),
+      .regB_value(alu_regb_val),
+      .is_store(alu_is_store),
+      .is_load(alu_is_load),
+      .data_out(mem_data_out)
+  );
 
   wb wb_instance(
     .clk(clk),

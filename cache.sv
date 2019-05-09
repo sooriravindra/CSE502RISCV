@@ -14,20 +14,26 @@ cache
 )
 (
        input                   clk,
+       input                   rst,
+
+       // In from requester
+       input                   enable,
        input                   wr_en,
        input [WIDTH-1:0]       data_in,
        input [ADDRESSSIZE-1:0] r_addr,
        input [ADDRESSSIZE-1:0] w_addr,
-       input                   rst,
-       input                   enable,
+
+       // Out to requester
        output [WIDTH-1:0]      data_out,
        output                  operation_complete,
 
-       // All the following outputs go to the memory module
+       // Out to arbiter
        output [ADDRESSSIZE-1:0] mem_address,
        output [WIDTH-1:0]       mem_data_out,
        output                   mem_wr_en,
        output                   mem_req,
+
+       // In from arbiter
        input  [BLOCKSZ-1:0]     mem_data_in,
        input                    mem_data_valid
 
