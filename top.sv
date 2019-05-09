@@ -1,7 +1,9 @@
 `include "Sysbus.defs"
 `include "fetch.sv"
 `include "wb.sv"
-`include "memory.sv"
+`include "memory_controller.sv"
+`include "arbiter.sv"
+`include "instructions.sv"
 
 module top
 #(
@@ -38,14 +40,18 @@ module top
   logic data_mem_valid;
   logic wr_data;
   logic got_inst;
-  logic  [63:0] mem_addr;
-  logic  mem_req;
+  logic [63:0] mem_addr;
+  logic [63:0] icache_address;
+  logic [63:0] dcache_address;
+  logic mem_req;
+  logic icache_req;
+  logic dcache_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
-  logic [REGSZ - 1: 0] decoder_regDest;
+  logic [REGSZ - 1: 0] decoder_regDest, decoder_regA;
   logic [UIMM - 1: 0] decoder_uimm;
   logic [REGBSZ - 1: 0] decoder_regB;
-  logic [WORDSZ - 1:0] decoder_regA_val, decoder_regB_val;
+  logic [WORDSZ - 1:0] decoder_regA_val, decoder_regB_val, wr_to_mem;
 
   //connect alu output to writeback input
   logic [63:0] alu_dataout;
@@ -53,7 +59,7 @@ module top
   logic alu_wr_enable;
 
   //connect wb output to decoder_register_file input
-  logic [63:0] wb_dataOut;
+  logic [63:0] wb_dataOut, alu_target;
   logic [REGSZ - 1:0] wb_regDest;
   /*
    * alu write enable directly passed to the regfile,
@@ -62,18 +68,25 @@ module top
    */
   
   //logic to for the wb stage to differentiate between ALU and memory ops
-  wire ld_or_alu;
+  logic ld_or_alu, top_jmp, alu_stall;
   //logic to detect and write 'ECALL' during writeback stage
   logic is_ecall; 
   logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
-  logic [WORDSZ - 1: 0] pc, next_pc;
+  logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
-  logic [INSTSZ - 1: 0] icache_instr;
+  logic [BLOCKSZ - 1: 0] icache_data;
+  logic [BLOCKSZ - 1: 0] dcache_data;
+  logic [INSTSZ - 1: 0] icache_instr, alu_instr;
+
+  logic icache_mem_req_complete;
+  logic dcache_mem_req_complete;
+  logic dcache_wren;
 
   always_ff @ (posedge clk) begin
       if (reset) begin
           pc <= entry;
+          register_set[2] <= stackptr;
       end else begin
           pc <= next_pc;
       end
@@ -81,11 +94,14 @@ module top
 
   inc_pc pc_add(
     .pc_in(pc),
+    .jmp_target(alu_target),
     .next_pc(next_pc),
+    .is_jmp(top_jmp),
+    .alu_stall(alu_stall),
     .sig_recvd(got_inst)
   );
 
-  memory_fetch memory_instance(
+  memory_controller memory_instance(
     .clk(clk),
     .rst(reset),
     .in_address(mem_addr),
@@ -102,6 +118,34 @@ module top
     .bus_resptag(bus_resptag)
   );
 
+ arbiter arbiter_instance(
+     .clk(clk),
+     .rst(reset),
+    //input from caches
+     .icache_address(icache_address),
+     .dcache_address(dcache_address),
+     .icache_req(icache_req),
+     .dcache_req(dcache_req),
+     .wr_en(dcache_wren),
+     .data_in(dcache_dataout),
+    // output to indicate operation complete to caches
+     .icache_data_out(icache_data),
+     .dcache_data_out(dcache_data), 
+     .icache_operation_complete(icache_mem_req_complete),
+     .dcache_operation_complete(dcache_mem_req_complete),
+
+    //input from memory controller
+     .data_from_mem(data_from_mem),
+     .mem_data_valid(data_mem_valid),
+
+    //output to memory controller
+     .mem_address(mem_addr),
+     .mem_data_out(data_to_mem),
+     .mem_req(mem_req),
+     .mem_wr_en(mem_wr_en)
+
+ );
+
  cache instcache(
     .clk(clk),
     .wr_en(0),
@@ -112,16 +156,16 @@ module top
     .enable(clk),
     .data_out(icache_instr),
     .operation_complete(got_inst),
-    .mem_address(mem_addr),
-    .mem_req(mem_req),
-    .mem_data_in(data_from_mem),
-    .mem_data_valid(data_mem_valid)
+    .mem_address(icache_address),
+    .mem_req(icache_req),
+    .mem_data_in(icache_data),
+    .mem_data_valid(icache_mem_req_complete)
  );
 
  /*
  cache datacache(
     .clk(clk),
-    .wr_en(wr_data),
+    .wr_en(1),
     .data_in(bus_resp),
     .r_addr(decoder_regA),
     .w_addr(decoder_regDest),
@@ -129,7 +173,7 @@ module top
     .enable(data_mem_valid),
     .data_out(dcache_data),
     .operation_complete(data_ready),
-    .mem_address(mem_addr),
+    .mem_address(dcache_address),
     .mem_data_out(data_out),
     .mem_wr_en(wr_data),
     .mem_data_in(data_in),
@@ -151,23 +195,35 @@ module top
     .reg_dest(decoder_regDest),
     .uimm(decoder_uimm),
     .opcode(decoder_opcode),
+    .curr_pc(curr_pc),
+    .out_instr(alu_instr),
     .regB(decoder_regB),
     .ld_or_alu(ld_or_alu),
-    .ecall_reg_val(ecall_reg_set)
+    .ecall_reg_val(ecall_reg_set),
+    .regA(decoder_regA),
+    .aluRegDest(alu_regDest),
+    .alustall(alu_stall)
  );
 
  alu alu_instance(
+    .regA(decoder_regA),
     .regB(decoder_regB),
-    .regA_value(decoder_regA_val),
-    .regB_value(decoder_regB_val),
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
     .uimm(decoder_uimm),
-    .clk(got_inst),
-    .aluRegDest(alu_regDest),
+    .i_pc(curr_pc),
+    .i_inst(alu_inst),
+    .regA_value(decoder_regA_val),
+    .regB_value(decoder_regB_val),
+    .reset(reset),
+    .clk(clk),
     .data_out(alu_dataout),
-    .wr_en(alu_wr_enable),
-    .is_ecall(is_ecall)//wire the 'is_ecall' value
+    .is_ecall(is_ecall),//wire the 'is_ecall' value
+    .aluRegDest(alu_regDest),
+    .mem_out(wr_to_mem),
+    .alu_jmp_target(alu_target),
+    .is_jmp(top_jmp),
+    .wr_en(alu_wr_enable)
  );
 
   wb wb_instance(

@@ -1,6 +1,7 @@
 .PHONY: all run clean submit
 
-RUNELF=/shared/cse502/tests/wp2/prog3.o
+#RUNELF=/shared/cse502/tests/project/prog1
+RUNELF=$(PWD)/tests/obj/test2
 
 TRACE?=--trace
 HAVETLB=n

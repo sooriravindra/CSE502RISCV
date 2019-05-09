@@ -1,10 +1,13 @@
+//`include "Sysbus.defs"
 module alu
 (
+    input [4:0] regA,
     input [11:0] regB,
     input [9:0] opcode,
     input [4:0] regDest,
     input [19:0] uimm,
     input [31:0] i_pc,
+    input [31:0] i_inst,
 
     input [63:0] regA_value,
     input [63:0] regB_value,
@@ -12,9 +15,11 @@ module alu
     input reset,
     output [63:0] data_out,
     output [4:0] aluRegDest,
-    output wr_en,
-    output is_ecall = 0//the ECALL bit is set to zero in all normal cases.
-
+    output is_ecall = 0,//the ECALL bit is set to zero in all normal cases.
+    output [63:0] mem_out,
+    output [63:0] alu_jmp_target,
+    output is_jmp,
+    output wr_en
 );
 
 enum {
@@ -43,9 +48,9 @@ enum {
     opcode_srlsraiw    = 10'h29b,
     opcode_slliw       = 10'h09b,
     opcode_sllw        = 10'h0bb,
-    opcode_lui         = 10'bxxx0110111,
-    opcode_auipc       = 10'bxxx0010111,
-    opcode_jal         = 10'bxxx1101111,
+    opcode_lui         = 10'b0000110111,
+    opcode_auipc       = 10'b0000010111,
+    opcode_jal         = 10'b0001101111,
     opcode_jalr        = 10'h067,
     opcode_beq         = 10'h063,
     opcode_bne         = 10'h0e3,
@@ -75,44 +80,68 @@ enum {
     opcode_csrrci      = 10'h3f3
 } opcodes;
 
-logic [63:0] temp_dest;
-logic [63:0] quart_temp_dest;
-logic [63:0] half_temp_dest;
+logic [63:0] temp_dest, quart_temp_dest, half_temp_dest, word_temp_dest, mem_dest;
 logic sign_extend;
-
+logic [31:0] auipc_word;
+logic is_store, tmp_jmp;
+logic[11:0] off_dest12;
+logic[63:0] off_dest64, tmp_pc, tmp_jalr;
 always_ff @(posedge clk) begin
-    if (sign_extend) begin
-        data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
-        aluRegDest <= regDest;
-        wr_en <= 1;
+    alu_jmp_target <= tmp_pc;
+    is_jmp <= tmp_jmp;
+    if (sign_extend && is_store == 0) begin
+      data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
+      aluRegDest <= regDest;
+      mem_out <= 0;
+      wr_en <= 1;
     end
-    else begin
-        data_out <= temp_dest;
-        aluRegDest <= regDest;
-        wr_en <= 1;
+    else if (sign_extend == 0 && is_store == 0) begin
+      data_out <= temp_dest;
+      aluRegDest <= regDest;
+      mem_out <= 0;
+      wr_en <= 1;
+    end
+    else if (is_store) begin
+      data_out <= temp_dest;
+      aluRegDest <= 0;
+      mem_out <= mem_dest;
+      wr_en <= 1;
     end
 end
 
 always_comb begin
+  is_store = 0;
+  mem_dest = mem_out;
+  off_dest12 = 0; 
+  off_dest64 = 0; 
+  quart_temp_dest = 0;
+  half_temp_dest = 0; 
+  word_temp_dest = 0;
+  tmp_jmp = 0;
+  tmp_pc = i_pc + 4;
   case (opcode)
 /* After WP2 */
     opcode_lui  : begin
-      temp_dest = {uimm, 12'h000};
+      temp_dest = $signed({uimm, 12'h000});
       sign_extend = 0;
     end
     opcode_auipc : begin
-      temp_dest = {uimm, 12'h000} + i_pc;
+      auipc_word = {uimm, 12'h000};
+      temp_dest = {{32{auipc_word[31]}}, auipc_word} + {32'h00000000, i_pc};
       sign_extend = 0;
     end
     opcode_jal : begin
-      temp_dest = i_pc + ({{11{uimm[19]}}, uimm} * 2) + 4;
-//      ret = {{11{uimm[19]}}, uimm} * 2;
+      temp_dest =  i_pc + 4;
+      tmp_pc = i_pc + ({{11{uimm[19]}}, uimm} * 2);
       sign_extend = 0;
+      tmp_jmp = 1;
     end
     opcode_jalr : begin
-      temp_dest = i_pc + 4 + ({{52{regB[11]}}, regB} + regA_value);
-//      retReg = register_enum.ra;
-      sign_extend = 0;
+      temp_dest = i_pc + 4;
+      tmp_jalr = ({{52{regB[11]}}, regB} + regA_value);
+      tmp_pc = {tmp_jalr[63:1], 1'b0};
+      tmp_jmp = 1;
+      sign_extend = 0;      
     end
     opcode_beq  : begin
       if (regA_value == regB_value) begin
@@ -121,7 +150,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_bne  : begin
       if (regA_value != regB_value) begin
@@ -130,7 +159,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_blt  : begin
       if ($signed(regA_value) < $signed(regB_value)) begin
@@ -139,7 +168,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_bge  : begin
       if ($signed(regA_value) >= $signed(regB_value)) begin
@@ -148,7 +177,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_bltu : begin
       if (regA_value < regB_value) begin
@@ -157,7 +186,7 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
     opcode_bgeu : begin
       if (regA_value >= regB_value) begin
@@ -166,43 +195,74 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;
+      sign_extend = 0;      
     end
+     
     opcode_lb   : begin
       quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{24{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
-    end
+      temp_dest = {{56{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
+      sign_extend = 0;
+    end      
     opcode_lh   : begin
       half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{16{half_temp_dest[15]}}, half_temp_dest[15:0]};
-    end
+      temp_dest = {{48{half_temp_dest[15]}}, half_temp_dest[15:0]};
+      sign_extend = 0;
+    end      
     opcode_lw   : begin
-      temp_dest = (regA_value + {{52{regB[11]}}, regB}) | (64'hffffffff);
-    end
+      word_temp_dest = (regA_value + {{52{regB[11]}}, regB});
+      temp_dest = {{32{word_temp_dest[31]}}, word_temp_dest[31:0]};
+      sign_extend = 0;
+    end      
     opcode_lbu : begin
       quart_temp_dest = (regA_value + {52'h0000000000000, regB});
-      temp_dest = {{24'h000000, quart_temp_dest[7:0]}};
-    end
+      temp_dest = {24'h000000, quart_temp_dest};
+      sign_extend = 0;
+    end    
     opcode_lwu : begin
-      temp_dest = (regA_value + {52'h0000000000000, regB}) | (64'hffffffff);
+      temp_dest = (regA_value + {52'h0000000000000, regB});
+      sign_extend = 0;
     end
     opcode_lhu  : begin
       half_temp_dest = (regA_value + {52'h0000000000000, regB});
-      temp_dest = {16'h0000, half_temp_dest[15:0]};
+      temp_dest = {16'h0000, half_temp_dest};
+      sign_extend = 0;
     end
     opcode_sb   : begin
-      temp_dest = (regA_value + {52{regB[11:5], regDest}});
+      is_store = 1;
+      off_dest12 = {regB[11:5], regDest};
+      off_dest64 = {{52{off_dest12[11]}}, off_dest12};
+      mem_dest   = regA_value + off_dest64;
+      temp_dest  = $signed(regB_value[7:0]);
+      sign_extend = 0;
     end
     opcode_sh   : begin
+      is_store = 1;
+      off_dest12 = {regB[11:5], regDest};
+      off_dest64 = {{52{off_dest12[11]}}, off_dest12};
+      mem_dest   = regA_value + off_dest64;
+      temp_dest  = $signed(regB_value[15:0]);
     end
     opcode_sw   : begin
+      is_store = 1;
+      off_dest12 = {regB[11:5], regDest};
+      off_dest64 = {{52{off_dest12[11]}}, off_dest12};
+      mem_dest   = regA_value + off_dest64;
+      temp_dest  = $signed(regB_value[31:0]);
     end
     opcode_ld   : begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
+      sign_extend = 0;
     end
     opcode_sd   : begin
+      is_store = 1;
+      off_dest12 = {regB[11:5], regDest};
+      off_dest64 = {{52{off_dest12[11]}}, off_dest12};
+      mem_dest   = regA_value + off_dest64;
+      temp_dest  = regB_value;
     end
     opcode_fence: begin
+      temp_dest = regA_value + {{52{regB[11]}}, regB};
+      sign_extend = 0;
     end
     opcode_fencei : begin
     end
@@ -234,7 +294,7 @@ always_comb begin
     opcode_addi: begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
       sign_extend = 0;
-      end
+    end
     opcode_addiw: begin
       temp_dest = regA_value[31:0] + {{20{regB[11]}}, regB};
       sign_extend = 1;
