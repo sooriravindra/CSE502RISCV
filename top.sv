@@ -48,7 +48,7 @@ module top
   logic dcache_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
-  logic [REGSZ - 1: 0] decoder_regDest;
+  logic [REGSZ - 1: 0] decoder_regDest, decoder_regA;
   logic [UIMM - 1: 0] decoder_uimm;
   logic [REGBSZ - 1: 0] decoder_regB;
   logic [WORDSZ - 1:0] decoder_regA_val, decoder_regB_val, wr_to_mem;
@@ -68,7 +68,7 @@ module top
    */
   
   //logic to for the wb stage to differentiate between ALU and memory ops
-  logic ld_or_alu, top_jmp;
+  logic ld_or_alu, top_jmp, alu_stall;
 
   logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
@@ -155,6 +155,7 @@ module top
     .mem_address(icache_address),
     .mem_req(icache_req),
     .mem_data_in(icache_data),
+    .alu_stallicache(alu_stall),
     .mem_data_valid(icache_mem_req_complete)
  );
 
@@ -194,10 +195,12 @@ module top
     .curr_pc(curr_pc),
     .out_instr(alu_instr),
     .regB(decoder_regB),
+    .regA(decoder_regA),
     .ld_or_alu(ld_or_alu)
  );
 
  alu alu_instance(
+    .regA(decoder_regA),
     .regB(decoder_regB),
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
@@ -213,6 +216,9 @@ module top
     .mem_out(wr_to_mem),
     .alu_jmp_target(alu_target),
     .is_jmp(top_jmp),
+    .fwdID_regA(decoder_regA),
+    .fwdID_regB(decoder_regB[4:0]),
+    .stall_out_alu(alu_stall),
     .wr_en(alu_wr_enable)
  );
 

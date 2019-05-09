@@ -29,6 +29,8 @@ cache
        output                   mem_wr_en,
        output                   mem_req,
        input  [BLOCKSZ-1:0]     mem_data_in,
+       input                    alu_stallicache,
+       input                    wb_stallicache,
        input                    mem_data_valid
 
 );
@@ -110,7 +112,12 @@ always_ff @(posedge clk) begin
       
     end
     else begin
+      if (alu_stallicache & wb_stallicache) begin
+        data_out <= 32'h0000000f;
+      end
+      else begin
         data_out <= final_value;
+      end
     end
 
     c_state <= c_next_state;

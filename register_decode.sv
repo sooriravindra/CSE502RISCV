@@ -29,6 +29,7 @@ module register_decode
     output [OPFUNC - 1:0]   opcode,
     output [INSTRSZ - 1: 0] out_instr,
     output [INSTRSZ - 1: 0] curr_pc,
+    output [REGBITS - 1: 0] regA,
     output [IMMREG - 1:0]   regB,
     //to differentiate between alu and memory ops, we need the below flag
     //as of now, this is made forcefully low, to indicate that the wb stage
@@ -66,6 +67,7 @@ module register_decode
     else begin
       curr_pc <= prog_counter;
       out_instr <= instr;
+      regA <= rd_reg_A;
     end
   end
     always_comb begin

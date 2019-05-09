@@ -1,6 +1,7 @@
 //`include "Sysbus.defs"
 module alu
 (
+    input [4:0] regA,
     input [11:0] regB,
     input [9:0] opcode,
     input [4:0] regDest,
@@ -12,11 +13,14 @@ module alu
     input [63:0] regB_value,
     input clk,
     input reset,
+    input [4:0] fwdID_regA,
+    input [4:0] fwdID_regB,
     output [63:0] data_out,
     output [4:0] aluRegDest,
     output [63:0] mem_out,
     output [63:0] alu_jmp_target,
     output is_jmp,
+    output stall_out_alu,
     output wr_en
 );
 
@@ -81,13 +85,16 @@ enum {
 logic [63:0] temp_dest, quart_temp_dest, half_temp_dest, word_temp_dest, mem_dest;
 logic sign_extend;
 logic [31:0] auipc_word;
-logic is_store, tmp_jmp;
+logic is_store, tmp_jmp, alu_stall;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64, tmp_pc, tmp_jalr;
 always_ff @(posedge clk) begin
     alu_jmp_target <= tmp_pc;
     is_jmp <= tmp_jmp;
-    if (sign_extend && is_store == 0) begin
+    if (alu_stall) begin
+      stall_out_alu <= alu_stall;
+    end
+    else if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
       aluRegDest <= regDest;
       mem_out <= 0;
@@ -117,6 +124,12 @@ always_comb begin
   word_temp_dest = 0;
   tmp_jmp = 0;
   tmp_pc = i_pc + 4;
+  alu_stall = 0;
+  if (((regDest == fwdID_regA) || (regDest == fwdID_regB))
+      && (regDest != 0)) begin
+    alu_stall = 1;
+  end
+  else begin
   case (opcode)
 /* After WP2 */
     opcode_lui  : begin
@@ -130,7 +143,6 @@ always_comb begin
     end
     opcode_jal : begin
       temp_dest =  i_pc + 4;
-//      ret = {{11{uimm[19]}}, uimm} * 2;
       tmp_pc = i_pc + ({{11{uimm[19]}}, uimm} * 2);
       sign_extend = 0;
       tmp_jmp = 1;
@@ -140,7 +152,6 @@ always_comb begin
       tmp_jalr = ({{52{regB[11]}}, regB} + regA_value);
       tmp_pc = {tmp_jalr[63:1], 1'b0};
       tmp_jmp = 1;
-//      retReg = register_enum.ra;
       sign_extend = 0;      
     end
     opcode_beq  : begin
@@ -225,6 +236,7 @@ always_comb begin
     opcode_lhu  : begin
       half_temp_dest = (regA_value + {52'h0000000000000, regB});
       temp_dest = {16'h0000, half_temp_dest};
+      sign_extend = 0;
     end
     opcode_sb   : begin
       is_store = 1;
@@ -232,6 +244,7 @@ always_comb begin
       off_dest64 = {{52{off_dest12[11]}}, off_dest12};
       mem_dest   = regA_value + off_dest64;
       temp_dest  = $signed(regB_value[7:0]);
+      sign_extend = 0;
     end
     opcode_sh   : begin
       is_store = 1;
@@ -249,6 +262,8 @@ always_comb begin
     end
     opcode_ld   : begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
+      alu_stall = 1;
+      sign_extend = 0;
     end
     opcode_sd   : begin
       is_store = 1;
@@ -258,6 +273,8 @@ always_comb begin
       temp_dest  = regB_value;
     end
     opcode_fence: begin
+      temp_dest = regA_value + {{52{regB[11]}}, regB};
+      sign_extend = 0;
     end
     opcode_fencei : begin
     end
@@ -283,7 +300,7 @@ always_comb begin
     opcode_addi: begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
       sign_extend = 0;
-      end
+    end
     opcode_addiw: begin
       temp_dest = regA_value[31:0] + {{20{regB[11]}}, regB};
       sign_extend = 1;
@@ -443,6 +460,7 @@ always_comb begin
                 sign_extend = 0;
             end
         endcase
+      alu_stall = 1;
     end
     opcode_divw: begin
         temp_dest = $signed(regA_value[31:0]) / $signed(regB_value[31:0]);
@@ -511,6 +529,7 @@ always_comb begin
     default: begin
     end
     endcase
+  end
 end
 endmodule
 
