@@ -13,14 +13,11 @@ module alu
     input [63:0] regB_value,
     input clk,
     input reset,
-    input [4:0] fwdID_regA,
-    input [4:0] fwdID_regB,
     output [63:0] data_out,
     output [4:0] aluRegDest,
     output [63:0] mem_out,
     output [63:0] alu_jmp_target,
     output is_jmp,
-    output stall_out_alu,
     output wr_en
 );
 
@@ -85,16 +82,13 @@ enum {
 logic [63:0] temp_dest, quart_temp_dest, half_temp_dest, word_temp_dest, mem_dest;
 logic sign_extend;
 logic [31:0] auipc_word;
-logic is_store, tmp_jmp, alu_stall;
+logic is_store, tmp_jmp;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64, tmp_pc, tmp_jalr;
 always_ff @(posedge clk) begin
     alu_jmp_target <= tmp_pc;
     is_jmp <= tmp_jmp;
-    if (alu_stall) begin
-      stall_out_alu <= alu_stall;
-    end
-    else if (sign_extend && is_store == 0) begin
+    if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
       aluRegDest <= regDest;
       mem_out <= 0;
@@ -124,12 +118,6 @@ always_comb begin
   word_temp_dest = 0;
   tmp_jmp = 0;
   tmp_pc = i_pc + 4;
-  alu_stall = 0;
-  if (((regDest == fwdID_regA) || (regDest == fwdID_regB))
-      && (regDest != 0)) begin
-    alu_stall = 1;
-  end
-  else begin
   case (opcode)
 /* After WP2 */
     opcode_lui  : begin
@@ -262,7 +250,6 @@ always_comb begin
     end
     opcode_ld   : begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
-      alu_stall = 1;
       sign_extend = 0;
     end
     opcode_sd   : begin
@@ -460,7 +447,6 @@ always_comb begin
                 sign_extend = 0;
             end
         endcase
-      alu_stall = 1;
     end
     opcode_divw: begin
         temp_dest = $signed(regA_value[31:0]) / $signed(regB_value[31:0]);
@@ -529,7 +515,6 @@ always_comb begin
     default: begin
     end
     endcase
-  end
 end
 endmodule
 

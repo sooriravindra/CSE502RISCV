@@ -94,6 +94,7 @@ module top
     .jmp_target(alu_target),
     .next_pc(next_pc),
     .is_jmp(top_jmp),
+    .alu_stall(alu_stall),
     .sig_recvd(got_inst)
   );
 
@@ -155,7 +156,6 @@ module top
     .mem_address(icache_address),
     .mem_req(icache_req),
     .mem_data_in(icache_data),
-    .alu_stallicache(alu_stall),
     .mem_data_valid(icache_mem_req_complete)
  );
 
@@ -196,6 +196,8 @@ module top
     .out_instr(alu_instr),
     .regB(decoder_regB),
     .regA(decoder_regA),
+    .aluRegDest(alu_regDest),
+    .alustall(alu_stall),
     .ld_or_alu(ld_or_alu)
  );
 
@@ -216,9 +218,6 @@ module top
     .mem_out(wr_to_mem),
     .alu_jmp_target(alu_target),
     .is_jmp(top_jmp),
-    .fwdID_regA(decoder_regA),
-    .fwdID_regB(decoder_regB[4:0]),
-    .stall_out_alu(alu_stall),
     .wr_en(alu_wr_enable)
  );
 

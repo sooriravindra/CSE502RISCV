@@ -18,6 +18,7 @@ module register_decode
     // specify the register number and data to write
     input  [4:0] destn_reg,
     input  [63:0] destn_data,
+    input  [4:0] aluRegDest,   
 
     // output data
     output [63:0] rd_data_A,
@@ -31,6 +32,7 @@ module register_decode
     output [INSTRSZ - 1: 0] curr_pc,
     output [REGBITS - 1: 0] regA,
     output [IMMREG - 1:0]   regB,
+    output alustall,
     //to differentiate between alu and memory ops, we need the below flag
     //as of now, this is made forcefully low, to indicate that the wb stage
     //only would read inputs from ALU result. Once the memory is implemented,
@@ -474,7 +476,10 @@ module register_decode
         end
 
       endcase
-    end
+    if ((aluRegDest == rd_reg_A && aluRegDest == rd_reg_B) && (aluRegDest != 0)) begin
+      alustall = 1;
+    end  
+  end
 
     always_ff @(posedge clk) begin //this always block is for write. we would write to the register in every postive edge of the clock
         if (reset) begin
@@ -546,6 +551,17 @@ module register_decode
 //                  $display("t6   = %x", register_set[31]);
         end
         else begin
+          if (alustall) begin
+            uimm      <= 0;
+            opcode    <= 10'h00f;
+            rd_data_A <= 0;//read the data from register A to data A
+            rd_data_B <= 0;//read the data from register B to data B
+            regB      <= 0;
+            if (wr_en & destn_reg != 0) begin
+                register_set[0] <= 0; //write the data into the destination register
+            end
+          end
+          else begin
             uimm      <= temp_uimm;
             opcode    <= temp_opcode;
             rd_data_A <= register_set[rd_reg_A];//read the data from register A to data A
@@ -554,6 +570,7 @@ module register_decode
             if (wr_en & destn_reg != 0) begin
                 register_set[destn_reg] <= destn_data; //write the data into the destination register
             end
+          end
        end
     end //always_ff block end
 
