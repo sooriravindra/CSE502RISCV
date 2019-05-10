@@ -159,7 +159,6 @@ module top
     .mem_data_valid(icache_mem_req_complete)
  );
 
- /*
  cache datacache(
     .clk(clk),
     .wr_en(1),
@@ -167,16 +166,15 @@ module top
     .r_addr(decoder_regA),
     .w_addr(decoder_regDest),
     .rst(reset),
-    .enable(data_mem_valid),
-    .data_out(dcache_data),
+    .enable(dcache_enable),
+    .data_out(mem_dcache_data),
     .operation_complete(data_ready),
     .mem_address(dcache_address),
-    .mem_data_out(data_out),
+    .mem_data_out(dcache_data_out),
     .mem_wr_en(wr_data),
-    .mem_data_in(data_in),
-    .mem_data_valid(data_mem_valid)
+    .mem_data_in(dcache_data),
+    .mem_data_valid(dcache_mem_req_complete)
  );
- */
 
  //instantiate decoder
  register_decode decoder_instance(
