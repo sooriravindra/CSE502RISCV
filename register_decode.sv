@@ -18,6 +18,7 @@ module register_decode
     // specify the register number and data to write
     input  [4:0] destn_reg,
     input  [63:0] destn_data,
+    input  [4:0] aluRegDest,   
 
     // output data
     output [63:0] rd_data_A,
@@ -29,12 +30,15 @@ module register_decode
     output [OPFUNC - 1:0]   opcode,
     output [INSTRSZ - 1: 0] out_instr,
     output [INSTRSZ - 1: 0] curr_pc,
+    output [REGBITS - 1: 0] regA,
     output [IMMREG - 1:0]   regB,
+    output alustall,
     //to differentiate between alu and memory ops, we need the below flag
     //as of now, this is made forcefully low, to indicate that the wb stage
     //only would read inputs from ALU result. Once the memory is implemented,
-    //we would have to make this flag conditional.
-    output ld_or_alu
+    //we would have to make this flag conditional. 
+    output ld_or_alu,
+    output [63:0] ecall_reg_val [7:0]//this logic would hold eight reg of 64 bits each 
 );
     enum
     {
@@ -66,6 +70,7 @@ module register_decode
     else begin
       curr_pc <= prog_counter;
       out_instr <= instr;
+      regA <= rd_reg_A;
     end
   end
     always_comb begin
@@ -472,7 +477,10 @@ module register_decode
         end
 
       endcase
-    end
+    if ((aluRegDest == rd_reg_A && aluRegDest == rd_reg_B) && (aluRegDest != 0)) begin
+      alustall = 1;
+    end  
+  end
 
     always_ff @(posedge clk) begin //this always block is for write. we would write to the register in every postive edge of the clock
         if (reset) begin
@@ -544,14 +552,35 @@ module register_decode
 //                  $display("t6   = %x", register_set[31]);
         end
         else begin
+          if (alustall) begin
+            uimm      <= 0;
+            opcode    <= 10'h00f;
+            rd_data_A <= 0;//read the data from register A to data A
+            rd_data_B <= 0;//read the data from register B to data B
+            regB      <= 0;
+            if (wr_en & destn_reg != 0) begin
+                register_set[0] <= 0; //write the data into the destination register
+            end
+          end
+          else begin
             uimm      <= temp_uimm;
             opcode    <= temp_opcode;
             rd_data_A <= register_set[rd_reg_A];//read the data from register A to data A
             rd_data_B <= register_set[rd_reg_B];//read the data from register B to data B
+	    //read operation for ECALL instruction, we have to pass the input values in the logic
+	    ecall_reg_val[0] = register_set[2'd10];
+            ecall_reg_val[1] = register_set[2'd11];
+	    ecall_reg_val[2] = register_set[2'd12];
+	    ecall_reg_val[3] = register_set[2'd13];
+	    ecall_reg_val[4] = register_set[2'd14];
+	    ecall_reg_val[5] = register_set[2'd15];
+ 	    ecall_reg_val[6] = register_set[2'd16];
+	    ecall_reg_val[7] = register_set[2'd17];
             regB      <= temp_regB;
             if (wr_en & destn_reg != 0) begin
                 register_set[destn_reg] <= destn_data; //write the data into the destination register
-            end
+	    end
+          end
        end
     end //always_ff block end
 

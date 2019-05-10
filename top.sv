@@ -49,7 +49,7 @@ module top
   logic dcache_req;
 
   logic [OPFUNC -1 : 0] decoder_opcode;
-  logic [REGSZ - 1: 0] decoder_regDest;
+  logic [REGSZ - 1: 0] decoder_regDest, decoder_regA;
   logic [UIMM - 1: 0] decoder_uimm;
   logic [REGBSZ - 1: 0] decoder_regB;
   logic [WORDSZ - 1:0] decoder_regA_val, decoder_regB_val, wr_to_mem;
@@ -69,7 +69,10 @@ module top
    */
   
   //logic to for the wb stage to differentiate between ALU and memory ops
-  logic ld_or_alu, top_jmp;
+  logic ld_or_alu, top_jmp, alu_stall;
+  //logic to detect and write 'ECALL' during writeback stage
+  logic is_ecall; 
+  logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
   logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
@@ -95,6 +98,7 @@ module top
     .jmp_target(alu_target),
     .next_pc(next_pc),
     .is_jmp(top_jmp),
+    .alu_stall(alu_stall),
     .sig_recvd(got_inst)
   );
 
@@ -193,10 +197,15 @@ module top
     .curr_pc(curr_pc),
     .out_instr(alu_instr),
     .regB(decoder_regB),
-    .ld_or_alu(ld_or_alu)
+    .ld_or_alu(ld_or_alu),
+    .ecall_reg_val(ecall_reg_set),
+    .regA(decoder_regA),
+    .aluRegDest(alu_regDest),
+    .alustall(alu_stall)
  );
 
  alu alu_instance(
+    .regA(decoder_regA),
     .regB(decoder_regB),
     .opcode(decoder_opcode),
     .regDest(decoder_regDest),
@@ -208,6 +217,7 @@ module top
     .reset(reset),
     .clk(clk),
     .data_out(alu_dataout),
+    .is_ecall(is_ecall),//wire the 'is_ecall' value
     .aluRegDest(alu_regDest),
     .mem_out(wr_to_mem),
     .alu_jmp_target(alu_target),
@@ -234,7 +244,9 @@ module top
     .rd_alu(alu_regDest),//in case of an ALU operation
     .rd_mem(0), //in case of a memory opration, not done yet. This would be the deoder value passed through memory module 
     .data_out(wb_dataOut),
-    .destReg(wb_regDest)
+    .is_ecall(is_ecall),//wire the 'is_ecall' value to wb stage
+    .destReg(wb_regDest),
+    .ecall_reg_val(ecall_reg_set)
  );
 
 endmodule

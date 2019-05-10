@@ -6,10 +6,11 @@ inc_pc(
            input [63:0] jmp_target, 
 	   output[63:0] next_pc,
            input is_jmp,
+           input alu_stall,
 	   input sig_recvd
 	  );
   always_comb begin
-    if (sig_recvd) begin
+    if (sig_recvd && (alu_stall == 0)) begin
       if (is_jmp) begin
         next_pc = jmp_target - 4;
       end

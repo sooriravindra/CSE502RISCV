@@ -1,6 +1,7 @@
 //`include "Sysbus.defs"
 module alu
 (
+    input [4:0] regA,
     input [11:0] regB,
     input [9:0] opcode,
     input [4:0] regDest,
@@ -14,6 +15,7 @@ module alu
     input reset,
     output [63:0] data_out,
     output [4:0] aluRegDest,
+    output is_ecall = 0,//the ECALL bit is set to zero in all normal cases.
     output [63:0] mem_out,
     output [63:0] alu_jmp_target,
     output is_jmp,
@@ -130,7 +132,6 @@ always_comb begin
     end
     opcode_jal : begin
       temp_dest =  i_pc + 4;
-//      ret = {{11{uimm[19]}}, uimm} * 2;
       tmp_pc = i_pc + ({{11{uimm[19]}}, uimm} * 2);
       sign_extend = 0;
       tmp_jmp = 1;
@@ -140,7 +141,6 @@ always_comb begin
       tmp_jalr = ({{52{regB[11]}}, regB} + regA_value);
       tmp_pc = {tmp_jalr[63:1], 1'b0};
       tmp_jmp = 1;
-//      retReg = register_enum.ra;
       sign_extend = 0;      
     end
     opcode_beq  : begin
@@ -225,6 +225,7 @@ always_comb begin
     opcode_lhu  : begin
       half_temp_dest = (regA_value + {52'h0000000000000, regB});
       temp_dest = {16'h0000, half_temp_dest};
+      sign_extend = 0;
     end
     opcode_sb   : begin
       is_store = 1;
@@ -232,6 +233,7 @@ always_comb begin
       off_dest64 = {{52{off_dest12[11]}}, off_dest12};
       mem_dest   = regA_value + off_dest64;
       temp_dest  = $signed(regB_value[7:0]);
+      sign_extend = 0;
     end
     opcode_sh   : begin
       is_store = 1;
@@ -249,6 +251,7 @@ always_comb begin
     end
     opcode_ld   : begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
+      sign_extend = 0;
     end
     opcode_sd   : begin
       is_store = 1;
@@ -258,13 +261,21 @@ always_comb begin
       temp_dest  = regB_value;
     end
     opcode_fence: begin
+      temp_dest = regA_value + {{52{regB[11]}}, regB};
+      sign_extend = 0;
     end
     opcode_fencei : begin
     end
     opcode_ecallebreak : begin
-//      if (regB[20] == 0) begin
-//        do_ecall();
-//      end
+	case(regB[11:0])
+		//ECALL - set a specific bit to mark this instruction
+        	7'b000000000000: begin
+          	is_ecall = 1;
+        	end
+		7'b000000000001: begin
+		//EBREAK -- not needed
+        	end
+	endcase
     end
     opcode_csrrw  : begin
     end
@@ -283,7 +294,7 @@ always_comb begin
     opcode_addi: begin
       temp_dest = regA_value + {{52{regB[11]}}, regB};
       sign_extend = 0;
-      end
+    end
     opcode_addiw: begin
       temp_dest = regA_value[31:0] + {{20{regB[11]}}, regB};
       sign_extend = 1;
