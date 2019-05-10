@@ -22,7 +22,8 @@ wb
 	 input [LOGSIZE-1:0] ecall_reg_val [7:0], //logic to hold ECALL input values  
 	 input  logic [REGBITS-1:0] rd_alu, rd_mem,//the destination register value from ALU and memory module should be specified here
 	 output logic [LOGSIZE-1:0] data_out, //the output data would go to the register file
-	 output logic [REGBITS-1:0] destReg //the output register address would be held here
+	 output logic [REGBITS-1:0] destReg, //the output register address would be held here
+	 output logic flush_bit
 );
 
 logic [LOGSIZE-1:0] ecall_output;
@@ -33,9 +34,10 @@ logic [LOGSIZE-1:0] ecall_output;
 			data_out <= 64'b0;
 			destReg	 <= 64'b0;
 		end if(is_ecall) begin
-			do_ecall(ecall_reg_val[7],ecall_reg_val[0],ecall_reg_val[1],ecall_reg_val[2],ecall_reg_val[3],ecall_reg_val[4],ecall_reg_val[5],ecall_reg_val[6],ecall_output);
-			data_out <= ecall_output;
-			destReg  <= 5'b00010; 
+			do_ecall(ecall_reg_val[7],ecall_reg_val[0],ecall_reg_val[1],ecall_reg_val[2],ecall_reg_val[3],ecall_reg_val[4],ecall_reg_val[5],ecall_reg_val[6],ecall_output);//call do_ecall
+			flush_bit <= 1;//set flush bit
+			data_out <= ecall_output;//write ecall output
+			destReg  <= 5'b01010; //set destination reg to a0
 		end
 		//write to the destination register value and the data value
 		else begin

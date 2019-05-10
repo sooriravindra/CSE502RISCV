@@ -2,7 +2,7 @@ ARCH=riscv64-unknown-linux-gnu-
 CC=$(ARCH)gcc
 OBJDUMP=$(ARCH)objdump
 CFLAGS=-march=rv64im -O0 -Wno-implicit-int -nostdlib
-OBJECT_FILES=test1 test2 test3
+OBJECT_FILES=test1 test2 test3 test4
 .PHONY: all clean 
 all : $(OBJECT_FILES)
 clean:
