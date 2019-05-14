@@ -18,6 +18,7 @@ module alu
     output [63:0] mem_out,
     output [63:0] alu_jmp_target,
     output is_jmp,
+    output alu_store,
     output wr_en
 );
 
@@ -88,15 +89,16 @@ logic[63:0] off_dest64, tmp_pc, tmp_jalr;
 always_ff @(posedge clk) begin
     alu_jmp_target <= tmp_pc;
     is_jmp <= tmp_jmp;
+    alu_store <= is_store;
     if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
-      aluRegDest <= regDest;
+      aluRegDest <= (opcode == opcode_fence) ? 0: regDest;
       mem_out <= 0;
       wr_en <= 1;
     end
     else if (sign_extend == 0 && is_store == 0) begin
       data_out <= temp_dest;
-      aluRegDest <= regDest;
+      aluRegDest <= (opcode == opcode_fence) ? 0: regDest;
       mem_out <= 0;
       wr_en <= 1;
     end
@@ -194,14 +196,14 @@ always_comb begin
       else begin
         temp_dest = i_pc + 4;
       end
-      sign_extend = 0;      
+      sign_extend = 0;
     end
      
     opcode_lb   : begin
       quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{56{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
       sign_extend = 0;
-    end      
+    end
     opcode_lh   : begin
       half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{48{half_temp_dest[15]}}, half_temp_dest[15:0]};
@@ -260,7 +262,7 @@ always_comb begin
       temp_dest  = regB_value;
     end
     opcode_fence: begin
-      temp_dest = regA_value + {{52{regB[11]}}, regB};
+      temp_dest = 0;//regA_value + {{52{regB[11]}}, regB};
       sign_extend = 0;
     end
     opcode_fencei : begin

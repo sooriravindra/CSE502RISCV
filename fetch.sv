@@ -7,20 +7,22 @@ inc_pc(
 	   output[63:0] next_pc,
            input is_jmp,
            input alu_stall,
+           input is_store,
 	   input sig_recvd
 	  );
   always_comb begin
-    if (sig_recvd && (alu_stall == 0)) begin
+    next_pc = pc_in;
+    if (sig_recvd) begin
       if (is_jmp) begin
         next_pc = jmp_target - 4;
       end
       else begin
-        next_pc = pc_in + 4;
+        next_pc = alu_stall ? pc_in: pc_in + 4;
       end
     end
-    else begin
-      next_pc = pc_in;
-    end
+//    else if (alu_stall) begin
+//      next_pc = pc_in;
+//    end
   end
 endmodule
 

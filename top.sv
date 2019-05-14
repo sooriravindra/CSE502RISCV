@@ -68,7 +68,7 @@ module top
    */
   
   //logic to for the wb stage to differentiate between ALU and memory ops
-  logic ld_or_alu, top_jmp, alu_stall;
+  logic ld_or_alu, top_jmp, alu_stall, alu_store;
 
   logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
@@ -95,6 +95,7 @@ module top
     .next_pc(next_pc),
     .is_jmp(top_jmp),
     .alu_stall(alu_stall),
+    .is_store(alu_store),
     .sig_recvd(got_inst)
   );
 
@@ -185,6 +186,7 @@ module top
     .instr(icache_instr),
     .prog_counter(pc),
     .wr_en(alu_wr_enable),
+    .alu_st_dec(alu_store),
     .destn_reg(wb_regDest),
     .destn_data(wb_dataOut),
     .rd_data_A(decoder_regA_val),
@@ -208,6 +210,7 @@ module top
     .regDest(decoder_regDest),
     .uimm(decoder_uimm),
     .i_pc(curr_pc),
+    .alu_store(alu_store),
     .i_inst(alu_inst),
     .regA_value(decoder_regA_val),
     .regB_value(decoder_regB_val),
