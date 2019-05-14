@@ -4,6 +4,7 @@
 `include "memory_controller.sv"
 `include "arbiter.sv"
 `include "instructions.sv"
+`include "memory.sv"
 
 module top
 #(
@@ -69,6 +70,9 @@ module top
   
   //logic to for the wb stage to differentiate between ALU and memory ops
   logic ld_or_alu, top_jmp, alu_stall, alu_store;
+  //logic to detect and write 'ECALL' during writeback stage
+  logic is_ecall; 
+  logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
   logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
@@ -99,7 +103,7 @@ module top
     .sig_recvd(got_inst)
   );
 
-  memory_controller memory_instance(
+  memory_controller memory_controller_instance(
     .clk(clk),
     .rst(reset),
     .in_address(mem_addr),
@@ -160,7 +164,6 @@ module top
     .mem_data_valid(icache_mem_req_complete)
  );
 
- /*
  cache datacache(
     .clk(clk),
     .wr_en(1),
@@ -168,16 +171,15 @@ module top
     .r_addr(decoder_regA),
     .w_addr(decoder_regDest),
     .rst(reset),
-    .enable(data_mem_valid),
-    .data_out(dcache_data),
+    .enable(dcache_enable),
+    .data_out(mem_dcache_data),
     .operation_complete(data_ready),
     .mem_address(dcache_address),
-    .mem_data_out(data_out),
+    .mem_data_out(dcache_data_out),
     .mem_wr_en(wr_data),
-    .mem_data_in(data_in),
-    .mem_data_valid(data_mem_valid)
+    .mem_data_in(dcache_data),
+    .mem_data_valid(dcache_mem_req_complete)
  );
- */
 
  //instantiate decoder
  register_decode decoder_instance(
@@ -197,10 +199,11 @@ module top
     .curr_pc(curr_pc),
     .out_instr(alu_instr),
     .regB(decoder_regB),
+    .ld_or_alu(ld_or_alu),
+    .ecall_reg_val(ecall_reg_set),
     .regA(decoder_regA),
     .aluRegDest(alu_regDest),
-    .alustall(alu_stall),
-    .ld_or_alu(ld_or_alu)
+    .alustall(alu_stall)
  );
 
  alu alu_instance(
@@ -217,12 +220,23 @@ module top
     .reset(reset),
     .clk(clk),
     .data_out(alu_dataout),
+    .is_ecall(is_ecall),//wire the 'is_ecall' value
     .aluRegDest(alu_regDest),
     .mem_out(wr_to_mem),
     .alu_jmp_target(alu_target),
     .is_jmp(top_jmp),
     .wr_en(alu_wr_enable)
  );
+
+  memory memory_instance(
+      .clk(clk),
+      .rst(reset),
+      .in_alu_result(alu_dataout),
+      .regB_value(alu_regb_val),
+      .is_store(alu_is_store),
+      .is_load(alu_is_load),
+      .data_out(mem_data_out)
+  );
 
   wb wb_instance(
     .clk(clk),
@@ -233,7 +247,9 @@ module top
     .rd_alu(alu_regDest),//in case of an ALU operation
     .rd_mem(0), //in case of a memory opration, not done yet. This would be the deoder value passed through memory module 
     .data_out(wb_dataOut),
-    .destReg(wb_regDest)
+    .is_ecall(is_ecall),//wire the 'is_ecall' value to wb stage
+    .destReg(wb_regDest),
+    .ecall_reg_val(ecall_reg_set)
  );
 
 endmodule
