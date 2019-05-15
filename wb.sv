@@ -14,6 +14,7 @@ wb
 (
 	 input 	logic clk,//clock
 	 input 	logic rst,//reset bit
+	 input  logic [31:0] curr_pc,
 	 //input logic ctrl_sig,
 	 input 	logic [LOGSIZE-1:0] lddata_in,///the loaded data comes in here, in case it is a memory operation
 	 input 	logic [LOGSIZE-1:0] alures_in,//the result comes in here, if it is an ALU operation
@@ -23,7 +24,8 @@ wb
 	 input  logic [REGBITS-1:0] rd_alu, rd_mem,//the destination register value from ALU and memory module should be specified here
 	 output logic [LOGSIZE-1:0] data_out, //the output data would go to the register file
 	 output logic [REGBITS-1:0] destReg, //the output register address would be held here
-	 output logic flush_bit
+	 output logic flush_bit,
+	 output logic [31:0] pc_after_flush
 );
 
 logic [LOGSIZE-1:0] ecall_output;
@@ -35,7 +37,9 @@ logic [LOGSIZE-1:0] ecall_output;
 			destReg	 <= 64'b0;
 		end if(is_ecall) begin
 			do_ecall(ecall_reg_val[7],ecall_reg_val[0],ecall_reg_val[1],ecall_reg_val[2],ecall_reg_val[3],ecall_reg_val[4],ecall_reg_val[5],ecall_reg_val[6],ecall_output);//call do_ecall
-			flush_bit <= 1;//set flush bit
+			//access the pc and send to the fetch stage
+			flush_bit <= 1;//set flush bit to use as no-op in previous states
+			pc_after_flush <= curr_pc + 4;
 			data_out <= ecall_output;//write ecall output
 			destReg  <= 5'b01010; //set destination reg to a0
 		end

@@ -20,7 +20,8 @@ module alu
     output [63:0] alu_jmp_target,
     output is_jmp,
     output alu_store,
-    output wr_en
+    output wr_en,
+    output [31:0] pc_from_alu
 );
 
 enum {
@@ -88,26 +89,31 @@ logic is_store, tmp_jmp;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64, tmp_pc, tmp_jalr;
 always_ff @(posedge clk) begin
-    alu_jmp_target <= tmp_pc;
-    is_jmp <= tmp_jmp;
-    alu_store <= is_store;
-    if (sign_extend && is_store == 0) begin
-      data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
-      aluRegDest <= (opcode == opcode_fence) ? 0: regDest;
-      mem_out <= 0;
-      wr_en <= 1;
-    end
-    else if (sign_extend == 0 && is_store == 0) begin
-      data_out <= temp_dest;
-      aluRegDest <= (opcode == opcode_fence) ? 0: regDest;
-      mem_out <= 0;
-      wr_en <= 1;
-    end
-    else if (is_store) begin
-      data_out <= temp_dest;
-      aluRegDest <= 0;
-      mem_out <= mem_dest;
-      wr_en <= 1;
+    if(reset) begin
+	//reset pc
+	pc_from_alu <= 0;
+    end else begin
+	//propagate pc
+	pc_from_alu <= i_pc;
+    	alu_jmp_target <= tmp_pc;
+    	is_jmp <= tmp_jmp;
+    	alu_store <= is_store;
+    	if (sign_extend && is_store == 0) begin
+      		data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
+      		aluRegDest <= (opcode == opcode_fence) ? 0: regDest;
+      		mem_out <= 0;
+      		wr_en <= 1;
+    	end else if (sign_extend == 0 && is_store == 0) begin
+      		data_out <= temp_dest;
+      		aluRegDest <= (opcode == opcode_fence) ? 0: regDest;
+      		mem_out <= 0;
+      		wr_en <= 1;
+    	end else if (is_store) begin
+      		data_out <= temp_dest;
+      		aluRegDest <= 0;
+      		mem_out <= mem_dest;
+      		wr_en <= 1;
+    	end
     end
 end
 

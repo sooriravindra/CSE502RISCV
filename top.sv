@@ -56,7 +56,7 @@ module top
 
   //connect alu output to writeback input
   logic [63:0] alu_dataout;
-  logic [REGSZ - 1:0]  alu_regDest;
+  logic [REGSZ - 1:0]  alu_regDest, mem_regDest;
   logic alu_wr_enable;
 
   //connect wb output to decoder_register_file input
@@ -74,7 +74,7 @@ module top
   logic is_ecall; 
   logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
-  logic [WORDSZ - 1: 0] pc, next_pc, curr_pc;
+  logic [WORDSZ - 1: 0] pc, next_pc, curr_pc, pc_from_flush, pc_alu, pc_mem, pc_after_flush;
   logic [BLOCKSZ - 1: 0] data_from_mem;
   logic [BLOCKSZ - 1: 0] icache_data;
   logic [BLOCKSZ - 1: 0] dcache_data;
@@ -83,6 +83,7 @@ module top
   logic icache_mem_req_complete;
   logic dcache_mem_req_complete;
   logic dcache_wren;
+  logic is_flush;
 
   always_ff @ (posedge clk) begin
       if (reset) begin
@@ -100,7 +101,9 @@ module top
     .is_jmp(top_jmp),
     .alu_stall(alu_stall),
     .is_store(alu_store),
-    .sig_recvd(got_inst)
+    .sig_recvd(got_inst),
+    .pc_from_flush(pc_after_flush),
+    .is_flush(is_flush)
   );
 
   memory_controller memory_controller_instance(
@@ -225,7 +228,8 @@ module top
     .mem_out(wr_to_mem),
     .alu_jmp_target(alu_target),
     .is_jmp(top_jmp),
-    .wr_en(alu_wr_enable)
+    .wr_en(alu_wr_enable),
+    .pc_from_alu(pc_alu)
  );
 
   memory memory_instance(
@@ -235,21 +239,27 @@ module top
       .regB_value(alu_regb_val),
       .is_store(alu_is_store),
       .is_load(alu_is_load),
-      .data_out(mem_data_out)
+      .data_out(mem_data_out),
+      .curr_pc(pc_alu),
+      .pc_from_mem(pc_mem),
+      .reg_dest(mem_regDest)
   );
 
   wb wb_instance(
     .clk(clk),
     .rst(reset),
-    .lddata_in(0),//load instructions not yet done. we need data cache to be in place for this
+    .lddata_in(mem_dataout),
     .alures_in(alu_dataout),
     .ld_or_alu(ld_or_alu),
     .rd_alu(alu_regDest),//in case of an ALU operation
-    .rd_mem(0), //in case of a memory opration, not done yet. This would be the deoder value passed through memory module 
+    .rd_mem(mem_regDest), //in case of a memory opration
     .data_out(wb_dataOut),
     .is_ecall(is_ecall),//wire the 'is_ecall' value to wb stage
     .destReg(wb_regDest),
-    .ecall_reg_val(ecall_reg_set)
+    .ecall_reg_val(ecall_reg_set),
+    .curr_pc(pc_mem),
+    .pc_after_flush(pc_after_flush),
+    .flush_bit(is_flush)
  );
 
 endmodule
