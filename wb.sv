@@ -22,9 +22,10 @@ wb
 	 input  logic is_ecall, //logic bit to classify an ECALL
 	 input [LOGSIZE-1:0] ecall_reg_val [7:0], //logic to hold ECALL input values  
 	 input  logic [REGBITS-1:0] rd_alu, rd_mem,//the destination register value from ALU and memory module should be specified here
+	 input logic is_flush, //flush input bit
 	 output logic [LOGSIZE-1:0] data_out, //the output data would go to the register file
 	 output logic [REGBITS-1:0] destReg, //the output register address would be held here
-	 output logic flush_bit,
+	 output logic flush_bit, //flush output bit
 	 output logic [31:0] pc_after_flush
 );
 
@@ -46,7 +47,7 @@ logic [LOGSIZE-1:0] ecall_output;
 		//write to the destination register value and the data value
 		else begin
 			data_out <= ld_or_alu ? lddata_in : alures_in;
-			destReg	 <= ld_or_alu ? rd_mem : rd_alu; 
+			destReg	 <= is_flush ? 5'b00000 : (ld_or_alu ? rd_mem : rd_alu); 
 		end
 	end
 endmodule

@@ -13,6 +13,7 @@ module alu
     input [63:0] regB_value,
     input clk,
     input reset,
+    input is_flush, //flush the pipeline
     output [63:0] data_out,
     output [4:0] aluRegDest,
     output is_ecall = 0,//the ECALL bit is set to zero in all normal cases.
@@ -100,12 +101,12 @@ always_ff @(posedge clk) begin
     	alu_store <= is_store;
     	if (sign_extend && is_store == 0) begin
       		data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
-      		aluRegDest <= (opcode == opcode_fence) ? 0: regDest;
+      		aluRegDest <= (opcode == opcode_fence) ? 0 : (is_flush ? 5'b00000 : regDest);
       		mem_out <= 0;
       		wr_en <= 1;
     	end else if (sign_extend == 0 && is_store == 0) begin
       		data_out <= temp_dest;
-      		aluRegDest <= (opcode == opcode_fence) ? 0: regDest;
+      		aluRegDest <= (opcode == opcode_fence) ? 0 : (is_flush ? 5'b00000 : regDest);
       		mem_out <= 0;
       		wr_en <= 1;
     	end else if (is_store) begin

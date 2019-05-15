@@ -206,7 +206,8 @@ module top
     .ecall_reg_val(ecall_reg_set),
     .regA(decoder_regA),
     .aluRegDest(alu_regDest),
-    .alustall(alu_stall)
+    .alustall(alu_stall),
+    .is_flush(is_flush)
  );
 
  alu alu_instance(
@@ -229,7 +230,8 @@ module top
     .alu_jmp_target(alu_target),
     .is_jmp(top_jmp),
     .wr_en(alu_wr_enable),
-    .pc_from_alu(pc_alu)
+    .pc_from_alu(pc_alu),
+    .is_flush(is_flush)
  );
 
   memory memory_instance(
@@ -242,7 +244,8 @@ module top
       .data_out(mem_data_out),
       .curr_pc(pc_alu),
       .pc_from_mem(pc_mem),
-      .reg_dest(mem_regDest)
+      .reg_dest(mem_regDest),
+      .is_flush(is_flush)
   );
 
   wb wb_instance(
@@ -259,7 +262,8 @@ module top
     .ecall_reg_val(ecall_reg_set),
     .curr_pc(pc_mem),
     .pc_after_flush(pc_after_flush),
-    .flush_bit(is_flush)
+    .flush_bit(is_flush),
+    .is_flush(is_flush)
  );
 
 endmodule

@@ -20,7 +20,8 @@ module register_decode
     input  [4:0] destn_reg,
     input  [63:0] destn_data,
     input  [4:0] aluRegDest,   
-
+    //flush
+    input is_flush,
     // output data
     output [63:0] rd_data_A,
     output [63:0] rd_data_B,
@@ -82,7 +83,7 @@ module register_decode
           //temp_opcode = "R";
           rd_reg_A    = instr[19:15];
           rd_reg_B    = instr[24:20];
-          reg_dest    = instr[11:7];
+          reg_dest    = is_flush ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12], instr[6:0] };
           case(instr[14:12])
               3'b000: begin
@@ -186,7 +187,7 @@ module register_decode
           //temp_opcode = "R";
           rd_reg_A = instr[19:15];
           rd_reg_B = instr[31:20];
-          reg_dest  = instr[11:7];
+          reg_dest  = is_flush ? 5'b00000 :instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           case(instr[14:12])
               3'b000: begin
@@ -236,7 +237,7 @@ module register_decode
       opcodeI2: begin
           //temp_opcode = "I";
           rd_reg_A    = instr[19:15];
-          reg_dest     = instr[11:7];
+          reg_dest    = is_flush ? 5'b00000 : instr[11:7];
           rd_reg_B    = instr[31:20];
           temp_opcode = { instr[14:12], instr[6:0] };
           case(instr[14:12])
@@ -267,7 +268,7 @@ module register_decode
       opcodeI3: begin
           rd_reg_A    = instr[19:15];
           rd_reg_B    = instr[31:20];
-          reg_dest     = instr[11:7];
+          reg_dest    = is_flush ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
           case(instr[14:12])
@@ -311,7 +312,7 @@ module register_decode
       opcodeI4: begin
           rd_reg_A = instr[19:15];
           rd_reg_B = instr[31:20];
-          reg_dest  = instr[11:7];
+          reg_dest  = is_flush ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
           case(instr[14:12])
@@ -340,7 +341,7 @@ module register_decode
         //temp_opcode = "S";
         rd_reg_A    = instr[19:15];
         rd_reg_B    = instr[31:20];
-        reg_dest     = instr[11:7];
+        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
         case(instr[14:12])
           3'b000: begin
@@ -363,7 +364,7 @@ module register_decode
         //temp_opcode = "SB";
         rd_reg_A    = instr[19:15];
         rd_reg_B    = {instr[31], instr[7], instr[30:25], instr[11:8]};
-        reg_dest     = instr[11:7];
+        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
         case(instr[14:12])
           3'b000: begin
@@ -391,7 +392,7 @@ module register_decode
       opcodeU1: begin
         //temp_opcode = "U";
         temp_uimm   = instr[31:12];
-        reg_dest     = instr[11:7];
+        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_opcode = {3'bxxx, instr[6:0]};
         rd_reg_A    = 0;
         rd_reg_B    = 0;
@@ -401,7 +402,7 @@ module register_decode
       opcodeU2: begin
         //temp_opcode = "U";
         temp_uimm   = instr[31:12];
-        reg_dest     = instr[11:7];
+        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_opcode = {3'bxxx, instr[6:0]};
         rd_reg_A    = 0;
         rd_reg_B    = 0;
@@ -410,7 +411,7 @@ module register_decode
 
       opcodeUJ: begin
         //temp_opcode = "UJ";
-        reg_dest     = instr[11:7];
+        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_uimm   = {instr[31], instr[19:12], instr[20], instr[30:21]};
         temp_opcode = {3'bxxx, instr[6:0]};
         rd_reg_B    = 0;
@@ -420,7 +421,7 @@ module register_decode
 
       opcodeI1: begin
           // temp_opcode = "I";
-        reg_dest     = instr[11:7];
+        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_uimm   = 0;//{instr[31], instr[19:12], instr[20], instr[30:21]};
         temp_opcode = {3'bxxx, instr[6:0]};
         rd_reg_B    = instr[31:20];
@@ -430,7 +431,7 @@ module register_decode
 
       opcodeFE: begin
         //temp_opcode = "FENCE AND FENCE.I";
-        reg_dest     = 5'b00000;
+        reg_dest    = 5'b00000;
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_A    = 5'b00000;
         rd_reg_B    = instr[31:20];
@@ -445,7 +446,7 @@ module register_decode
       end
 
       opcodeSY: begin
-        reg_dest     = instr[11:7];
+        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         rd_reg_A    = instr[19:15];
         rd_reg_B    = instr[31:20];
         temp_opcode = {instr[14:12], instr[6:0]};
