@@ -16,6 +16,7 @@ module memory_controller
     //output data and signal to arbiter
     output [511:0] data_out,
     output data_valid,
+    output invalidate_cache,
 
     // interface to connect to the bus follow:
 
@@ -35,12 +36,15 @@ module memory_controller
 
 logic [511:0] data_out;
 logic next_data_valid;
+logic next_invalidate_cache;
 integer count, next_count;
 enum {
     IDLE,
     INIT_REQUEST, 
     WAIT_RESP, 
-    GOT_RESP
+    GOT_RESP,
+    INVALIDATE_REQ,
+    SEND_DATA
     } b_state, b_next_state;
 
 always_comb begin
@@ -78,11 +82,13 @@ always_ff @ (posedge clk) begin
     if (rst) begin
         b_state <= INIT_REQUEST;
         count <= 0;
+        invalidate_cache <= 0;
     end
     else begin
         b_state <= b_next_state;
         count <= next_count;
         data_valid <= next_data_valid;
+        invalidate_cache <= next_invalidate_cache;
     end
 end
 
@@ -91,7 +97,11 @@ always_comb begin
         INIT_REQUEST: begin
             if (bus_reqack) begin
                 next_count = 0;
-                b_next_state = WAIT_RESP;
+                if (wr_en) begin
+                    b_next_state = SEND_DATA;
+                end else begin
+                    b_next_state = WAIT_RESP;
+                end
                 next_data_valid = 0;
             end
         end
@@ -122,6 +132,9 @@ always_comb begin
         end
         default: begin
             b_next_state = INIT_REQUEST;
+        end
+        INVALIDATE_REQ: begin
+            next_invalidate_cache = 1;
         end
     endcase
 end

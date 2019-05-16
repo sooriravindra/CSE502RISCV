@@ -1,6 +1,7 @@
 //`define IDXBITS 14:6
 //`define TAGBITS 63:15
 //`define OFFBITS 5:
+typedef enum {DATA_64, DATA_32, DATA_16} enum_datasize;
 module 
 cache
 #(
@@ -20,6 +21,7 @@ cache
        input                   enable,
        input                   wr_en,
        input [WIDTH-1:0]       data_in,
+       input [2:0]              data_size,
        input [ADDRESSSIZE-1:0] r_addr,
        input [ADDRESSSIZE-1:0] w_addr,
 
