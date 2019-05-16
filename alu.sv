@@ -99,6 +99,10 @@ always_ff @(posedge clk) begin
     	alu_jmp_target <= tmp_pc;
     	is_jmp <= tmp_jmp;
     	alu_store <= is_store;
+	//in case flush bit is on, that would mean ecall has already been executed
+	if (is_flush) begin
+		is_ecall = 0;
+	end
     	if (sign_extend && is_store == 0) begin
       		data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
       		aluRegDest <= (opcode == opcode_fence) ? 0 : (is_flush ? 5'b00000 : regDest);
