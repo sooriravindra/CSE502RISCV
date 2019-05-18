@@ -74,7 +74,7 @@ module top
   logic is_ecall; 
   logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
-  logic [WORDSZ - 1: 0] pc, next_pc, curr_pc, pc_from_flush, pc_alu, pc_mem, pc_after_flush;
+  logic [WORDSZ - 1: 0] next_decoder_pc, decoder_pc, pc, next_pc, curr_pc, pc_from_flush, pc_alu, pc_mem, pc_after_flush;
   logic [BLOCKSZ - 1: 0] data_from_mem;
   logic [BLOCKSZ - 1: 0] icache_data;
   logic [BLOCKSZ - 1: 0] dcache_data;
@@ -85,12 +85,18 @@ module top
   logic dcache_wren;
   logic is_flush;
 
+  always_comb begin
+      next_decoder_pc = pc;
+  end
   always_ff @ (posedge clk) begin
       if (reset) begin
           pc <= entry;
           register_set[2] <= stackptr;
       end else begin
           pc <= next_pc;
+          if (got_inst) begin
+              decoder_pc <= next_decoder_pc;
+          end
       end
   end
 
@@ -158,7 +164,7 @@ module top
     .r_addr(pc),
     .w_addr(0),
     .rst(reset),
-    .enable(clk),
+    .enable(clk & !alu_stall),
     .data_out(icache_instr),
     .operation_complete(got_inst),
     .mem_address(icache_address),
@@ -189,7 +195,7 @@ module top
     .clk(clk),
     .reset(reset),
     .instr(icache_instr),
-    .prog_counter(pc),
+    .prog_counter(decoder_pc),
     .wr_en(alu_wr_enable),
     .alu_st_dec(alu_store),
     .destn_reg(wb_regDest),

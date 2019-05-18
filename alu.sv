@@ -51,9 +51,9 @@ enum {
     opcode_srlsraiw    = 10'h29b,
     opcode_slliw       = 10'h09b,
     opcode_sllw        = 10'h0bb,
-    opcode_lui         = 10'b0000110111,
-    opcode_auipc       = 10'b0000010111,
-    opcode_jal         = 10'b0001101111,
+    opcode_lui         = 10'b???0110111,
+    opcode_auipc       = 10'b???0010111,
+    opcode_jal         = 10'b???1101111,
     opcode_jalr        = 10'h067,
     opcode_beq         = 10'h063,
     opcode_bne         = 10'h0e3,
@@ -131,9 +131,11 @@ always_comb begin
   half_temp_dest = 0; 
   word_temp_dest = 0;
   tmp_jmp = 0;
+  temp_dest = 0;
+  sign_extend = 0;
   tmp_pc = i_pc + 4;
   is_ecall = 0;
-  case (opcode)
+  casex (opcode)
 /* After WP2 */
     opcode_lui  : begin
       temp_dest = $signed({uimm, 12'h000});
@@ -534,6 +536,9 @@ always_comb begin
         sign_extend = 1;
     end
     default: begin
+        temp_dest = 0;
+        sign_extend = 0;
+        $display("chose default %x", opcode);
     end
     endcase
 end

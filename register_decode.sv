@@ -20,6 +20,8 @@ module register_decode
     input  [4:0] destn_reg,
     input  [63:0] destn_data,
     input  [4:0] aluRegDest,   
+    input  [4:0] memRegDest,   
+    input  [4:0] wbRegDest,   
     //flush
     input is_flush,
     // output data
@@ -403,7 +405,7 @@ module register_decode
         //temp_opcode = "U";
         temp_uimm   = instr[31:12];
         reg_dest    = is_flush ? 5'b00000 : instr[11:7];
-        temp_opcode = {3'bxxx, instr[6:0]};
+        temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_A    = 0;
         rd_reg_B    = 0;
 //        $display("AUIPC rd, 0x%h", $signed(instr[31:12]));
@@ -413,7 +415,7 @@ module register_decode
         //temp_opcode = "UJ";
         reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_uimm   = {instr[31], instr[19:12], instr[20], instr[30:21]};
-        temp_opcode = {3'bxxx, instr[6:0]};
+        temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_B    = 0;
         rd_reg_A    = 0;
 //        $display("JAL rd, 0x%h", $signed({instr[31], instr[19:12], instr[20], instr[30:21], 1'b0}));
@@ -423,7 +425,7 @@ module register_decode
           // temp_opcode = "I";
         reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_uimm   = 0;//{instr[31], instr[19:12], instr[20], instr[30:21]};
-        temp_opcode = {3'bxxx, instr[6:0]};
+        temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_B    = instr[31:20];
         rd_reg_A    = instr[19:15];
 //        $display("JALR rd, rs1, 0x%h", $signed(instr[31:20]));
@@ -480,7 +482,9 @@ module register_decode
 
     endcase
 
-  if ((aluRegDest == rd_reg_A || aluRegDest == rd_reg_B) && (aluRegDest != 0) && (alu_st_dec == 0))
+    if (((aluRegDest == rd_reg_A || aluRegDest == rd_reg_B) && (aluRegDest != 0) && (alu_st_dec == 0)) 
+    || ((memRegDest == rd_reg_A || memRegDest == rd_reg_B) && (memRegDest != 0)) 
+    || ((wbRegDest == rd_reg_A || wbRegDest == rd_reg_B) && (wbRegDest != 0)))
   begin
     alustall = 1;
   end

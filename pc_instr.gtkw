@@ -1,18 +1,18 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Fri May 17 20:50:06 2019
+[*] Sat May 18 05:34:34 2019
 [*]
-[dumpfile] "/home/hchawla/CSE502RISCV/trace.vcd"
-[dumpfile_mtime] "Fri May 17 20:21:43 2019"
-[dumpfile_size] 13170586
-[savefile] "/home/hchawla/CSE502RISCV/pc_instr.gtkw"
-[timestart] 0
+[dumpfile] "/home/rsoori/wp1/trace.vcd"
+[dumpfile_mtime] "Sat May 18 05:33:33 2019"
+[dumpfile_size] 95250
+[savefile] "/home/rsoori/wp1/pc_instr.gtkw"
+[timestart] 37050
 [size] 1920 1017
-[pos] -9 -33
-*-14.000000 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] 2560 23
+*-14.000000 135500 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [sst_width] 210
-[signals_width] 317
+[signals_width] 448
 [sst_expanded] 1
 [sst_vpaned_height] 301
 @22
@@ -33,7 +33,11 @@ top.decoder_instance.rd_reg_B[4:0]
 top.alu_instance.aluRegDest[4:0]
 top.alu_instance.opcode[9:0]
 top.memory_instance.reg_dest[4:0]
-@23
 top.memory_instance.alu_reg_dest[4:0]
+@28
+top.pc_add.is_jmp
+top.got_inst
+@23
+top.pc_add.jmp_target[63:0]
 [pattern_trace] 1
 [pattern_trace] 0

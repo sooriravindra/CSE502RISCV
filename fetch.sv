@@ -16,13 +16,13 @@ inc_pc(
     next_pc = pc_in;
     if (sig_recvd) begin
       if (is_jmp) begin
-        next_pc = jmp_target - 4;
+        next_pc = jmp_target;
       end
       else begin
 	if (is_flush) begin
 		next_pc = pc_from_flush;
 	end else begin
-        	next_pc = alu_stall ? pc_in: pc_in + 4;
+        	next_pc = pc_in + 4;
 	end
       end
     end
