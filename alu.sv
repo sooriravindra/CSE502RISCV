@@ -148,7 +148,7 @@ always_comb begin
     end
     opcode_jal : begin
       temp_dest =  i_pc + 4;
-      tmp_pc = i_pc + (({{11{uimm[19]}}, uimm} * 2) & 32'hffffffff);
+      tmp_pc = i_pc + (({{43{uimm[19]}}, uimm} * 2));
       sign_extend = 0;
       tmp_jmp = 1;
     end
@@ -290,6 +290,7 @@ always_comb begin
         	end
 		7'b000000000001: begin
 		//EBREAK -- not needed
+                    $display("Hit EBREAK, unexpected !!");
         	end
 	endcase
     end
@@ -538,7 +539,7 @@ always_comb begin
     default: begin
         temp_dest = 0;
         sign_extend = 0;
-        $display("chose default %x", opcode);
+        $display("chose default. Opcode %x, PC %x", opcode, i_pc);
     end
     endcase
 end

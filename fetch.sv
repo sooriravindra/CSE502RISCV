@@ -22,7 +22,7 @@ inc_pc(
 	if (is_flush) begin
 		next_pc = pc_from_flush;
 	end else begin
-        	next_pc = pc_in + 4;
+        	next_pc = alu_stall? pc_in : pc_in + 4;
 	end
       end
     end

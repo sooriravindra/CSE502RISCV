@@ -66,6 +66,7 @@ module register_decode
     logic[11:0] temp_regB;
     logic [OPFUNC -1:0] temp_opcode;
     logic [UIMM -1:0] temp_uimm;
+    logic next_alustall;
 
   always_ff @(posedge clk) begin
     if (reset) begin
@@ -75,11 +76,14 @@ module register_decode
       curr_pc <= prog_counter;
       out_instr <= instr;
       regA <= rd_reg_A;
+      alustall <= next_alustall;
     end
   end
   always_comb begin
     OPS = instr[6:0];
     temp_regB   = instr[31:20];
+    rd_reg_A    = 0;
+    rd_reg_B    = 0;
     case(OPS)
         opcodeR1: begin
           //temp_opcode = "R";
@@ -395,7 +399,7 @@ module register_decode
         //temp_opcode = "U";
         temp_uimm   = instr[31:12];
         reg_dest    = is_flush ? 5'b00000 : instr[11:7];
-        temp_opcode = {3'bxxx, instr[6:0]};
+        temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_A    = 0;
         rd_reg_B    = 0;
 //        $display("LUI rd, 0x%h", $signed(instr[31:12]));
@@ -486,10 +490,10 @@ module register_decode
     || ((memRegDest == rd_reg_A || memRegDest == rd_reg_B) && (memRegDest != 0)) 
     || ((wbRegDest == rd_reg_A || wbRegDest == rd_reg_B) && (wbRegDest != 0)))
   begin
-    alustall = 1;
+    next_alustall = 1;
   end
   else begin
-    alustall = 0;
+    next_alustall = 0;
   end
 end
 

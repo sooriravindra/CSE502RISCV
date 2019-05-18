@@ -94,7 +94,7 @@ module top
           register_set[2] <= stackptr;
       end else begin
           pc <= next_pc;
-          if (got_inst) begin
+          if (!alu_stall) begin
               decoder_pc <= next_decoder_pc;
           end
       end
