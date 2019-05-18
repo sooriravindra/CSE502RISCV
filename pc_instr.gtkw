@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Tue May 14 00:08:06 2019
+[*] Fri May 17 20:50:06 2019
 [*]
 [dumpfile] "/home/hchawla/CSE502RISCV/trace.vcd"
-[dumpfile_mtime] "Tue May 14 00:07:11 2019"
-[dumpfile_size] 61794857
+[dumpfile_mtime] "Fri May 17 20:21:43 2019"
+[dumpfile_size] 13170586
 [savefile] "/home/hchawla/CSE502RISCV/pc_instr.gtkw"
 [timestart] 0
 [size] 1920 1017
@@ -31,7 +31,9 @@ top.decoder_instance.alu_st_dec
 top.decoder_instance.rd_reg_A[4:0]
 top.decoder_instance.rd_reg_B[4:0]
 top.alu_instance.aluRegDest[4:0]
-@23
 top.alu_instance.opcode[9:0]
+top.memory_instance.reg_dest[4:0]
+@23
+top.memory_instance.alu_reg_dest[4:0]
 [pattern_trace] 1
 [pattern_trace] 0

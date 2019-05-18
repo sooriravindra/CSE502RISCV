@@ -34,6 +34,7 @@ logic [LOGSIZE-1:0] ecall_output;
 	always_ff @ (posedge clk) begin //write on the positive edge of the clock
 		//reset bit on, so clear the output data
 		if (rst) begin 
+			flush_bit <= 0;
 			data_out <= 64'b0;
 			destReg	 <= 64'b0;
 		end if(is_ecall) begin
@@ -46,6 +47,7 @@ logic [LOGSIZE-1:0] ecall_output;
 		end
 		//write to the destination register value and the data value
 		else begin
+			flush_bit <= 0;
 			data_out <= ld_or_alu ? lddata_in : alures_in;
 			destReg	 <= is_flush ? 5'b00000 : (ld_or_alu ? rd_mem : rd_alu); 
 		end
