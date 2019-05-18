@@ -148,7 +148,7 @@ always_comb begin
     end
     opcode_jal : begin
       temp_dest =  i_pc + 4;
-      tmp_pc = i_pc + ({{11{uimm[19]}}, uimm} * 2);
+      tmp_pc = i_pc + (({{11{uimm[19]}}, uimm} * 2) & 32'hffffffff);
       sign_extend = 0;
       tmp_jmp = 1;
     end

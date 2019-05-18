@@ -164,7 +164,7 @@ module top
     .r_addr(pc),
     .w_addr(0),
     .rst(reset),
-    .enable(clk & !alu_stall),
+    .enable(!alu_stall),
     .data_out(icache_instr),
     .operation_complete(got_inst),
     .mem_address(icache_address),
@@ -212,6 +212,8 @@ module top
     .ecall_reg_val(ecall_reg_set),
     .regA(decoder_regA),
     .aluRegDest(alu_regDest),
+    .memRegDest(mem_regDest),
+    .wbRegDest(wb_regDest),
     .alustall(alu_stall),
     .is_flush(is_flush)
  );
