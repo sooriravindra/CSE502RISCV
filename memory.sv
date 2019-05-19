@@ -15,6 +15,7 @@ module memory
     input is_flush,
     // Output to writeback
     output [63:0] data_out,
+    output [63:0] out_alu_result,
     output data_valid,
     output [4:0] reg_dest,
     output [31:0] pc_from_mem,
@@ -40,6 +41,7 @@ always_ff @(posedge clk) begin
   else begin
     //propagate the pc to wb stage
     pc_from_mem <= curr_pc; 
+    out_alu_result <= in_alu_result;
     if (is_store) begin
       cache_wr_en <= 1;
       cache_wr_addr <= in_alu_result;

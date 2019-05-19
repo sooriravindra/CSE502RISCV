@@ -56,6 +56,7 @@ module top
 
   //connect alu output to writeback input
   logic [63:0] alu_dataout;
+  logic [63:0] mem_alu_dataout;
   logic [REGSZ - 1:0]  alu_regDest, mem_regDest;
   logic alu_wr_enable;
 
@@ -253,14 +254,15 @@ module top
       .curr_pc(pc_alu),
       .pc_from_mem(pc_mem),
       .reg_dest(mem_regDest),
-      .is_flush(is_flush)
+      .is_flush(is_flush),
+      .out_alu_result(mem_alu_dataout)
   );
 
   wb wb_instance(
     .clk(clk),
     .rst(reset),
     .lddata_in(mem_dataout),
-    .alures_in(alu_dataout),
+    .alures_in(mem_alu_dataout),
     .ld_or_alu(ld_or_alu),
     .rd_alu(alu_regDest),//in case of an ALU operation
     .rd_mem(mem_regDest), //in case of a memory opration
