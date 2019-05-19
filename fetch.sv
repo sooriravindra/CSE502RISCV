@@ -10,7 +10,7 @@ inc_pc(
            input is_store,
 	   input sig_recvd,
 	   input [63:0] pc_from_flush,
-	   input is_flush
+	   input fetch_flush
 	  );
   always_comb begin
     next_pc = pc_in;
@@ -19,10 +19,10 @@ inc_pc(
         next_pc = jmp_target;
       end
       else begin
-	if (is_flush) begin
+	if (fetch_flush) begin
 		next_pc = pc_from_flush;
 	end else begin
-        	next_pc = pc_in + 4;
+        	next_pc =  pc_in + 4;
 	end
       end
     end

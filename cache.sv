@@ -125,6 +125,11 @@ always_ff @(posedge clk) begin
     else if (pass) begin
         data_out <= final_value;
     end
+    /*
+    else begin
+        data_out <= 10'h00f;
+    end
+    */
 
     c_state <= c_next_state;
     operation_complete <= pass;

@@ -12,7 +12,7 @@ module memory
     input  [31:0] curr_pc,
     
     //flush
-    input is_flush,
+    input memory_flush,
     // Output to writeback
     output [63:0] data_out,
     output [63:0] out_alu_result,
@@ -62,7 +62,7 @@ always_ff @(posedge clk) begin
     if(cache_operation_complete) begin
       data_valid <= 1;
       if (is_load) begin
-      	reg_dest <= is_flush ? 5'b00000 : in_alu_rd; 
+      	reg_dest <= memory_flush ? 5'b00000 : in_alu_rd; 
       	data_out <= cache_data;
       end 
       else if (is_store) begin
@@ -71,7 +71,7 @@ always_ff @(posedge clk) begin
     end
     if (!is_store & !is_load) begin
       data_out <= in_alu_result;
-      reg_dest <= is_flush ? 5'b00000 : in_alu_rd;
+      reg_dest <= memory_flush ? 5'b00000 : in_alu_rd;
       data_valid <= 1;
     end
   end

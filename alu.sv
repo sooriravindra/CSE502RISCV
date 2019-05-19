@@ -13,7 +13,7 @@ module alu
     input [63:0] regB_value,
     input clk,
     input reset,
-    input is_flush, //flush the pipeline
+    input alu_flush, //flush the pipeline
     output [63:0] data_out,
     output [4:0] aluRegDest,
     output is_ecall,//the ECALL bit is set to zero in all normal cases.
@@ -97,19 +97,24 @@ always_ff @(posedge clk) begin
   else begin
     //propagate pc
     pc_from_alu <= i_pc;
-    alu_jmp_target <= tmp_pc;
+    if (tmp_jmp) begin
+        alu_jmp_target <= tmp_pc;
+    end
+    else begin
+        alu_jmp_target <= 0;
+    end
     is_jmp <= tmp_jmp;
     alu_store <= is_store;
         
     if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
-      aluRegDest <= (opcode == opcode_fence || is_flush) ? 0 : regDest;
+      aluRegDest <= (opcode == opcode_fence || alu_flush) ? 0 : regDest;
       mem_out <= 0;
       wr_en <= 1;
     end 
     else if (sign_extend == 0 && is_store == 0) begin
       data_out <= temp_dest;
-      aluRegDest <= (opcode == opcode_fence || is_flush) ? 0 : regDest;
+      aluRegDest <= (opcode == opcode_fence || alu_flush) ? 0 : regDest;
       mem_out <= 0;
       wr_en <= 1;
     end 

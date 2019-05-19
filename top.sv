@@ -85,7 +85,7 @@ module top
   logic icache_mem_req_complete;
   logic dcache_mem_req_complete;
   logic dcache_wren;
-  logic is_flush;
+  logic top_flush;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -95,10 +95,13 @@ module top
           pc <= entry;
           register_set[2] <= stackptr;
       end else begin
-          pc <= next_pc;
           if (got_inst) begin
-              decoder_pc <= next_decoder_pc;
+              pc <= next_pc;
           end
+          else begin
+              pc <= next_decoder_pc;
+          end
+          decoder_pc <= next_decoder_pc;
       end
   end
 
@@ -111,7 +114,7 @@ module top
     .is_store(alu_store),
     .sig_recvd(got_inst),
     .pc_from_flush(pc_after_flush),
-    .is_flush(is_flush)
+    .fetch_flush(top_flush)
   );
 
   memory_controller memory_controller_instance(
@@ -217,7 +220,7 @@ module top
     .memRegDest(mem_regDest),
     .wbRegDest(wb_regDest),
     .alustall(alu_stall),
-    .is_flush(is_flush)
+    .decoder_flush(top_flush | top_jmp)
  );
 
  alu alu_instance(
@@ -241,7 +244,7 @@ module top
     .is_jmp(top_jmp),
     .wr_en(alu_wr_enable),
     .pc_from_alu(pc_alu),
-    .is_flush(is_flush)
+    .alu_flush(top_flush | top_jmp)
  );
 
   memory memory_instance(
@@ -257,7 +260,7 @@ module top
       .curr_pc(pc_alu),
       .pc_from_mem(pc_mem),
       .reg_dest(mem_regDest),
-      .is_flush(is_flush),
+      .memory_flush(top_flush),
       .out_alu_result(mem_alu_dataout)
   );
 
@@ -275,8 +278,8 @@ module top
     .ecall_reg_val(ecall_reg_set),
     .curr_pc(pc_mem),
     .pc_after_flush(pc_after_flush),
-    .flush_bit(is_flush),
-    .is_flush(is_flush)
+    .ecall_flush(top_flush),
+    .wb_flush(top_flush)
  );
 
 endmodule
