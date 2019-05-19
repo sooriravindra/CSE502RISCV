@@ -5,8 +5,8 @@ module memory
 
     // Input from ALU
     input  [63:0] in_alu_result,
+    input  [4:0] in_alu_rd,
     input  [63:0] regB_value,
-    input  [4:0] alu_reg_dest,
     input  is_store,
     input  is_load,
     input  [31:0] curr_pc,
@@ -16,6 +16,7 @@ module memory
     // Output to writeback
     output [63:0] data_out,
     output [63:0] out_alu_result,
+    output [4:0] out_alu_rd,
     output data_valid,
     output [4:0] reg_dest,
     output [31:0] pc_from_mem,
@@ -42,6 +43,7 @@ always_ff @(posedge clk) begin
     //propagate the pc to wb stage
     pc_from_mem <= curr_pc; 
     out_alu_result <= in_alu_result;
+    out_alu_rd <= in_alu_rd;
     if (is_store) begin
       cache_wr_en <= 1;
       cache_wr_addr <= in_alu_result;
@@ -60,7 +62,7 @@ always_ff @(posedge clk) begin
     if(cache_operation_complete) begin
       data_valid <= 1;
       if (is_load) begin
-      	reg_dest <= is_flush ? 5'b00000 : alu_reg_dest; 
+      	reg_dest <= is_flush ? 5'b00000 : in_alu_rd; 
       	data_out <= cache_data;
       end 
       else if (is_store) begin
@@ -69,7 +71,7 @@ always_ff @(posedge clk) begin
     end
     if (!is_store & !is_load) begin
       data_out <= in_alu_result;
-      reg_dest <= is_flush ? 5'b00000 : alu_reg_dest;
+      reg_dest <= is_flush ? 5'b00000 : in_alu_rd;
       data_valid <= 1;
     end
   end

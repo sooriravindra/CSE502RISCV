@@ -63,6 +63,7 @@ module top
   //connect wb output to decoder_register_file input
   logic [63:0] wb_dataOut, alu_target;
   logic [REGSZ - 1:0] wb_regDest;
+  logic [REGSZ - 1:0] mem_alu_regDest;
   /*
    * alu write enable directly passed to the regfile,
    * and not passed through the write-back stage. do we need to pass this thru
@@ -247,6 +248,8 @@ module top
       .clk(clk),
       .rst(reset),
       .in_alu_result(alu_dataout),
+      .in_alu_rd(alu_regDest),
+      .out_alu_rd(mem_alu_regDest),
       .regB_value(alu_regb_val),
       .is_store(alu_is_store),
       .is_load(alu_is_load),
@@ -264,7 +267,7 @@ module top
     .lddata_in(mem_dataout),
     .alures_in(mem_alu_dataout),
     .ld_or_alu(ld_or_alu),
-    .rd_alu(alu_regDest),//in case of an ALU operation
+    .rd_alu(mem_alu_regDest),//in case of an ALU operation
     .rd_mem(mem_regDest), //in case of a memory opration
     .data_out(wb_dataOut),
     .is_ecall(is_ecall),//wire the 'is_ecall' value to wb stage

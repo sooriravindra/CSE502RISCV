@@ -117,9 +117,11 @@ always_ff @(posedge clk) begin
       cachetag [w_addr[14:6/*IDXBITS*/]] <= w_addr[63:15/*TAGBITS*/];
       
     end
+    /*
     else if (!enable) begin
         data_out <= 0;
     end
+    */
     else if (pass) begin
         data_out <= final_value;
     end

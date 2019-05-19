@@ -66,6 +66,8 @@ module register_decode
     logic[11:0] temp_regB;
     logic [OPFUNC -1:0] temp_opcode;
     logic [UIMM -1:0] temp_uimm;
+    logic next_alustall;
+    logic [REGBITS - 1:0]  next_reg_dest;
 
   always_ff @(posedge clk) begin
     if (reset) begin
@@ -75,17 +77,21 @@ module register_decode
       curr_pc <= prog_counter;
       out_instr <= instr;
       regA <= rd_reg_A;
+      alustall <= next_alustall;
+      reg_dest <= next_reg_dest;
     end
   end
   always_comb begin
     OPS = instr[6:0];
     temp_regB   = instr[31:20];
+    rd_reg_A    = 0;
+    rd_reg_B    = 0;
     case(OPS)
         opcodeR1: begin
           //temp_opcode = "R";
           rd_reg_A    = instr[19:15];
           rd_reg_B    = instr[24:20];
-          reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+          next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12], instr[6:0] };
           case(instr[14:12])
               3'b000: begin
@@ -189,7 +195,7 @@ module register_decode
           //temp_opcode = "R";
           rd_reg_A = instr[19:15];
           rd_reg_B = instr[31:20];
-          reg_dest  = is_flush ? 5'b00000 :instr[11:7];
+          next_reg_dest  = is_flush ? 5'b00000 :instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           case(instr[14:12])
               3'b000: begin
@@ -239,7 +245,7 @@ module register_decode
       opcodeI2: begin
           //temp_opcode = "I";
           rd_reg_A    = instr[19:15];
-          reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+          next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
           rd_reg_B    = instr[31:20];
           temp_opcode = { instr[14:12], instr[6:0] };
           case(instr[14:12])
@@ -270,7 +276,7 @@ module register_decode
       opcodeI3: begin
           rd_reg_A    = instr[19:15];
           rd_reg_B    = instr[31:20];
-          reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+          next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
           case(instr[14:12])
@@ -314,7 +320,7 @@ module register_decode
       opcodeI4: begin
           rd_reg_A = instr[19:15];
           rd_reg_B = instr[31:20];
-          reg_dest  = is_flush ? 5'b00000 : instr[11:7];
+          next_reg_dest  = is_flush ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
           case(instr[14:12])
@@ -343,7 +349,7 @@ module register_decode
         //temp_opcode = "S";
         rd_reg_A    = instr[19:15];
         rd_reg_B    = instr[31:20];
-        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
         case(instr[14:12])
           3'b000: begin
@@ -366,7 +372,7 @@ module register_decode
         //temp_opcode = "SB";
         rd_reg_A    = instr[19:15];
         rd_reg_B    = {instr[31], instr[7], instr[30:25], instr[11:8]};
-        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
         case(instr[14:12])
           3'b000: begin
@@ -394,7 +400,7 @@ module register_decode
       opcodeU1: begin
         //temp_opcode = "U";
         temp_uimm   = instr[31:12];
-        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_opcode = {3'bxxx, instr[6:0]};
         rd_reg_A    = 0;
         rd_reg_B    = 0;
@@ -404,7 +410,7 @@ module register_decode
       opcodeU2: begin
         //temp_opcode = "U";
         temp_uimm   = instr[31:12];
-        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_A    = 0;
         rd_reg_B    = 0;
@@ -413,7 +419,7 @@ module register_decode
 
       opcodeUJ: begin
         //temp_opcode = "UJ";
-        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_uimm   = {instr[31], instr[19:12], instr[20], instr[30:21]};
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_B    = 0;
@@ -423,7 +429,7 @@ module register_decode
 
       opcodeI1: begin
           // temp_opcode = "I";
-        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         temp_uimm   = 0;//{instr[31], instr[19:12], instr[20], instr[30:21]};
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_B    = instr[31:20];
@@ -433,7 +439,7 @@ module register_decode
 
       opcodeFE: begin
         //temp_opcode = "FENCE AND FENCE.I";
-        reg_dest    = 5'b00000;
+        next_reg_dest    = 5'b00000;
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_A    = 5'b00000;
         rd_reg_B    = instr[31:20];
@@ -448,7 +454,7 @@ module register_decode
       end
 
       opcodeSY: begin
-        reg_dest    = is_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = is_flush ? 5'b00000 : instr[11:7];
         rd_reg_A    = instr[19:15];
         rd_reg_B    = instr[31:20];
         temp_opcode = {instr[14:12], instr[6:0]};
@@ -486,10 +492,10 @@ module register_decode
     || ((memRegDest == rd_reg_A || memRegDest == rd_reg_B) && (memRegDest != 0)) 
     || ((wbRegDest == rd_reg_A || wbRegDest == rd_reg_B) && (wbRegDest != 0)))
   begin
-    alustall = 1;
+    next_alustall = 1;
   end
   else begin
-    alustall = 0;
+    next_alustall = 0;
   end
 end
 
@@ -563,14 +569,14 @@ end
 //    $display("t6   = %x", register_set[31]);
 //  end
     else begin
-      if (alustall) begin
+      if (next_alustall) begin
 //        uimm      <= 0;
         opcode    <= 10'h00f;
 //        rd_data_A <= 0;//read the data from register A to data A
 //        rd_data_B <= 0;//read the data from register B to data B
 //        regB      <= 0;
         if (wr_en & destn_reg != 0) begin
-            register_set[0] <= 0; //write the data into the destination register
+            register_set[destn_reg] <= destn_data; //write the data into the destination register
         end
       end
       else begin
