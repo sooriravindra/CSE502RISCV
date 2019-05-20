@@ -263,8 +263,8 @@ module register_decode
       end
       opcodeI3: begin
           rd_reg_A    = instr[19:15];
-          rd_reg_B    = instr[31:20];
-          next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+          rd_reg_B    = $signed(instr[31:20]);
+          next_reg_dest = decoder_flush ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
           case(instr[14:12])
@@ -528,6 +528,7 @@ end
       regA <= rd_reg_A;
       alustall <= next_alustall;
       reg_dest <= next_reg_dest;
+      regB     <= temp_regB;
 
       if (next_alustall) begin
         opcode    <= 10'h00f;
@@ -545,7 +546,6 @@ end
         opcode    <= temp_opcode;
         rd_data_A <= register_set[rd_reg_A];
         rd_data_B <= register_set[rd_reg_B];
-        regB      <= temp_regB;
         if (wr_en & destn_reg != 0) begin
             register_set[destn_reg] <= destn_data; 
             register_set[0] <= 0;
