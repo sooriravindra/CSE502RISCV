@@ -66,7 +66,7 @@ module register_decode
     logic[11:0] temp_regB;
     logic [OPFUNC -1:0] temp_opcode;
     logic [UIMM -1:0] temp_uimm;
-    logic next_alustall;
+    logic next_alustall, jmp_ctrl;
     logic [REGBITS - 1:0]  next_reg_dest;
 
   always_comb begin
@@ -79,7 +79,7 @@ module register_decode
           //temp_opcode = "R";
           rd_reg_A    = instr[19:15];
           rd_reg_B    = instr[24:20];
-          next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+          next_reg_dest    = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12], instr[6:0] };
           case(instr[14:12])
               3'b000: begin
@@ -183,7 +183,7 @@ module register_decode
           //temp_opcode = "R";
           rd_reg_A = instr[19:15];
           rd_reg_B = instr[31:20];
-          next_reg_dest  = decoder_flush ? 5'b00000 :instr[11:7];
+          next_reg_dest  = (decoder_flush || alustall) ? 5'b00000 :instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           case(instr[14:12])
               3'b000: begin
@@ -233,7 +233,7 @@ module register_decode
       opcodeI2: begin
           //temp_opcode = "I";
           rd_reg_A    = instr[19:15];
-          next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+          next_reg_dest    = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
           rd_reg_B    = instr[31:20];
           temp_opcode = { instr[14:12], instr[6:0] };
           case(instr[14:12])
@@ -264,7 +264,7 @@ module register_decode
       opcodeI3: begin
           rd_reg_A    = instr[19:15];
           rd_reg_B    = $signed(instr[31:20]);
-          next_reg_dest = decoder_flush ? 5'b00000 : instr[11:7];
+          next_reg_dest = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
           case(instr[14:12])
@@ -308,7 +308,7 @@ module register_decode
       opcodeI4: begin
           rd_reg_A = instr[19:15];
           rd_reg_B = instr[31:20];
-          next_reg_dest  = decoder_flush ? 5'b00000 : instr[11:7];
+          next_reg_dest  = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
           case(instr[14:12])
@@ -337,7 +337,7 @@ module register_decode
         //temp_opcode = "S";
         rd_reg_A    = instr[19:15];
         rd_reg_B    = instr[31:20];
-        next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
         case(instr[14:12])
           3'b000: begin
@@ -360,7 +360,7 @@ module register_decode
         //temp_opcode = "SB";
         rd_reg_A    = instr[19:15];
         rd_reg_B    = {instr[31], instr[7], instr[30:25], instr[11:8]};
-        next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
         case(instr[14:12])
           3'b000: begin
@@ -388,7 +388,7 @@ module register_decode
       opcodeU1: begin
         //temp_opcode = "U";
         temp_uimm   = instr[31:12];
-        next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest = (alustall || decoder_flush) ? 5'b00000 : instr[11:7];
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_A    = 0;
         rd_reg_B    = 0;
@@ -398,7 +398,7 @@ module register_decode
       opcodeU2: begin
         //temp_opcode = "U";
         temp_uimm   = instr[31:12];
-        next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest = (alustall || decoder_flush) ? 5'b00000 : instr[11:7];
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_A    = 0;
         rd_reg_B    = 0;
@@ -407,7 +407,7 @@ module register_decode
 
       opcodeUJ: begin
         //temp_opcode = "UJ";
-        next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = (alustall || decoder_flush) ? 5'b00000 : instr[11:7];
         temp_uimm   = {instr[31], instr[19:12], instr[20], instr[30:21]};
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_B    = 0;
@@ -417,7 +417,7 @@ module register_decode
 
       opcodeI1: begin
           // temp_opcode = "I";
-        next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = (alustall || decoder_flush) ? 5'b00000 : instr[11:7];
         temp_uimm   = 0;//{instr[31], instr[19:12], instr[20], instr[30:21]};
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_B    = instr[31:20];
@@ -442,7 +442,7 @@ module register_decode
       end
 
       opcodeSY: begin
-        next_reg_dest    = decoder_flush ? 5'b00000 : instr[11:7];
+        next_reg_dest    = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
         rd_reg_A    = instr[19:15];
         rd_reg_B    = instr[31:20];
         temp_opcode = {instr[14:12], instr[6:0]};
@@ -527,11 +527,11 @@ end
       out_instr <= instr;
       regA <= rd_reg_A;
       alustall <= next_alustall;
-      reg_dest <= next_reg_dest;
       regB     <= temp_regB;
-
+      jmp_ctrl <= decoder_flush;
+      reg_dest <= jmp_ctrl ? 0: next_reg_dest;
       if (next_alustall) begin
-        opcode    <= 10'h00f;
+        opcode    <= jmp_ctrl ? 10'h00f: temp_opcode;
 //        uimm      <= 0;
 //        rd_data_A <= 0;
 //        rd_data_B <= 0;
