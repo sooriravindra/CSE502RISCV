@@ -87,6 +87,7 @@ module top
   logic dcache_mem_req_complete;
   logic dcache_wren;
   logic top_flush, dec_out_got_inst;
+  logic icache_mem_fetch, dcache_mem_fetch;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -176,7 +177,8 @@ module top
     .mem_address(icache_address),
     .mem_req(icache_req),
     .mem_data_in(icache_data),
-    .mem_data_valid(icache_mem_req_complete)
+    .mem_data_valid(icache_mem_req_complete),
+    .mem_fetch(icache_mem_fetch)
  );
 
  cache datacache(
@@ -193,7 +195,8 @@ module top
     .mem_data_out(dcache_data_out),
     .mem_wr_en(wr_data),
     .mem_data_in(dcache_data),
-    .mem_data_valid(dcache_mem_req_complete)
+    .mem_data_valid(dcache_mem_req_complete),
+    .mem_fetch(dcache_mem_fetch)
  );
 
  //instantiate decoder
@@ -223,7 +226,8 @@ module top
     .alustall(alu_stall),
     .decoder_flush(top_flush | top_jmp),
     .dec_icache_hit(got_inst),
-    .dec_icache_hit_out(dec_out_got_inst)
+    .dec_icache_hit_out(dec_out_got_inst),
+    .icache_fetch_miss(icache_mem_fetch)
  );
 
  alu alu_instance(

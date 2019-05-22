@@ -28,13 +28,13 @@ cache
        // Out to requester
        output [WIDTH-1:0]      data_out,
        output                  operation_complete,
-
+       output                  mem_fetch,
        // Out to arbiter
        output [ADDRESSSIZE-1:0] mem_address,
        output [WIDTH-1:0]       mem_data_out,
        output                   mem_wr_en,
        output                   mem_req,
-
+       
        // In from arbiter
        input  [BLOCKSZ-1:0]     mem_data_in,
        input                    mem_data_valid
@@ -42,7 +42,7 @@ cache
 );
 enum {INIT, BUSY, FOUND, REQ_BUS, UPDATE_CACHE} c_state = INIT, c_next_state;
 
-logic                  c_hit, pass, update_done ;
+logic                  c_hit, pass, update_done, temp_mem_fetch;
 logic [WIDTH-1:0]      final_value;
 logic                  final_state;
 logic [BLOCKSZ - 1:0]  cachedata [NUMLINES - 1:0];
@@ -59,6 +59,7 @@ always_comb begin
         mem_wr_en    = 0;
         update_done  = 0;
         next_mem_req = 0;
+        temp_mem_fetch = 0;
     end
     BUSY : begin
         if (wr_en) begin
@@ -99,6 +100,7 @@ always_comb begin
         end
     end
     REQ_BUS : begin
+      temp_mem_fetch = 1;
     end
     UPDATE_CACHE : begin
     end
@@ -118,6 +120,12 @@ always_ff @(posedge clk) begin
       cachestate[cur_mreq_addr[14:6/*IDXBITS*/]] <= 1;
       cachetag [cur_mreq_addr[14:6/*IDXBITS*/]] <= cur_mreq_addr[63:15/*TAGBITS*/];
       update_done = 1;
+    end
+    else if (c_state == REQ_BUS) begin
+      mem_fetch <= temp_mem_fetch;
+    end
+    else begin
+      mem_fetch <= 0;
     end
 
     if (wr_en) begin

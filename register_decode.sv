@@ -16,6 +16,7 @@ module register_decode
     input  [63:0] prog_counter,
     input  wr_en,
     input  alu_st_dec,
+    input  icache_fetch_miss,
     // specify the register number and data to write
     input  [4:0] destn_reg,
     input  [63:0] destn_data,
@@ -493,7 +494,6 @@ end
     if (reset) begin
       register_set[0] <= 64'b0;
       register_set[1] <= 64'b0;
-//    register_set[2] <= 64'b0;
       register_set[3] <= 64'b0;
       register_set[4] <= 64'b0;
       register_set[5] <= 64'b0;
@@ -531,9 +531,19 @@ end
       alustall <= next_alustall;
       regB     <= temp_regB;
       jmp_ctrl <= decoder_flush;
-      reg_dest <= (jmp_ctrl ) ? 0: next_reg_dest;
+//      if (jmp_ctrl || !dec_icache_hit) begin
+//        reg_dest <= 0;
+//      end
+//      else if (!jmp_ctrl && !dec_icache_hit) begin
+//        reg_dest <= next_reg_dest;
+//      end
+//      else begin
+//        reg_dest <= next_reg_dest;
+//      end
+      reg_dest <= (jmp_ctrl || icache_fetch_miss) ? 0: next_reg_dest;
+//      reg_dest <= jmp_ctrl ? 0: next_reg_dest;
       dec_icache_hit_out <= dec_icache_hit;
-      if (next_alustall) begin
+      if (next_alustall || alustall) begin
         opcode    <= jmp_ctrl ? 10'h00f: temp_opcode;
 //        uimm      <= 0;
 //        rd_data_A <= 0;
@@ -556,5 +566,6 @@ end
       end
     end
   end //always_ff block end
+//  assign reg_dest = (jmp_ctrl || !dec_icache_hit) ? 0: next_reg_dest;
 
 endmodule
