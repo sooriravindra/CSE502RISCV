@@ -85,7 +85,7 @@ module top
   logic icache_mem_req_complete;
   logic dcache_mem_req_complete;
   logic dcache_wren;
-  logic top_flush;
+  logic top_flush, dec_out_got_inst;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -220,7 +220,9 @@ module top
     .memRegDest(mem_regDest),
     .wbRegDest(wb_regDest),
     .alustall(alu_stall),
-    .decoder_flush(top_flush | top_jmp)
+    .decoder_flush(top_flush | top_jmp),
+    .dec_icache_hit(got_inst),
+    .dec_icache_hit_out(dec_out_got_inst)
  );
 
  alu alu_instance(
@@ -244,7 +246,8 @@ module top
     .is_jmp(top_jmp),
     .wr_en(alu_wr_enable),
     .pc_from_alu(pc_alu),
-    .alu_flush(top_flush | top_jmp)
+    .alu_flush(top_flush | top_jmp),
+    .alu_icache_hit(dec_out_got_inst)
  );
 
   memory memory_instance(

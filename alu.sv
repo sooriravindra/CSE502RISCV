@@ -14,6 +14,7 @@ module alu
     input clk,
     input reset,
     input alu_flush, //flush the pipeline
+    input alu_icache_hit,
     output [63:0] data_out,
     output [4:0] aluRegDest,
     output is_ecall,//the ECALL bit is set to zero in all normal cases.
@@ -141,7 +142,7 @@ always_comb begin
   tmp_pc = i_pc + 4;
   is_ecall = 0;
   casex (opcode)
-/* After WP2 */
+  /* After WP2 */
     opcode_lui  : begin
       temp_dest = $signed({uimm, 12'h000});
       sign_extend = 0;
@@ -166,7 +167,7 @@ always_comb begin
     end
     opcode_beq  : begin
       if (regA_value == regB_value) begin
-        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
+        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
       end
       else begin
         temp_dest = i_pc + 4;
@@ -175,7 +176,7 @@ always_comb begin
     end
     opcode_bne  : begin
       if (regA_value != regB_value) begin
-        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
+        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
       end
       else begin
         temp_dest = i_pc + 4;
@@ -184,7 +185,7 @@ always_comb begin
     end
     opcode_blt  : begin
       if ($signed(regA_value) < $signed(regB_value)) begin
-        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
+        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
       end
       else begin
         temp_dest = i_pc + 4;
@@ -193,7 +194,7 @@ always_comb begin
     end
     opcode_bge  : begin
       if ($signed(regA_value) >= $signed(regB_value)) begin
-        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
+        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
       end
       else begin
         temp_dest = i_pc + 4;
@@ -202,7 +203,7 @@ always_comb begin
     end
     opcode_bltu : begin
       if (regA_value < regB_value) begin
-        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
+        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
       end
       else begin
         temp_dest = i_pc + 4;
@@ -211,7 +212,7 @@ always_comb begin
     end
     opcode_bgeu : begin
       if (regA_value >= regB_value) begin
-        temp_dest = i_pc + {{19{regB[11]}}, regB, 1'b0};
+        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
       end
       else begin
         temp_dest = i_pc + 4;
@@ -231,7 +232,7 @@ always_comb begin
     end      
     opcode_lw   : begin
       word_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{32{word_temp_dest[31]}}, word_temp_dest[31:0]};
+      temp_dest = {{32'h00000000/*{word_temp_dest[31]}*/}, word_temp_dest[31:0]};
       sign_extend = 0;
     end      
     opcode_lbu : begin
@@ -545,7 +546,7 @@ always_comb begin
         sign_extend = 0;
         $display("chose default. Opcode %x, PC %x", opcode, i_pc);
     end
-    endcase
+  endcase
 end
 endmodule
 

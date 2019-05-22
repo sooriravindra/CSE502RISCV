@@ -24,6 +24,7 @@ module register_decode
     input  [4:0] wbRegDest,   
     //flush
     input decoder_flush,
+    input dec_icache_hit,
     // output data
     output [63:0] rd_data_A,
     output [63:0] rd_data_B,
@@ -37,6 +38,7 @@ module register_decode
     output [REGBITS - 1: 0] regA,
     output [IMMREG - 1:0]   regB,
     output alustall,
+    output dec_icache_hit_out,
     //to differentiate between alu and memory ops, we need the below flag
     //as of now, this is made forcefully low, to indicate that the wb stage
     //only would read inputs from ALU result. Once the memory is implemented,
@@ -529,7 +531,8 @@ end
       alustall <= next_alustall;
       regB     <= temp_regB;
       jmp_ctrl <= decoder_flush;
-      reg_dest <= jmp_ctrl ? 0: next_reg_dest;
+      reg_dest <= (jmp_ctrl | !dec_icache_hit) ? 0: next_reg_dest;
+      dec_icache_hit_out <= dec_icache_hit;
       if (next_alustall) begin
         opcode    <= jmp_ctrl ? 10'h00f: temp_opcode;
 //        uimm      <= 0;

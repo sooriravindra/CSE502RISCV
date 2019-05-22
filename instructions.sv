@@ -32,5 +32,4 @@
 //	
 //} dec_inst;
 logic [63:0] register_set [31:0]; // (32 registers of 64 bit each) 
-logic reg_in_mem[31:0];
 `endif
