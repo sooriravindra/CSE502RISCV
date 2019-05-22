@@ -12,19 +12,26 @@ inc_pc(
 	   input [63:0] pc_from_flush,
 	   input fetch_flush
 	  );
+  logic is_updated;
+  logic[63:0] update_pc;
   always_comb begin
     next_pc = pc_in;
-    if (sig_recvd) begin
-      if (is_jmp) begin
-        next_pc = jmp_target;
-      end
-      else begin
-	if (fetch_flush) begin
-		next_pc = pc_from_flush;
-	end else begin
-        	next_pc =  pc_in + 4;
-	end
-      end
+    if (is_jmp) begin
+        is_updated = 1;
+        update_pc = jmp_target;
+    end
+    else if (fetch_flush) begin
+        is_updated = 1;
+        update_pc = pc_from_flush;
+    end
+    else if (sig_recvd) begin
+        if (!is_updated) begin
+            next_pc =  pc_in + 4;
+        end
+        else begin
+            next_pc = update_pc;
+        end
+        is_updated = 0;
     end
 //    else if (alu_stall) begin
 //      next_pc = pc_in;
