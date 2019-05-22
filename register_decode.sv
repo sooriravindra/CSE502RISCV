@@ -531,7 +531,7 @@ end
       alustall <= next_alustall;
       regB     <= temp_regB;
       jmp_ctrl <= decoder_flush;
-      reg_dest <= (jmp_ctrl | !dec_icache_hit) ? 0: next_reg_dest;
+      reg_dest <= (jmp_ctrl ) ? 0: next_reg_dest;
       dec_icache_hit_out <= dec_icache_hit;
       if (next_alustall) begin
         opcode    <= jmp_ctrl ? 10'h00f: temp_opcode;

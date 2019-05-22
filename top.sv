@@ -73,7 +73,8 @@ module top
   //logic to for the wb stage to differentiate between ALU and memory ops
   logic ld_or_alu, top_jmp, alu_stall, alu_store;
   //logic to detect and write 'ECALL' during writeback stage
-  logic is_ecall; 
+  logic is_ecall_alu; 
+  logic is_ecall_mem;
   logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
   logic [WORDSZ - 1: 0] next_decoder_pc, decoder_pc, pc, next_pc, curr_pc, pc_from_flush, pc_alu, pc_mem, pc_after_flush;
@@ -239,7 +240,7 @@ module top
     .reset(reset),
     .clk(clk),
     .data_out(alu_dataout),
-    .is_ecall(is_ecall),//wire the 'is_ecall' value
+    .is_ecall(is_ecall_alu),//wire the 'is_ecall' value
     .aluRegDest(alu_regDest),
     .mem_out(wr_to_mem),
     .alu_jmp_target(alu_target),
@@ -259,6 +260,8 @@ module top
       .regB_value(alu_regb_val),
       .is_store(alu_is_store),
       .is_load(alu_is_load),
+      .is_ecall_alu(is_ecall_alu),
+      .is_ecall_mem(is_ecall_mem),
       .data_out(mem_data_out),
       .curr_pc(pc_alu),
       .pc_from_mem(pc_mem),
@@ -276,7 +279,7 @@ module top
     .rd_alu(mem_alu_regDest),//in case of an ALU operation
     .rd_mem(mem_regDest), //in case of a memory opration
     .data_out(wb_dataOut),
-    .is_ecall(is_ecall),//wire the 'is_ecall' value to wb stage
+    .is_ecall(is_ecall_mem),//wire the 'is_ecall' value to wb stage
     .destReg(wb_regDest),
     .ecall_reg_val(ecall_reg_set),
     .curr_pc(pc_mem),

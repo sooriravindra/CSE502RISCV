@@ -10,6 +10,7 @@ module memory
     input  is_store,
     input  is_load,
     input  [31:0] curr_pc,
+    input  is_ecall_alu,
     
     //flush
     input memory_flush,
@@ -20,7 +21,7 @@ module memory
     output data_valid,
     output [4:0] reg_dest,
     output [31:0] pc_from_mem,
-  
+    output is_ecall_mem,
     // Input from cache
     input  [63:0] cache_data,
     input  cache_operation_complete,
@@ -44,6 +45,7 @@ always_ff @(posedge clk) begin
     pc_from_mem <= curr_pc; 
     out_alu_result <= in_alu_result;
     out_alu_rd <= in_alu_rd;
+    is_ecall_mem <= is_ecall_alu;
     if (is_store) begin
       cache_wr_en <= 1;
       cache_wr_addr <= in_alu_result;

@@ -66,7 +66,16 @@ always_comb begin
             mem_wr_en    = 1;
             mem_data_out = data_in;
             // Treat all writes as Cache hits
-            c_hit = 1;
+            if ((cachestate[r_addr[/*IDXBITS*/14:6]] == 1) & 
+                (cachetag[r_addr[/*IDXBITS*/14:6]] == r_addr[63:15/*TAGBITS*/])) begin
+                c_hit = 1;
+            end
+            else begin
+                // Set lower 6 bits to zero, we will read the whole cache line
+                mem_address = r_addr & 64'hffffffffffffffc0;
+                mem_wr_en = 0;
+                c_hit = 0;
+            end
         end
         else begin
             if ((cachestate[r_addr[/*IDXBITS*/14:6]] == 1) & 
@@ -125,11 +134,9 @@ always_ff @(posedge clk) begin
     else if (pass) begin
         data_out <= final_value;
     end
-    /*
     else begin
         data_out <= 10'h00f;
     end
-    */
 
     c_state <= c_next_state;
     operation_complete <= pass;
