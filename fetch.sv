@@ -7,7 +7,6 @@ inc_pc(
 	   output[63:0] next_pc,
            input is_jmp,
            input alu_stall,
-           input is_store,
 	   input sig_recvd,
 	   input [63:0] pc_from_flush,
 	   input fetch_flush

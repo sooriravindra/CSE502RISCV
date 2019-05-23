@@ -53,6 +53,12 @@ always_comb begin
     if(!dcache_req && !icache_req) begin
         next_is_busy = 0;
     end
+    if(!dcache_req) begin
+        is_dcache_req = 0;
+    end
+    if(!icache_req) begin
+        is_icache_req = 0;
+    end
     if (icache_req == 1 & next_is_busy == 0) begin
         is_icache_req = 1;
         is_dcache_req = 0;

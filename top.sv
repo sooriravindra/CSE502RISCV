@@ -71,11 +71,11 @@ module top
    */
   
   //logic to for the wb stage to differentiate between ALU and memory ops
-  logic ld_or_alu, top_jmp, alu_stall, alu_store;
+  logic ld_or_alu, top_jmp, alu_stall, alu_is_store;
   //logic to detect and write 'ECALL' during writeback stage
   logic is_ecall_alu; 
   logic is_ecall_mem;
-  logic fetch_is_load;
+  logic alu_is_load;
   logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
   logic [WORDSZ - 1: 0] next_decoder_pc, decoder_pc, pc, next_pc, curr_pc, pc_from_flush, pc_alu, pc_mem, pc_after_flush;
@@ -114,7 +114,6 @@ module top
     .next_pc(next_pc),
     .is_jmp(top_jmp),
     .alu_stall(alu_stall),
-    .is_store(alu_store),
     .sig_recvd(got_inst),
     .pc_from_flush(pc_after_flush),
     .fetch_flush(top_flush)
@@ -208,7 +207,7 @@ module top
     .instr(icache_instr),
     .prog_counter(decoder_pc),
     .wr_en(alu_wr_enable),
-    .alu_st_dec(alu_store),
+    .alu_st_dec(alu_is_store),
     .destn_reg(wb_regDest),
     .destn_data(wb_dataOut),
     .rd_data_A(decoder_regA_val),
@@ -239,7 +238,7 @@ module top
     .regDest(decoder_regDest),
     .uimm(decoder_uimm),
     .i_pc(curr_pc),
-    .alu_store(alu_store),
+    .alu_store(alu_is_store),
     .i_inst(alu_inst),
     .regA_value(decoder_regA_val),
     .regB_value(decoder_regB_val),
@@ -255,7 +254,7 @@ module top
     .pc_from_alu(pc_alu),
     .alu_flush(top_flush | top_jmp),
     .alu_icache_hit(dec_out_got_inst),
-    .alu_load(fetch_is_load)
+    .alu_load(alu_is_load)
  );
 
   memory memory_instance(
