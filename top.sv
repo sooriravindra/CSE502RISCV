@@ -87,6 +87,7 @@ module top
   logic dcache_mem_req_complete;
   logic dcache_wren;
   logic top_flush, dec_out_got_inst;
+  logic is_mem_busy;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -186,7 +187,7 @@ module top
     .r_addr(decoder_regA),
     .w_addr(decoder_regDest),
     .rst(reset),
-    .enable(1),
+    .enable(is_mem_busy),
     .data_out(mem_dcache_data),
     .operation_complete(data_ready),
     .mem_address(dcache_address),
@@ -268,6 +269,7 @@ module top
       .pc_from_mem(pc_mem),
       .reg_dest(mem_regDest),
       .memory_flush(top_flush),
+      .is_mem_busy(is_mem_busy),
       .out_alu_result(mem_alu_dataout)
   );
 
