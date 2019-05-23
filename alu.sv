@@ -23,6 +23,7 @@ module alu
     output is_jmp,
     output alu_store,
     output wr_en,
+    output alu_load,
     output [31:0] pc_from_alu
 );
 
@@ -87,7 +88,7 @@ enum {
 logic [63:0] temp_dest, quart_temp_dest, half_temp_dest, word_temp_dest, mem_dest;
 logic sign_extend;
 logic [31:0] auipc_word;
-logic is_store, tmp_jmp;
+logic is_store, tmp_jmp, is_load;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64, tmp_pc, tmp_jalr;
 always_ff @(posedge clk) begin
@@ -106,6 +107,7 @@ always_ff @(posedge clk) begin
     end
     is_jmp <= tmp_jmp;
     alu_store <= is_store;
+    alu_load <= is_load;
         
     if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
@@ -130,6 +132,7 @@ end
 
 always_comb begin
   is_store = 0;
+  is_load = 0;
   mem_dest = mem_out;
   off_dest12 = 0; 
   off_dest64 = 0; 
@@ -221,32 +224,38 @@ always_comb begin
     end
      
     opcode_lb   : begin
+      is_load = 1;
       quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{56{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
       sign_extend = 0;
     end
     opcode_lh   : begin
+      is_load = 1;
       half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{48{half_temp_dest[15]}}, half_temp_dest[15:0]};
       sign_extend = 0;
     end      
     opcode_lw   : begin
+      is_load = 1;
       word_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{32'h00000000/*{word_temp_dest[31]}*/}, word_temp_dest[31:0]};
+      temp_dest = {{32{word_temp_dest[31]}}, word_temp_dest[31:0]};
       sign_extend = 0;
     end      
     opcode_lbu : begin
-      quart_temp_dest = (regA_value + {52'h0000000000000, regB});
-      temp_dest = {24'h000000, quart_temp_dest};
+      is_load = 1;
+      quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
+      temp_dest = {24'h000000, quart_temp_dest[7:0]};
       sign_extend = 0;
     end    
     opcode_lwu : begin
-      temp_dest = (regA_value + {52'h0000000000000, regB});
+      is_load = 1;
+      temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
     end
     opcode_lhu  : begin
-      half_temp_dest = (regA_value + {52'h0000000000000, regB});
-      temp_dest = {16'h0000, half_temp_dest};
+      is_load = 1;
+      half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
+      temp_dest = {16'h0000, half_temp_dest[15:0]};
       sign_extend = 0;
     end
     opcode_sb   : begin
@@ -272,6 +281,7 @@ always_comb begin
       temp_dest  = $signed(regB_value[31:0]);
     end
     opcode_ld   : begin
+      is_load = 1;
       temp_dest = regA_value + {{52{regB[11]}}, regB};
       sign_extend = 0;
     end
@@ -318,7 +328,7 @@ always_comb begin
       sign_extend = 0;
     end
     opcode_addiw: begin
-      temp_dest = regA_value[31:0] + {{20{regB[11]}}, regB};
+      temp_dest = $signed(regA_value[31:0] + {{20{regB[11]}}, regB});
       sign_extend = 1;
     end
     opcode_addsubmulw: begin

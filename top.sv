@@ -75,6 +75,7 @@ module top
   //logic to detect and write 'ECALL' during writeback stage
   logic is_ecall_alu; 
   logic is_ecall_mem;
+  logic fetch_is_load;
   logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
   logic [WORDSZ - 1: 0] next_decoder_pc, decoder_pc, pc, next_pc, curr_pc, pc_from_flush, pc_alu, pc_mem, pc_after_flush;
@@ -87,7 +88,7 @@ module top
   logic dcache_mem_req_complete;
   logic dcache_wren;
   logic top_flush, dec_out_got_inst;
-  logic icache_mem_fetch, dcache_mem_fetch;
+  logic is_mem_busy;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -188,12 +189,13 @@ module top
     .r_addr(decoder_regA),
     .w_addr(decoder_regDest),
     .rst(reset),
-    .enable(dcache_enable),
+    .enable(is_mem_busy),
     .data_out(mem_dcache_data),
     .operation_complete(data_ready),
     .mem_address(dcache_address),
     .mem_data_out(dcache_data_out),
     .mem_wr_en(wr_data),
+    .mem_req(dcache_req),
     .mem_data_in(dcache_data),
     .mem_data_valid(dcache_mem_req_complete),
     .mem_fetch(dcache_mem_fetch)
@@ -252,7 +254,8 @@ module top
     .wr_en(alu_wr_enable),
     .pc_from_alu(pc_alu),
     .alu_flush(top_flush | top_jmp),
-    .alu_icache_hit(dec_out_got_inst)
+    .alu_icache_hit(dec_out_got_inst),
+    .alu_load(fetch_is_load)
  );
 
   memory memory_instance(
@@ -271,6 +274,7 @@ module top
       .pc_from_mem(pc_mem),
       .reg_dest(mem_regDest),
       .memory_flush(top_flush),
+      .is_mem_busy(is_mem_busy),
       .out_alu_result(mem_alu_dataout)
   );
 
