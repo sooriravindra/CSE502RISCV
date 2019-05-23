@@ -47,6 +47,9 @@ always_comb begin
     next_is_busy = is_busy;
     is_icache_req = prev_is_icache_req;
     is_dcache_req = prev_is_dcache_req;
+    if(!dcache_req || !icache_req) begin
+        next_is_busy = 0;
+    end
     if (icache_req == 1 & next_is_busy == 0) begin
         is_icache_req = 1;
         is_dcache_req = 0;
@@ -66,7 +69,6 @@ always_comb begin
         mem_wr_en = wr_en;
     end
     else begin
-        next_is_busy = 0;
         next_mem_req = 0;
         mem_wr_en = 0;
         mem_data_out = 0;
@@ -76,11 +78,13 @@ always_comb begin
         next_icache_data_out = data_from_mem;
         next_icache_operation_complete = 1;
         next_dcache_operation_complete = 0;
+        next_is_busy = 0;
     end
     else if (mem_data_valid == 1 & is_dcache_req == 1) begin
         next_dcache_data_out = data_from_mem;
         next_dcache_operation_complete = 1;
         next_icache_operation_complete = 0;
+        next_is_busy = 0;
     end
     else begin
         next_icache_operation_complete = 0;
