@@ -173,7 +173,7 @@ always_comb begin
         end
         REQ_BUS: begin
             // mem_req needs to be high for only one clock cycle
-            next_mem_req = 0;
+            //next_mem_req = 0; // Take care of this in arbiter
             if (mem_data_valid) begin
                 c_next_state = UPDATE_CACHE;
             end

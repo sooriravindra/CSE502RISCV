@@ -14,6 +14,8 @@ module memory
     
     //flush
     input memory_flush,
+    //Output to decoder
+    output is_mem_busy,
     // Output to writeback
     output [63:0] data_out,
     output [63:0] out_alu_result,
@@ -46,6 +48,7 @@ always_ff @(posedge clk) begin
     out_alu_result <= in_alu_result;
     out_alu_rd <= in_alu_rd;
     is_ecall_mem <= is_ecall_alu;
+    is_mem_busy <= 0;
     if (is_store) begin
       cache_wr_en <= 1;
       cache_wr_addr <= in_alu_result;
@@ -57,6 +60,7 @@ always_ff @(posedge clk) begin
     end 
     if ((is_store | is_load) & !cache_operation_complete) begin
       cache_enable <= 1;
+      is_mem_busy <= 1;
     end 
     else begin
       cache_enable <= 0;

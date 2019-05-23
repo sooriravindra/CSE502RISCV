@@ -22,6 +22,7 @@ module register_decode
     input  [4:0] aluRegDest,   
     input  [4:0] memRegDest,   
     input  [4:0] wbRegDest,   
+    input  is_mem_busy,
     //flush
     input decoder_flush,
     input dec_icache_hit,
@@ -480,7 +481,8 @@ module register_decode
 
     if (((aluRegDest == rd_reg_A || aluRegDest == rd_reg_B) && (aluRegDest != 0) && (alu_st_dec == 0)) 
     || ((memRegDest == rd_reg_A || memRegDest == rd_reg_B) && (memRegDest != 0)) 
-    || ((wbRegDest == rd_reg_A || wbRegDest == rd_reg_B) && (wbRegDest != 0)))
+    || ((wbRegDest == rd_reg_A || wbRegDest == rd_reg_B) && (wbRegDest != 0))
+    || is_mem_busy)
   begin
     next_alustall = 1;
   end

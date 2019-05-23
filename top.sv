@@ -186,12 +186,13 @@ module top
     .r_addr(decoder_regA),
     .w_addr(decoder_regDest),
     .rst(reset),
-    .enable(dcache_enable),
+    .enable(1),
     .data_out(mem_dcache_data),
     .operation_complete(data_ready),
     .mem_address(dcache_address),
     .mem_data_out(dcache_data_out),
     .mem_wr_en(wr_data),
+    .mem_req(dcache_req),
     .mem_data_in(dcache_data),
     .mem_data_valid(dcache_mem_req_complete)
  );

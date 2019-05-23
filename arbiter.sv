@@ -30,6 +30,8 @@ module arbiter
 
 );
 
+logic prev_is_dcache_req;
+logic prev_is_icache_req;
 logic is_icache_req;
 logic is_dcache_req;
 logic is_busy;
@@ -43,6 +45,8 @@ logic next_dcache_operation_complete;
 
 always_comb begin
     next_is_busy = is_busy;
+    is_icache_req = prev_is_icache_req;
+    is_dcache_req = prev_is_dcache_req;
     if (icache_req == 1 & next_is_busy == 0) begin
         is_icache_req = 1;
         is_dcache_req = 0;
@@ -87,6 +91,8 @@ end
 always_ff @(posedge clk) begin
     mem_req <= next_mem_req;
     is_busy  <= next_is_busy;
+    prev_is_icache_req <= is_icache_req;
+    prev_is_dcache_req <= is_dcache_req;
     icache_data_out <= next_icache_data_out;
     dcache_data_out <= next_dcache_data_out;
     icache_operation_complete <= next_icache_operation_complete;
