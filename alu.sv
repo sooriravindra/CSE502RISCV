@@ -232,20 +232,20 @@ always_comb begin
     end      
     opcode_lw   : begin
       word_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{32'h00000000/*{word_temp_dest[31]}*/}, word_temp_dest[31:0]};
+      temp_dest = {{32{word_temp_dest[31]}}, word_temp_dest[31:0]};
       sign_extend = 0;
     end      
     opcode_lbu : begin
-      quart_temp_dest = (regA_value + {52'h0000000000000, regB});
+      quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {24'h000000, quart_temp_dest};
       sign_extend = 0;
     end    
     opcode_lwu : begin
-      temp_dest = (regA_value + {52'h0000000000000, regB});
+      temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
     end
     opcode_lhu  : begin
-      half_temp_dest = (regA_value + {52'h0000000000000, regB});
+      half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {16'h0000, half_temp_dest};
       sign_extend = 0;
     end
