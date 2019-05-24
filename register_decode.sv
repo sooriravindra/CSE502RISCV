@@ -45,7 +45,6 @@ module register_decode
     //as of now, this is made forcefully low, to indicate that the wb stage
     //only would read inputs from ALU result. Once the memory is implemented,
     //we would have to make this flag conditional. 
-    output ld_or_alu,
     output [63:0] ecall_reg_val [7:0]//this logic would hold eight reg of 64 bits each 
 );
     enum

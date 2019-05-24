@@ -20,10 +20,10 @@ module memory
     output [63:0] data_out,
     output [63:0] out_alu_result,
     output [4:0] out_alu_rd,
-    output data_valid,
     output [4:0] reg_dest,
     output [31:0] pc_from_mem,
     output is_ecall_mem,
+    output ld_or_alu,
     // Input from cache
     input  [63:0] cache_data,
     input  cache_operation_complete,
@@ -37,6 +37,8 @@ module memory
 
 );
 
+logic [4:0] mem_reg_dest;
+logic load_operation;
 always_ff @(posedge clk) begin
   if(rst) begin
     //rest the pc
@@ -48,7 +50,9 @@ always_ff @(posedge clk) begin
     out_alu_result <= in_alu_result;
     out_alu_rd <= in_alu_rd;
     is_ecall_mem <= is_ecall_alu;
-    is_mem_busy <= 0;
+
+
+    // Cache outputs
     if (is_store) begin
       cache_wr_en <= 1;
       cache_wr_addr <= in_alu_result;
@@ -58,27 +62,41 @@ always_ff @(posedge clk) begin
       cache_wr_en <= 0;
       cache_rd_addr <= in_alu_result;
     end 
+
+    // is_mem_busy
     if ((is_store | is_load) & !cache_operation_complete) begin
       cache_enable <= 1;
       is_mem_busy <= 1;
     end 
-    else begin
-      cache_enable <= 0;
+    else if (cache_operation_complete) begin
+        is_mem_busy <= 0;
+        cache_enable <= 0;
     end
+
+
+
+    // Remember the destination register
+    if (is_load) begin
+      mem_reg_dest <= memory_flush ? 5'b00000 : in_alu_rd; 
+      load_operation <= 1;
+    end 
+    // Memory operations
     if(cache_operation_complete) begin
-      data_valid <= 1;
-      if (is_load) begin
-      	reg_dest <= memory_flush ? 5'b00000 : in_alu_rd; 
+      ld_or_alu <= 1;
+      if (load_operation) begin
+      	reg_dest <= memory_flush ? 5'b00000 : mem_reg_dest; 
       	data_out <= cache_data;
       end 
-      else if (is_store) begin
+      else begin
       	reg_dest <= 0;
       end
+      load_operation <= 0;
     end
-    if (!is_store & !is_load) begin
+    // ALU operations
+    else if (!is_store & !is_load) begin
+      ld_or_alu <= 0;
       data_out <= in_alu_result;
       reg_dest <= memory_flush ? 5'b00000 : in_alu_rd;
-      data_valid <= 1;
     end
   end
 end

@@ -93,6 +93,9 @@ module top
   logic dcache_wren;
   logic top_flush, dec_out_got_inst;
   logic is_mem_busy;
+  logic [BLOCKSZ-1:0] dcache_dataout;
+  logic [63:0] mem_dcache_data;
+  logic [63:0] mem_data_out;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -196,7 +199,7 @@ module top
     .data_out(mem_dcache_data),
     .operation_complete(data_ready),
     .mem_address(dcache_address),
-    .mem_data_out(dcache_data_out),
+    .mem_data_out(dcache_dataout),
     .mem_wr_en(wr_data),
     .mem_req(dcache_req),
     .mem_data_in(dcache_data),
@@ -221,7 +224,6 @@ module top
     .curr_pc(curr_pc),
     .out_instr(alu_instr),
     .regB(decoder_regB),
-    .ld_or_alu(ld_or_alu),
     .ecall_reg_val(ecall_reg_set),
     .regA(decoder_regA),
     .aluRegDest(alu_regDest),
@@ -282,13 +284,15 @@ module top
       .cache_wr_en(dcache_wr_en),
       .cache_wr_addr(dcache_wr_addr),
       .cache_rd_addr(dcache_rd_addr),
-      .cache_wr_value(dcache_data_in)
+      .cache_wr_value(dcache_data_in),
+      .cache_data(mem_dcache_data),
+      .ld_or_alu(ld_or_alu)
   );
 
   wb wb_instance(
     .clk(clk),
     .rst(reset),
-    .lddata_in(mem_dataout),
+    .lddata_in(mem_data_out),
     .alures_in(mem_alu_dataout),
     .ld_or_alu(ld_or_alu),
     .rd_alu(mem_alu_regDest),//in case of an ALU operation
