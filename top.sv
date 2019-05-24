@@ -39,11 +39,15 @@ module top
 );
 
   logic data_mem_valid;
+  logic data_ready;
+  logic dcache_wr_en;
   logic wr_data;
   logic got_inst;
   logic [63:0] mem_addr;
   logic [63:0] icache_address;
   logic [63:0] dcache_address;
+  logic [63:0] dcache_rd_addr;
+  logic [63:0] dcache_wr_addr;
   logic mem_req;
   logic icache_req;
   logic dcache_req;
@@ -183,10 +187,10 @@ module top
 
  cache datacache(
     .clk(clk),
-    .wr_en(1),
-    .data_in(bus_resp),
-    .r_addr(decoder_regA),
-    .w_addr(decoder_regDest),
+    .wr_en(dcache_wr_en),
+    .data_in(dcache_data_in),
+    .r_addr(dcache_rd_addr),
+    .w_addr(dcache_wr_addr),
     .rst(reset),
     .enable(is_mem_busy),
     .data_out(mem_dcache_data),
@@ -196,8 +200,7 @@ module top
     .mem_wr_en(wr_data),
     .mem_req(dcache_req),
     .mem_data_in(dcache_data),
-    .mem_data_valid(dcache_mem_req_complete),
-    .mem_fetch(dcache_mem_fetch)
+    .mem_data_valid(dcache_mem_req_complete)
  );
 
  //instantiate decoder
@@ -274,7 +277,12 @@ module top
       .reg_dest(mem_regDest),
       .memory_flush(top_flush),
       .is_mem_busy(is_mem_busy),
-      .out_alu_result(mem_alu_dataout)
+      .out_alu_result(mem_alu_dataout),
+      .cache_operation_complete(data_ready),
+      .cache_wr_en(dcache_wr_en),
+      .cache_wr_addr(dcache_wr_addr),
+      .cache_rd_addr(dcache_rd_addr),
+      .cache_wr_value(dcache_data_in)
   );
 
   wb wb_instance(

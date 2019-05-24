@@ -92,10 +92,7 @@ always_comb begin
         end
     end
     FOUND : begin
-        if (wr_en) begin
-            final_state = 1;
-        end
-        else begin
+        if (!wr_en) begin
             final_value = cachedata[r_addr[14:6/*IDXBITS*/]][(r_addr[5:0/*OFFBITS*/]*8)+:64];
         end
     end
