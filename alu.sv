@@ -6,7 +6,7 @@ module alu
     input [9:0] opcode,
     input [4:0] regDest,
     input [19:0] uimm,
-    input [31:0] i_pc,
+    input [63:0] i_pc,
     input [31:0] i_inst,
 
     input [63:0] regA_value,
@@ -181,14 +181,14 @@ always_comb begin
     opcode_beq  : begin
       if (regA_value == regB_value) begin
         tmp_jmp = 1;
-        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_pc = i_pc + ({{52{regB[11]}}, regDest[0], regB[10:5], regDest[4:1], 1'b0});
       end
       temp_regDest = 0;
       sign_extend = 0;      
     end
     opcode_bne  : begin
       if (regA_value != regB_value) begin
-        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+          tmp_pc = i_pc + ({{52{regB[11]}}, regDest[0], regB[10:5], regDest[4:1], 1'b0});
         tmp_jmp = 1;
       end
       temp_regDest = 0;
@@ -196,15 +196,15 @@ always_comb begin
     end
     opcode_blt  : begin
       if ($signed(regA_value) < $signed(regB_value)) begin
-        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
-        tmp_jmp = 1;
+          tmp_pc = i_pc + ({{52{regB[11]}}, regDest[0], regB[10:5], regDest[4:1], 1'b0});
+          tmp_jmp = 1;
       end
       temp_regDest = 0;
       sign_extend = 0;      
     end
     opcode_bge  : begin
       if ($signed(regA_value) >= $signed(regB_value)) begin
-        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+          tmp_pc = i_pc + ({{52{regB[11]}}, regDest[0], regB[10:5], regDest[4:1], 1'b0});
         tmp_jmp = 1;
       end
       temp_regDest = 0;
@@ -212,7 +212,7 @@ always_comb begin
     end
     opcode_bltu : begin
       if (regA_value < regB_value) begin
-        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+          tmp_pc = i_pc + ({{52{regB[11]}}, regDest[0], regB[10:5], regDest[4:1], 1'b0});
         tmp_jmp = 1;
       end
       temp_regDest = 0;
@@ -220,7 +220,7 @@ always_comb begin
     end
     opcode_bgeu : begin
       if (regA_value >= regB_value) begin
-        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+          tmp_pc = i_pc + ({{52{regB[11]}}, regDest[0], regB[10:5], regDest[4:1], 1'b0});
         tmp_jmp = 1;
       end
       temp_regDest = 0;
