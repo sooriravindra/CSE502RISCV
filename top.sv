@@ -67,7 +67,6 @@ module top
   //connect wb output to decoder_register_file input
   logic [63:0] wb_dataOut, alu_target;
   logic [REGSZ - 1:0] wb_regDest;
-  logic [REGSZ - 1:0] mem_alu_regDest;
   /*
    * alu write enable directly passed to the regfile,
    * and not passed through the write-back stage. do we need to pass this thru
@@ -82,7 +81,7 @@ module top
   logic alu_is_load;
   logic [WORDSZ - 1: 0] ecall_reg_set [7:0];
 
-  logic [WORDSZ - 1: 0] next_decoder_pc, decoder_pc, pc, next_pc, curr_pc, pc_from_flush, pc_alu, pc_mem, pc_after_flush;
+  logic [WORDSZ - 1: 0] next_decoder_pc, decoder_pc, pc, next_pc, curr_pc, pc_from_flush, pc_alu, pc_mem, pc_after_flush, next_stall_pc;
   logic [BLOCKSZ - 1: 0] data_from_mem;
   logic [BLOCKSZ - 1: 0] icache_data;
   logic [BLOCKSZ - 1: 0] dcache_data;
@@ -106,6 +105,7 @@ module top
 
   always_comb begin
       next_decoder_pc = pc;
+      next_stall_pc = pc - 4;
   end
   always_ff @ (posedge clk) begin
       if (reset) begin
@@ -114,6 +114,9 @@ module top
       end else begin
           if (got_inst) begin
               pc <= next_pc;
+          end
+          else if (top_stall) begin
+              pc <= next_stall_pc;
           end
           else begin
               pc <= next_decoder_pc;
@@ -287,7 +290,6 @@ module top
       .in_alu_result(alu_dataout),
       .in_alu_rd(alu_regDest),
       .in_alu_mem_addr(wr_to_mem),
-      .out_alu_rd(mem_alu_regDest),
       .regB_value(alu_regb_val),
       .is_store(alu_is_store),
       .is_load(alu_is_load),
@@ -316,7 +318,6 @@ module top
     .lddata_in(mem_data_out),
     .alures_in(mem_alu_dataout),
     .ld_or_alu(ld_or_alu),
-    .rd_alu(mem_alu_regDest),//in case of an ALU operation
     .rd_mem(mem_regDest), //in case of a memory opration
     .data_out(wb_dataOut),
     .is_ecall(is_ecall_mem),//wire the 'is_ecall' value to wb stage

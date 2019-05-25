@@ -526,7 +526,6 @@ end
       register_set[31]<= 64'b0;
     end
     else begin
-      is_mem_operation <= temp_is_mem_operation;
       curr_pc <= prog_counter;
       out_instr <= instr;
       regA <= rd_reg_A;
@@ -546,17 +545,19 @@ end
 //      reg_dest <= jmp_ctrl ? 0: next_reg_dest;
       dec_icache_hit_out <= dec_icache_hit;
       if (next_alustall || alustall) begin
-        opcode    <= jmp_ctrl ? 10'h00f: temp_opcode;
+        opcode    <=  10'h00f;
 //        uimm      <= 0;
 //        rd_data_A <= 0;
 //        rd_data_B <= 0;
 //        regB      <= 0;
+        is_mem_operation <= 0;
         if (wr_en & destn_reg != 0) begin
             register_set[destn_reg] <= destn_data;
             register_set[0] <= 0;
         end
       end
       else begin
+        is_mem_operation <= temp_is_mem_operation;
         uimm      <= temp_uimm;
         opcode    <= temp_opcode;
         rd_data_A <= register_set[rd_reg_A];

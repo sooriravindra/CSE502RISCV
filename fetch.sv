@@ -32,9 +32,12 @@ inc_pc(
         end
         is_updated = 0;
     end
-//    else if (alu_stall) begin
-//      next_pc = pc_in;
-//    end
+    /*
+    else if (alu_stall) begin
+        is_updated = 1;
+        update_pc = pc_in - 4;
+    end
+    */
   end
 endmodule
 

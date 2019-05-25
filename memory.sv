@@ -20,7 +20,6 @@ module memory
     // Output to writeback
     output [63:0] data_out,
     output [63:0] out_alu_result,
-    output [4:0] out_alu_rd,
     output [4:0] reg_dest,
     output [31:0] pc_from_mem,
     output is_ecall_mem,
@@ -58,9 +57,8 @@ always_ff @(posedge clk) begin
     //propagate the pc to wb stage
     pc_from_mem <= curr_pc; 
     out_alu_result <= in_alu_result;
-    out_alu_rd <= in_alu_rd;
+    reg_dest <= in_alu_rd;
     is_ecall_mem <= is_ecall_alu;
-
 
     // Cache outputs
     if (is_store) begin
