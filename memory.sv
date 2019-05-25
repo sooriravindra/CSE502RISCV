@@ -12,6 +12,7 @@ module memory
     input  [31:0] curr_pc,
     input  is_ecall_alu,
     input  [63:0] in_alu_mem_addr,
+    input  [5:0] mem_datasize,
     
     //flush
     input memory_flush,
@@ -33,6 +34,7 @@ module memory
     output cache_wr_en,
     output [63:0] cache_wr_addr,
     output [63:0] cache_rd_addr,
+    output [5:0] cache_datasize,
     output [63:0] cache_wr_value
 
 );
@@ -57,7 +59,7 @@ always_ff @(posedge clk) begin
     //propagate the pc to wb stage
     pc_from_mem <= curr_pc; 
     out_alu_result <= in_alu_result;
-    reg_dest <= in_alu_rd;
+    reg_dest <= 0;
     is_ecall_mem <= is_ecall_alu;
 
     // Cache outputs
@@ -65,10 +67,12 @@ always_ff @(posedge clk) begin
       cache_wr_en <= 1;
       cache_wr_addr <= in_alu_mem_addr;
       cache_wr_value <= in_alu_result;
+      cache_datasize <= mem_datasize;
     end 
     else if(is_load) begin
       cache_wr_en <= 0;
       cache_rd_addr <= in_alu_result;
+      cache_datasize <= mem_datasize;
     end 
 
 
@@ -93,7 +97,7 @@ always_ff @(posedge clk) begin
       mem_operation_complete <= 1;
     end
     // ALU operations
-    else if (!is_store & !is_load) begin
+    else if (!is_store & !is_load & !is_mem_busy) begin
       ld_or_alu <= 0;
       data_out <= in_alu_result;
       reg_dest <= memory_flush ? 5'b00000 : in_alu_rd;

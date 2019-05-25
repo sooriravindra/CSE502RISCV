@@ -229,29 +229,25 @@ always_comb begin
      
     opcode_lb   : begin
       is_load = 1;
-      quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{56{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
+      temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
       temp_datasize = DATA_8;
     end
     opcode_lh   : begin
       is_load = 1;
-      half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{48{half_temp_dest[15]}}, half_temp_dest[15:0]};
+      temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
       temp_datasize = DATA_16;
     end      
     opcode_lw   : begin
       is_load = 1;
-      word_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {{32{word_temp_dest[31]}}, word_temp_dest[31:0]};
+      temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
       temp_datasize = DATA_32;
     end      
     opcode_lbu : begin
       is_load = 1;
-      quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {24'h000000, quart_temp_dest[7:0]};
+      temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
       temp_datasize = DATA_8;
     end    
@@ -263,8 +259,7 @@ always_comb begin
     end
     opcode_lhu  : begin
       is_load = 1;
-      half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
-      temp_dest = {16'h0000, half_temp_dest[15:0]};
+      temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
       temp_datasize = DATA_16;
     end
