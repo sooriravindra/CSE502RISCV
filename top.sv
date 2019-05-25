@@ -104,6 +104,9 @@ module top
   logic [5:0] top_mem_datasize;
   logic [5:0] dcache_datasize;
   logic top_load_sign_extend;
+  //wires for cache invalidation
+  logic c_invalid_bit, dc_invalidate;
+  logic [63:0] c_invalid_addr, dc_invalidate_addr;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -155,7 +158,8 @@ module top
     .wr_en(top_mem_wr_en),
     .data_out(data_from_mem),
     .data_valid(data_mem_valid),
-    .invalidate_cache(),
+    .invalidate_cache(c_invalid_bit),
+    .invalidate_cache_addr(c_invalid_addr),
     .bus_respcyc(bus_respcyc),
     .bus_reqack(bus_reqack),
     .bus_resp(bus_resp),
@@ -181,11 +185,14 @@ module top
      .dcache_data_out(dcache_data), 
      .icache_operation_complete(icache_mem_req_complete),
      .dcache_operation_complete(dcache_mem_req_complete),
-
+    //data cache invalidation request
+     .dcache_invalidate(dc_invalidate),
+     .dcache_invalidate_addr(dc_invalidate_addr),
     //input from memory controller
      .data_from_mem(data_from_mem),
      .mem_data_valid(data_mem_valid),
-
+     .invalidate_cache(c_invalid_bit),
+     .invalidate_cache_addr(c_invalid_addr),
     //output to memory controller
      .mem_address(mem_addr),
      .mem_data_out(data_to_mem),
@@ -228,7 +235,9 @@ module top
     .mem_req(dcache_req),
     .mem_data_in(dcache_data),
     .mem_datasize(dcache_datasize),
-    .mem_data_valid(dcache_mem_req_complete)
+    .mem_data_valid(dcache_mem_req_complete),
+    .cache_invalid_bit(dc_invalidate),
+    .cache_invalid_bit_addr(dc_invalidate_addr)
  );
 
  //instantiate decoder

@@ -16,10 +16,16 @@ module arbiter
     output [511:0] dcache_data_out, 
     output icache_operation_complete,
     output dcache_operation_complete,
+    //cache invalidation instrux to datacache
+    output dcache_invalidate,
+    output [63:0] dcache_invalidate_addr,
 
     //input from memory controller
     input [511:0] data_from_mem,
     input mem_data_valid,
+    //cache invalidation request from mem_controller
+    input invalidate_cache,
+    input [63:0] invalidate_cache_addr,
 
     //output to memory controller
     output [63:0] mem_address,
@@ -43,8 +49,20 @@ logic [63:0] next_mem_address;
 logic next_icache_operation_complete;
 logic next_dcache_operation_complete;
 logic prev_wr_en;
+//handle data invalidation requests
+logic next_dcache_invalidate;
+logic [63:0] next_dcache_invalidate_addr;
 
 always_comb begin
+  
+    //cache invalidation handling
+    if (invalidate_cache == 1) begin
+	next_dcache_invalidate = 1;
+	next_dcache_invalidate_addr = invalidate_cache_addr;
+    end else begin
+	next_dcache_invalidate = 0;
+    end
+    //invalidation handling ::: end
     next_is_busy = is_busy;
     is_icache_req = prev_is_icache_req;
     is_dcache_req = prev_is_dcache_req;
@@ -104,6 +122,7 @@ always_comb begin
         next_icache_operation_complete = 0;
         next_dcache_operation_complete = 0;
     end
+
 end
 
 always_ff @(posedge clk) begin
@@ -117,6 +136,9 @@ always_ff @(posedge clk) begin
     dcache_operation_complete <= next_dcache_operation_complete;
     mem_address <= next_mem_address;
     prev_wr_en <= wr_en;
+    //send cache invalidation instrux to dcache
+    dcache_invalidate <= next_dcache_invalidate;
+    dcache_invalidate_addr <= next_dcache_invalidate_addr;
 end
 
 endmodule
