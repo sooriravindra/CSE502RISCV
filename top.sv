@@ -103,6 +103,7 @@ module top
   logic [63:0] dcache_data_in;
   logic [5:0] top_mem_datasize;
   logic [5:0] dcache_datasize;
+  logic top_load_sign_extend;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -282,6 +283,7 @@ module top
     .alu_flush(top_flush | top_jmp),
     .alu_icache_hit(dec_out_got_inst),
     .mem_datasize(top_mem_datasize),
+    .load_sign_extend(top_load_sign_extend),
     .alu_load(alu_is_load)
  );
 
@@ -303,6 +305,7 @@ module top
       .memory_flush(top_flush),
       .is_mem_busy(is_mem_busy),
       .out_alu_result(mem_alu_dataout),
+      .mem_load_sign_extend(top_load_sign_extend),
       .cache_operation_complete(data_ready),
       .cache_wr_en(dcache_wr_en),
       .cache_wr_addr(dcache_wr_addr),

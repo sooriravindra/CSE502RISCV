@@ -13,6 +13,7 @@ module memory
     input  is_ecall_alu,
     input  [63:0] in_alu_mem_addr,
     input  [5:0] mem_datasize,
+    input  mem_load_sign_extend,
     
     //flush
     input memory_flush,
@@ -41,6 +42,7 @@ module memory
 
 logic [4:0] mem_reg_dest;
 logic load_operation;
+logic is_load_sign_extend;
 always_comb begin
     // is_mem_busy
     if ((is_store | is_load) & !cache_operation_complete) begin
@@ -82,13 +84,51 @@ always_ff @(posedge clk) begin
     if (is_load) begin
       mem_reg_dest <= memory_flush ? 5'b00000 : in_alu_rd; 
       load_operation <= 1;
+      is_load_sign_extend <= mem_load_sign_extend;
     end 
     // Memory operations
     if(cache_operation_complete) begin
       ld_or_alu <= 1;
       if (load_operation) begin
       	reg_dest <= memory_flush ? 5'b00000 : mem_reg_dest; 
-      	data_out <= cache_data;
+        if (is_load_sign_extend) begin
+            case (cache_datasize)
+                DATA_8: begin
+                    data_out <= {{56{cache_data[7]}},cache_data[7:0]};
+                end
+                DATA_16: begin
+                    data_out <= {{48{cache_data[15]}},cache_data[15:0]};
+                end
+                DATA_32: begin
+                    data_out <= {{32{cache_data[31]}},cache_data[31:0]};
+                end
+                DATA_64: begin
+                    data_out <= cache_data;
+                end
+                default: begin
+                    data_out <= cache_data;
+                end
+            endcase
+        end
+        else begin
+            case (cache_datasize)
+                DATA_8: begin
+                    data_out <= {56'h0,cache_data[7:0]};
+                end
+                DATA_16: begin
+                    data_out <= {48'h0,cache_data[15:0]};
+                end
+                DATA_32: begin
+                    data_out <= {32'h0,cache_data[31:0]};
+                end
+                DATA_64: begin
+                    data_out <= cache_data;
+                end
+                default: begin
+                    data_out <= cache_data;
+                end
+            endcase
+        end
       end 
       else begin
       	reg_dest <= 0;

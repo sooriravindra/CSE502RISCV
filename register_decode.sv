@@ -183,7 +183,7 @@ module register_decode
        opcodeR2: begin
           //temp_opcode = "R";
           rd_reg_A = instr[19:15];
-          rd_reg_B = instr[31:20];
+          rd_reg_B = instr[24:20];
           next_reg_dest  = (decoder_flush || alustall) ? 5'b00000 :instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           case(instr[14:12])
@@ -235,7 +235,7 @@ module register_decode
           //temp_opcode = "I";
           rd_reg_A    = instr[19:15];
           next_reg_dest    = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
-          rd_reg_B    = instr[31:20];
+          rd_reg_B    = instr[24:20];
           temp_opcode = { instr[14:12], instr[6:0] };
           temp_is_mem_operation = 1;
           case(instr[14:12])
@@ -265,7 +265,7 @@ module register_decode
       end
       opcodeI3: begin
           rd_reg_A    = instr[19:15];
-          rd_reg_B    = $signed(instr[31:20]);
+          rd_reg_B    = instr[24:20];
           next_reg_dest = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
@@ -309,7 +309,7 @@ module register_decode
 
       opcodeI4: begin
           rd_reg_A = instr[19:15];
-          rd_reg_B = instr[31:20];
+          rd_reg_B    = instr[24:20];
           next_reg_dest  = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
           temp_opcode = { instr[14:12] , instr[6:0] };
           //temp_opcode = "I";
@@ -338,7 +338,7 @@ module register_decode
       opcodeS: begin
         //temp_opcode = "S";
         rd_reg_A    = instr[19:15];
-        rd_reg_B    = instr[31:20];
+        rd_reg_B    = instr[24:20];
         next_reg_dest = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
         temp_is_mem_operation = 1;
@@ -362,7 +362,7 @@ module register_decode
       opcodeSB: begin
         //temp_opcode = "SB";
         rd_reg_A    = instr[19:15];
-        rd_reg_B    = {instr[31], instr[7], instr[30:25], instr[11:8]};
+        rd_reg_B    = instr[24:20];
         next_reg_dest = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
         case(instr[14:12])
@@ -423,7 +423,7 @@ module register_decode
         next_reg_dest    = (alustall || decoder_flush) ? 5'b00000 : instr[11:7];
         temp_uimm   = 0;//{instr[31], instr[19:12], instr[20], instr[30:21]};
         temp_opcode = {instr[14:12], instr[6:0]};
-        rd_reg_B    = instr[31:20];
+        rd_reg_B    = instr[24:20];
         rd_reg_A    = instr[19:15];
 //        $display("JALR rd, rs1, 0x%h", $signed(instr[31:20]));
       end
@@ -433,7 +433,7 @@ module register_decode
         next_reg_dest    = 5'b00000;
         temp_opcode = {instr[14:12], instr[6:0]};
         rd_reg_A    = 5'b00000;
-        rd_reg_B    = instr[31:20];
+        rd_reg_B    = instr[24:20];
         case(instr[14:12])
           3'b000: begin
 //            $display("FENCE 0x%h", $signed(rd_reg_B));
@@ -447,7 +447,7 @@ module register_decode
       opcodeSY: begin
         next_reg_dest    = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
         rd_reg_A    = instr[19:15];
-        rd_reg_B    = instr[31:20];
+        rd_reg_B    = instr[24:20];
         temp_opcode = {instr[14:12], instr[6:0]};
         case(instr[14:12])
           3'b000: begin

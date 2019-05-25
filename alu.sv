@@ -25,6 +25,7 @@ module alu
     output wr_en,
     output alu_load,
     output [5:0] mem_datasize,
+    output load_sign_extend,
     output [31:0] pc_from_alu
 );
 
@@ -92,6 +93,8 @@ logic [31:0] auipc_word;
 logic is_store, tmp_jmp, is_load;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64, tmp_pc, tmp_jalr;
+logic next_load_extend;
+logic [4:0] temp_regDest;
 enum_datasize temp_datasize;
 always_ff @(posedge clk) begin
   if(reset) begin
@@ -111,16 +114,17 @@ always_ff @(posedge clk) begin
     alu_store <= is_store;
     alu_load <= is_load;
     mem_datasize <= temp_datasize;
+    load_sign_extend <= next_load_extend;
         
     if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
-      aluRegDest <= (opcode == opcode_fence || alu_flush) ? 0 : regDest;
+      aluRegDest <= (opcode == opcode_fence || alu_flush) ? 0 : temp_regDest;
       mem_out <= 0;
       wr_en <= 1;
     end 
     else if (sign_extend == 0 && is_store == 0) begin
       data_out <= temp_dest;
-      aluRegDest <= (opcode == opcode_fence || alu_flush) ? 0 : regDest;
+      aluRegDest <= (opcode == opcode_fence || alu_flush) ? 0 : temp_regDest;
       mem_out <= 0;
       wr_en <= 1;
     end 
@@ -134,6 +138,7 @@ always_ff @(posedge clk) begin
 end
 
 always_comb begin
+  temp_regDest = regDest;
   temp_datasize = 0;
   is_store = 0;
   is_load = 0;
@@ -148,6 +153,7 @@ always_comb begin
   sign_extend = 0;
   tmp_pc = i_pc + 4;
   is_ecall = 0;
+  next_load_extend = 0;
   casex (opcode)
   /* After WP2 */
     opcode_lui  : begin
@@ -174,56 +180,50 @@ always_comb begin
     end
     opcode_beq  : begin
       if (regA_value == regB_value) begin
-        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_jmp = 1;
+        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
       end
-      else begin
-        temp_dest = i_pc + 4;
-      end
+      temp_regDest = 0;
       sign_extend = 0;      
     end
     opcode_bne  : begin
       if (regA_value != regB_value) begin
-        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_jmp = 1;
       end
-      else begin
-        temp_dest = i_pc + 4;
-      end
+      temp_regDest = 0;
       sign_extend = 0;      
     end
     opcode_blt  : begin
       if ($signed(regA_value) < $signed(regB_value)) begin
-        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_jmp = 1;
       end
-      else begin
-        temp_dest = i_pc + 4;
-      end
+      temp_regDest = 0;
       sign_extend = 0;      
     end
     opcode_bge  : begin
       if ($signed(regA_value) >= $signed(regB_value)) begin
-        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_jmp = 1;
       end
-      else begin
-        temp_dest = i_pc + 4;
-      end
+      temp_regDest = 0;
       sign_extend = 0;      
     end
     opcode_bltu : begin
       if (regA_value < regB_value) begin
-        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_jmp = 1;
       end
-      else begin
-        temp_dest = i_pc + 4;
-      end
+      temp_regDest = 0;
       sign_extend = 0;      
     end
     opcode_bgeu : begin
       if (regA_value >= regB_value) begin
-        temp_dest = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_pc = i_pc + (({regB[11], regDest[0], regB[10:5], regDest[4:1]}) * 2);
+        tmp_jmp = 1;
       end
-      else begin
-        temp_dest = i_pc + 4;
-      end
+      temp_regDest = 0;
       sign_extend = 0;
     end
      
@@ -232,18 +232,21 @@ always_comb begin
       temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
       temp_datasize = DATA_8;
+      next_load_extend = 1;
     end
     opcode_lh   : begin
       is_load = 1;
       temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
       temp_datasize = DATA_16;
+      next_load_extend = 1;
     end      
     opcode_lw   : begin
       is_load = 1;
       temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
       temp_datasize = DATA_32;
+      next_load_extend = 1;
     end      
     opcode_lbu : begin
       is_load = 1;
