@@ -107,7 +107,9 @@ module top
 
   always_comb begin
       next_decoder_pc = pc;
-      next_stall_pc = pc - 4;
+      if (!top_flush) begin
+          next_stall_pc = pc - 4;
+      end
   end
   always_ff @ (posedge clk) begin
       if (reset) begin
@@ -199,7 +201,7 @@ module top
     .r_addr(pc),
     .w_addr(0),
     .rst(reset),
-    .enable(!top_stall && !top_stop_instruction),
+    .enable(!top_stall && !top_stop_instruction && !top_flush),
     .data_out(icache_instr),
     .operation_complete(got_inst),
     .mem_address(icache_address),

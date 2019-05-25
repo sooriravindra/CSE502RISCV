@@ -484,10 +484,13 @@ module register_decode
     || ((wbRegDest == rd_reg_A || wbRegDest == rd_reg_B) && (wbRegDest != 0))
     || is_mem_busy)
   begin
-    next_alustall = 1;
+      next_alustall = 0;
+      if (!decoder_flush) begin
+          next_alustall = 1;
+      end
   end
   else begin
-    next_alustall = 0;
+      next_alustall = 0;
   end
 end
 
