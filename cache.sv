@@ -36,7 +36,12 @@ cache
        
        // In from arbiter
        input  [BLOCKSZ-1:0]     mem_data_in,
-       input                    mem_data_valid
+       input                    mem_data_valid,
+
+       //cache invalidation request from mem_controller
+       //coming via arbiter
+       input cache_invalid_bit,
+       input [63:0] cache_invalid_bit_addr
 
 );
 enum {INIT, BUSY, FOUND, REQ_BUS, UPDATE_CACHE, START_WRITE} c_state = INIT, c_next_state;
@@ -61,13 +66,20 @@ always_comb begin
         next_mem_req = 0;
         next_mem_wr_en = 0;
         temp_mem_fetch = 0;
+	//cache invalidation logic :: start
+	//match the tag at proper index
+	if(cachetag[cache_invalid_bit_addr[/*IDXBITS*/14:6]] == cache_invalid_bit_addr[/*TAGBITS*/63:15]) begin
+		//put down the valid bit
+		cachestate[cache_invalid_bit_addr[/*IDXBITS*/14:6]] = 1;
+	end
+	//cache invalidation logic :: end
     end
     BUSY : begin
         if (wr_en) begin
             //mem_wr_en    = 1; // Will do this after reading if needed
             //mem_data_out = data_in;
             // Treat all writes as Cache hits
-            if ((cachestate[w_addr[/*IDXBITS*/14:6]] == 1) & 
+            if ((cachestate[w_addr[/*IDXBITS*/14:6]] == 1) & /*14-6 is 9 bits: 2^9 = 512*/
                 (cachetag[w_addr[/*IDXBITS*/14:6]] == w_addr[63:15/*TAGBITS*/])) begin
                 c_hit = 1;
             end

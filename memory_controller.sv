@@ -16,7 +16,9 @@ module memory_controller
     //output data and signal to arbiter
     output [511:0] data_out,
     output data_valid,
+    //in case it encounters a cache invalidation req
     output invalidate_cache,
+    output [BUS_DATA_WIDTH-1:0] invalidate_cache_addr,
 
     // interface to connect to the bus follow:
 
@@ -37,6 +39,7 @@ module memory_controller
 logic [511:0] temp_data_out;
 logic next_data_valid;
 logic next_invalidate_cache;
+logic [BUS_DATA_WIDTH-1:0] next_invalidate_cache_addr;
 integer count, next_count;
 integer send_count, next_send_count;
 enum {
@@ -85,6 +88,7 @@ always_ff @ (posedge clk) begin
         b_state <= INIT_REQUEST;
         count <= 0;
         invalidate_cache <= 0;
+	invalidate_cache_addr <= 0;
     end
     else begin
         b_state <= b_next_state;
@@ -92,6 +96,7 @@ always_ff @ (posedge clk) begin
         send_count <= next_send_count;
         data_valid <= next_data_valid;
         invalidate_cache <= next_invalidate_cache;
+	invalidate_cache_addr <= next_invalidate_cache_addr;
         data_out <= temp_data_out;
     end
 end
@@ -109,6 +114,12 @@ always_comb begin
                 end
                 next_data_valid = 0;
             end
+	    //cache invalidation on receiving bus resptag == 800 :: start
+	    if(bus_resptag == 12'h800) begin
+		//send the control to INVALIDATE_REQ stage
+		b_next_state = INVALIDATE_REQ;
+	    end
+	    //cache invalidation on receiving bus resptag == 800 :: end
         end
         WAIT_RESP: begin
             if (bus_respcyc) begin
@@ -122,6 +133,12 @@ always_comb begin
                     temp_data_out = 0;
                 end
             end
+	    //cache invalidation on receiving bus resptag == 800 :: start
+	    if(bus_resptag == 12'h800) begin
+		//send the control to INVALIDATE_REQ stage
+		b_next_state = INVALIDATE_REQ;
+	    end
+	    //cache invalidation on receiving bus resptag == 800 :: end
         end
         GOT_RESP: begin
             if ((bus_respcyc & !next_data_valid) | (bus_respcyc == 0 & count == 7)) begin
@@ -151,6 +168,10 @@ always_comb begin
         end
         INVALIDATE_REQ: begin
             next_invalidate_cache = 1;
+	    //send the target addr bus_resp to output for invalidation
+	    //the target address in the last 64 bits of the bus_resp
+	    //we read that into temp_data_out
+	    next_invalidate_cache_addr = bus_resp[BUS_DATA_WIDTH-1:0]; 
         end
         default: begin
             b_next_state = INIT_REQUEST;
