@@ -72,7 +72,6 @@ always_comb begin
         is_dcache_req = 0;
         next_is_busy = 1;
         next_mem_address = icache_address;
-        mem_data_out = 0;
         next_mem_req = 1;
     end
     else if (dcache_req == 1 & next_is_busy == 0) begin
@@ -80,9 +79,9 @@ always_comb begin
         is_dcache_req = 1;
         next_is_busy = 1;
         next_mem_address = dcache_address;
-        mem_data_out = data_in;
         next_mem_req = 1;
     end
+    mem_data_out = data_in;
 
     if (dcache_req & wr_en) begin
         mem_wr_en = 1;

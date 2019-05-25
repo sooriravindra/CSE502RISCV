@@ -137,7 +137,7 @@ always_comb begin
         end
         SEND_DATA: begin
             if (bus_reqack) begin
-                if (send_count == 8) begin
+                if (send_count >= 8) begin
                     bus_reqcyc = 0;
                     b_next_state = INIT_REQUEST;
                     next_data_valid = 1;

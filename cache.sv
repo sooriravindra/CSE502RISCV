@@ -230,6 +230,10 @@ always_comb begin
             end
         end
     endcase
+    // Is this needed ?
+    if (!enable) begin
+        c_next_state = INIT;
+    end
 end
 
 endmodule
