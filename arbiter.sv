@@ -119,6 +119,8 @@ always_comb begin
     if (invalidate_cache == 1) begin
 	next_dcache_invalidate = 1;
 	next_dcache_invalidate = invalidate_cache_addr;
+    end else begin
+	next_dcache_invalidate = 0;
     end
 end
 
