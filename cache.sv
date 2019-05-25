@@ -68,10 +68,12 @@ always_comb begin
         temp_mem_fetch = 0;
 	//cache invalidation logic :: start
 	//match the tag at proper index
-	if(cachetag[cache_invalid_bit_addr[/*IDXBITS*/14:6]] == cache_invalid_bit_addr[/*TAGBITS*/63:15]) begin
-		//put down the valid bit
-		cachestate[cache_invalid_bit_addr[/*IDXBITS*/14:6]] = 1;
-	end
+	if(cache_invalid_bit == 1) begin 
+		if(cachetag[cache_invalid_bit_addr[/*IDXBITS*/14:6]] == cache_invalid_bit_addr[/*TAGBITS*/63:15]) begin
+			//put down the valid bit
+			cachestate[cache_invalid_bit_addr[/*IDXBITS*/14:6]] = 1;
+		end
+	end 
 	//cache invalidation logic :: end
     end
     BUSY : begin
