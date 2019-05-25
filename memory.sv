@@ -31,7 +31,6 @@ module memory
     input  cache_operation_complete,
 
     // Output to cache
-    output cache_enable,
     output cache_wr_en,
     output [63:0] cache_wr_addr,
     output [63:0] cache_rd_addr,
@@ -41,6 +40,15 @@ module memory
 
 logic [4:0] mem_reg_dest;
 logic load_operation;
+always_comb begin
+    // is_mem_busy
+    if ((is_store | is_load) & !cache_operation_complete) begin
+        is_mem_busy = 1;
+    end 
+    else if (cache_operation_complete) begin
+        is_mem_busy  = 0;
+    end
+end
 always_ff @(posedge clk) begin
   if(rst) begin
     //rest the pc
@@ -65,15 +73,6 @@ always_ff @(posedge clk) begin
       cache_rd_addr <= in_alu_result;
     end 
 
-    // is_mem_busy
-    if ((is_store | is_load) & !cache_operation_complete) begin
-      cache_enable <= 1;
-      is_mem_busy <= 1;
-    end 
-    else if (cache_operation_complete) begin
-        is_mem_busy <= 0;
-        cache_enable <= 0;
-    end
 
 
 

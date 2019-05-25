@@ -127,6 +127,10 @@ always_ff @(posedge clk) begin
     else if (c_state == REQ_BUS) begin
       mem_fetch <= temp_mem_fetch;
     end
+    else if(c_state == FOUND && wr_en) begin
+        cachedata[w_addr[14:6/*IDXBITS*/]][(w_addr[5:0/*OFFBITS*/]*8)+:64] <= data_in;
+        $display("HERE");
+    end
     else begin
       mem_fetch <= 0;
     end
@@ -159,6 +163,7 @@ always_ff @(posedge clk) begin
     end
     mem_req <= next_mem_req;
     mem_wr_en <= next_mem_wr_en;
+    mem_data_out <= next_mem_data_out;
 
   end
 end

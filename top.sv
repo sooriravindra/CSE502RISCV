@@ -101,6 +101,7 @@ module top
   logic top_mem_operation_complete;
   logic [511:0] data_to_mem;
   logic top_mem_wr_en;
+  logic [63:0] dcache_data_in;
 
   always_comb begin
       next_decoder_pc = pc;
