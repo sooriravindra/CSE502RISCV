@@ -92,6 +92,11 @@ always_comb begin
             end
         end
     end
+    START_WRITE: begin
+            next_mem_req = 1;
+            next_mem_wr_en = 1;
+            next_mem_data_out = cachedata[w_addr[14:6/*IDXBITS*/]];
+    end
     FOUND : begin
         if (!wr_en) begin
             final_value = cachedata[r_addr[14:6/*IDXBITS*/]][(r_addr[5:0/*OFFBITS*/]*8)+:64];
@@ -138,7 +143,7 @@ always_ff @(posedge clk) begin
     //end
     //else 
 
-    if (pass) begin
+    if (pass & enable) begin
         data_out <= final_value;
     end
     else begin
@@ -146,7 +151,12 @@ always_ff @(posedge clk) begin
     end
 
     c_state <= c_next_state;
-    operation_complete <= pass;
+    if (enable) begin
+        operation_complete <= pass;
+    end
+    else begin
+        operation_complete <= 0;
+    end
     mem_req <= next_mem_req;
     mem_wr_en <= next_mem_wr_en;
 
@@ -175,17 +185,12 @@ always_comb begin
               pass = 1;
               c_next_state = INIT;
             end
-            else if (mem_data_valid) begin
-                c_next_state = START_WRITE;
-            end
             else begin
-              pass = 0;
+                c_next_state = START_WRITE;
+                pass = 0;
             end
         end
         START_WRITE: begin
-            next_mem_req = 1;
-            next_mem_wr_en = 1;
-            next_mem_data_out = cachedata[w_addr[14:6/*IDXBITS*/]];
             if (mem_data_valid) begin
                 c_next_state = INIT;
                 pass = 1;

@@ -11,6 +11,7 @@ module memory
     input  is_load,
     input  [31:0] curr_pc,
     input  is_ecall_alu,
+    input  [63:0] in_alu_mem_addr,
     
     //flush
     input memory_flush,
@@ -24,6 +25,7 @@ module memory
     output [31:0] pc_from_mem,
     output is_ecall_mem,
     output ld_or_alu,
+    output mem_operation_complete,
     // Input from cache
     input  [63:0] cache_data,
     input  cache_operation_complete,
@@ -55,8 +57,8 @@ always_ff @(posedge clk) begin
     // Cache outputs
     if (is_store) begin
       cache_wr_en <= 1;
-      cache_wr_addr <= in_alu_result;
-      cache_wr_value <= regB_value;
+      cache_wr_addr <= in_alu_mem_addr;
+      cache_wr_value <= in_alu_result;
     end 
     else if(is_load) begin
       cache_wr_en <= 0;
@@ -91,12 +93,17 @@ always_ff @(posedge clk) begin
       	reg_dest <= 0;
       end
       load_operation <= 0;
+      mem_operation_complete <= 1;
     end
     // ALU operations
     else if (!is_store & !is_load) begin
       ld_or_alu <= 0;
       data_out <= in_alu_result;
       reg_dest <= memory_flush ? 5'b00000 : in_alu_rd;
+      mem_operation_complete <= 0;
+    end
+    else begin
+      mem_operation_complete <= 0;
     end
   end
 end

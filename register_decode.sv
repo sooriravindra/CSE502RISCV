@@ -41,11 +41,7 @@ module register_decode
     output [IMMREG - 1:0]   regB,
     output alustall,
     output dec_icache_hit_out,
-    //to differentiate between alu and memory ops, we need the below flag
-    //as of now, this is made forcefully low, to indicate that the wb stage
-    //only would read inputs from ALU result. Once the memory is implemented,
-    //we would have to make this flag conditional. 
-    output [63:0] ecall_reg_val [7:0]//this logic would hold eight reg of 64 bits each 
+    output is_mem_operation
 );
     enum
     {
@@ -71,12 +67,14 @@ module register_decode
     logic [UIMM -1:0] temp_uimm;
     logic next_alustall, jmp_ctrl;
     logic [REGBITS - 1:0]  next_reg_dest;
+    logic temp_is_mem_operation;
 
   always_comb begin
     OPS = instr[6:0];
     temp_regB   = instr[31:20];
     rd_reg_A    = 0;
     rd_reg_B    = 0;
+    temp_is_mem_operation = 0;
     case(OPS)
         opcodeR1: begin
           //temp_opcode = "R";
@@ -239,6 +237,7 @@ module register_decode
           next_reg_dest    = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
           rd_reg_B    = instr[31:20];
           temp_opcode = { instr[14:12], instr[6:0] };
+          temp_is_mem_operation = 1;
           case(instr[14:12])
               3'b000: begin
 //                  $display("LB rd, %d(rs1)", $signed(instr[31:20]));
@@ -342,6 +341,7 @@ module register_decode
         rd_reg_B    = instr[31:20];
         next_reg_dest = (decoder_flush || alustall) ? 5'b00000 : instr[11:7];
         temp_opcode = { instr[14:12] , instr[6:0] };
+        temp_is_mem_operation = 1;
         case(instr[14:12])
           3'b000: begin
 //            $display("SB rs2, %d(rs1)", $signed({instr[31:25],instr[11:7]}));
@@ -526,6 +526,7 @@ end
       register_set[31]<= 64'b0;
     end
     else begin
+      is_mem_operation <= temp_is_mem_operation;
       curr_pc <= prog_counter;
       out_instr <= instr;
       regA <= rd_reg_A;

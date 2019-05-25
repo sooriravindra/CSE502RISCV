@@ -34,10 +34,11 @@ module memory_controller
 
 );
 
-logic [511:0] data_out;
+logic [511:0] temp_data_out;
 logic next_data_valid;
 logic next_invalidate_cache;
 integer count, next_count;
+integer send_count, next_send_count;
 enum {
     IDLE,
     INIT_REQUEST, 
@@ -69,10 +70,11 @@ always_comb begin
         GOT_RESP: begin
             bus_respack = 1;
         end
+        SEND_DATA: begin
+        end
         default: begin
             bus_req     = in_address;
             bus_reqtag  = {`SYSBUS_READ, `SYSBUS_MEMORY, 8'h00};
-            bus_reqcyc  = 0;
             bus_reqcyc  = 0;
             bus_respack = 0;
         end
@@ -87,8 +89,10 @@ always_ff @ (posedge clk) begin
     else begin
         b_state <= b_next_state;
         count <= next_count;
+        send_count <= next_send_count;
         data_valid <= next_data_valid;
         invalidate_cache <= next_invalidate_cache;
+        data_out <= temp_data_out;
     end
 end
 
@@ -99,6 +103,7 @@ always_comb begin
                 next_count = 0;
                 if (wr_en) begin
                     b_next_state = SEND_DATA;
+                    next_send_count = 0;
                 end else begin
                     b_next_state = WAIT_RESP;
                 end
@@ -110,18 +115,18 @@ always_comb begin
                 b_next_state = GOT_RESP;
                 next_data_valid = 0;
                 if (count == 0) begin
-                    data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
+                    temp_data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
                     next_count = count + 1;
                 end
                 else begin
-                    data_out = 0;
+                    temp_data_out = 0;
                 end
             end
         end
         GOT_RESP: begin
             if ((bus_respcyc & !next_data_valid) | (bus_respcyc == 0 & count == 7)) begin
                 if (count < 8) begin
-                    data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
+                    temp_data_out[count*BUS_DATA_WIDTH +: BUS_DATA_WIDTH] = bus_resp[BUS_DATA_WIDTH - 1 : 0];
                     next_count = count + 1;
                 end
             end
@@ -130,11 +135,25 @@ always_comb begin
                 b_next_state = INIT_REQUEST;
             end
         end
-        default: begin
-            b_next_state = INIT_REQUEST;
+        SEND_DATA: begin
+            if (bus_reqack) begin
+                if (send_count == 8) begin
+                    bus_reqcyc = 0;
+                    b_next_state = INIT_REQUEST;
+                    next_data_valid = 1;
+                end
+                else begin
+                    bus_reqcyc = 1;
+                    bus_req = data_in[send_count*BUS_DATA_WIDTH+: BUS_DATA_WIDTH];
+                    next_send_count = send_count + 1;
+                end
+            end
         end
         INVALIDATE_REQ: begin
             next_invalidate_cache = 1;
+        end
+        default: begin
+            b_next_state = INIT_REQUEST;
         end
     endcase
 end

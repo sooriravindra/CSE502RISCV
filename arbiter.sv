@@ -42,6 +42,7 @@ logic [511:0] next_dcache_data_out;
 logic [63:0] next_mem_address;
 logic next_icache_operation_complete;
 logic next_dcache_operation_complete;
+logic prev_wr_en;
 
 always_comb begin
     next_is_busy = is_busy;
@@ -49,6 +50,9 @@ always_comb begin
     is_dcache_req = prev_is_dcache_req;
     if(next_is_busy) begin
         next_mem_req = 0;
+        if (wr_en & !prev_wr_en) begin
+            next_mem_req = 1;
+        end
     end
     if(!dcache_req && !icache_req) begin
         next_is_busy = 0;
@@ -59,6 +63,10 @@ always_comb begin
     if(!icache_req) begin
         is_icache_req = 0;
     end
+    // Neither is being served, hence not busy
+    if(is_icache_req == 0 && is_dcache_req == 0) begin
+        next_is_busy = 0;
+    end
     if (icache_req == 1 & next_is_busy == 0) begin
         is_icache_req = 1;
         is_dcache_req = 0;
@@ -66,7 +74,6 @@ always_comb begin
         next_mem_address = icache_address;
         mem_data_out = 0;
         next_mem_req = 1;
-        mem_wr_en = 0;
     end
     else if (dcache_req == 1 & next_is_busy == 0) begin
         is_icache_req = 0;
@@ -75,12 +82,16 @@ always_comb begin
         next_mem_address = dcache_address;
         mem_data_out = data_in;
         next_mem_req = 1;
-        mem_wr_en = wr_en;
     end
     else begin
-        next_mem_req = 0;
-        mem_wr_en = 0;
         mem_data_out = 0;
+    end
+
+    if (dcache_req & wr_en) begin
+        mem_wr_en = 1;
+    end
+    else begin
+        mem_wr_en = 0;
     end
 
     if (mem_data_valid == 1 & is_icache_req == 1) begin
@@ -109,6 +120,7 @@ always_ff @(posedge clk) begin
     icache_operation_complete <= next_icache_operation_complete;
     dcache_operation_complete <= next_dcache_operation_complete;
     mem_address <= next_mem_address;
+    prev_wr_en <= wr_en;
 end
 
 endmodule

@@ -75,7 +75,7 @@ module top
    */
   
   //logic to for the wb stage to differentiate between ALU and memory ops
-  logic ld_or_alu, top_jmp, alu_stall, alu_is_store;
+  logic ld_or_alu, top_jmp, top_stall, alu_is_store;
   //logic to detect and write 'ECALL' during writeback stage
   logic is_ecall_alu; 
   logic is_ecall_mem;
@@ -90,12 +90,17 @@ module top
 
   logic icache_mem_req_complete;
   logic dcache_mem_req_complete;
-  logic dcache_wren;
+  logic arbiter_wr_en;
   logic top_flush, dec_out_got_inst;
   logic is_mem_busy;
   logic [BLOCKSZ-1:0] dcache_dataout;
   logic [63:0] mem_dcache_data;
   logic [63:0] mem_data_out;
+  logic top_is_mem_operation;
+  logic top_stop_instruction;
+  logic top_mem_operation_complete;
+  logic [511:0] data_to_mem;
+  logic top_mem_wr_en;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -113,6 +118,12 @@ module top
           end
           decoder_pc <= next_decoder_pc;
       end
+      if (top_is_mem_operation) begin 
+          top_stop_instruction <= 1;
+      end
+      if (top_mem_operation_complete) begin
+          top_stop_instruction <= 0;
+      end
   end
 
   inc_pc pc_add(
@@ -120,7 +131,7 @@ module top
     .jmp_target(alu_target),
     .next_pc(next_pc),
     .is_jmp(top_jmp),
-    .alu_stall(alu_stall),
+    .alu_stall(top_stall),
     .sig_recvd(got_inst),
     .pc_from_flush(pc_after_flush),
     .fetch_flush(top_flush)
@@ -130,17 +141,20 @@ module top
     .clk(clk),
     .rst(reset),
     .in_address(mem_addr),
+    .data_in(data_to_mem),
     .start_req(mem_req),
+    .wr_en(top_mem_wr_en),
     .data_out(data_from_mem),
     .data_valid(data_mem_valid),
-    .bus_reqcyc(bus_reqcyc),
-    .bus_respack(bus_respack),
-    .bus_req(bus_req),
-    .bus_reqtag(bus_reqtag),
+    .invalidate_cache(),
     .bus_respcyc(bus_respcyc),
     .bus_reqack(bus_reqack),
     .bus_resp(bus_resp),
-    .bus_resptag(bus_resptag)
+    .bus_resptag(bus_resptag),
+    .bus_reqcyc(bus_reqcyc),
+    .bus_respack(bus_respack),
+    .bus_req(bus_req),
+    .bus_reqtag(bus_reqtag)
   );
 
  arbiter arbiter_instance(
@@ -151,7 +165,7 @@ module top
      .dcache_address(dcache_address),
      .icache_req(icache_req),
      .dcache_req(dcache_req),
-     .wr_en(dcache_wren),
+     .wr_en(arbiter_wr_en),
      .data_in(dcache_dataout),
     // output to indicate operation complete to caches
      .icache_data_out(icache_data),
@@ -167,18 +181,18 @@ module top
      .mem_address(mem_addr),
      .mem_data_out(data_to_mem),
      .mem_req(mem_req),
-     .mem_wr_en(mem_wr_en)
+     .mem_wr_en(top_mem_wr_en)
 
  );
 
- cache instcache(
+ cache instructioncache(
     .clk(clk),
     .wr_en(0),
     .data_in(0),
     .r_addr(pc),
     .w_addr(0),
     .rst(reset),
-    .enable(!alu_stall),
+    .enable(!top_stall && !top_stop_instruction),
     .data_out(icache_instr),
     .operation_complete(got_inst),
     .mem_address(icache_address),
@@ -200,7 +214,7 @@ module top
     .operation_complete(data_ready),
     .mem_address(dcache_address),
     .mem_data_out(dcache_dataout),
-    .mem_wr_en(wr_data),
+    .mem_wr_en(arbiter_wr_en),
     .mem_req(dcache_req),
     .mem_data_in(dcache_data),
     .mem_data_valid(dcache_mem_req_complete)
@@ -224,15 +238,15 @@ module top
     .curr_pc(curr_pc),
     .out_instr(alu_instr),
     .regB(decoder_regB),
-    .ecall_reg_val(ecall_reg_set),
     .regA(decoder_regA),
     .aluRegDest(alu_regDest),
     .memRegDest(mem_regDest),
     .wbRegDest(wb_regDest),
-    .alustall(alu_stall),
+    .alustall(top_stall),
     .decoder_flush(top_flush | top_jmp),
     .dec_icache_hit(got_inst),
     .dec_icache_hit_out(dec_out_got_inst),
+    .is_mem_operation(top_is_mem_operation),
     .icache_fetch_miss(icache_mem_fetch)
  );
 
@@ -267,6 +281,7 @@ module top
       .rst(reset),
       .in_alu_result(alu_dataout),
       .in_alu_rd(alu_regDest),
+      .in_alu_mem_addr(wr_to_mem),
       .out_alu_rd(mem_alu_regDest),
       .regB_value(alu_regb_val),
       .is_store(alu_is_store),
@@ -286,6 +301,7 @@ module top
       .cache_rd_addr(dcache_rd_addr),
       .cache_wr_value(dcache_data_in),
       .cache_data(mem_dcache_data),
+      .mem_operation_complete(top_mem_operation_complete),
       .ld_or_alu(ld_or_alu)
   );
 
