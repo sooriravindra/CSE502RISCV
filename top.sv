@@ -102,6 +102,7 @@ module top
   logic [511:0] data_to_mem;
   logic top_mem_wr_en;
   logic [63:0] dcache_data_in;
+  enum_datasize top_mem_datasize;
 
   always_comb begin
       next_decoder_pc = pc;
@@ -200,6 +201,7 @@ module top
     .mem_req(icache_req),
     .mem_data_in(icache_data),
     .mem_data_valid(icache_mem_req_complete),
+    .mem_datasize(DATA_32),
     .mem_fetch(icache_mem_fetch)
  );
 
@@ -218,6 +220,7 @@ module top
     .mem_wr_en(arbiter_wr_en),
     .mem_req(dcache_req),
     .mem_data_in(dcache_data),
+    .mem_datasize(top_mem_datasize),
     .mem_data_valid(dcache_mem_req_complete)
  );
 
@@ -274,6 +277,7 @@ module top
     .pc_from_alu(pc_alu),
     .alu_flush(top_flush | top_jmp),
     .alu_icache_hit(dec_out_got_inst),
+    .mem_datasize(top_mem_datasize),
     .alu_load(alu_is_load)
  );
 

@@ -32,4 +32,5 @@
 //	
 //} dec_inst;
 logic [63:0] register_set [31:0]; // (32 registers of 64 bit each) 
+typedef enum {DATA_64=0, DATA_32=32, DATA_16=48, DATA_8=56} enum_datasize;
 `endif

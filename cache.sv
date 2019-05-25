@@ -1,7 +1,6 @@
 //`define IDXBITS 14:6
 //`define TAGBITS 63:15
 //`define OFFBITS 5:
-typedef enum {DATA_64, DATA_32, DATA_16} enum_datasize;
 module 
 cache
 #(
@@ -21,7 +20,7 @@ cache
        input                   enable,
        input                   wr_en,
        input [WIDTH-1:0]       data_in,
-       input [2:0]              data_size,
+       input [5:0]             mem_datasize,
        input [ADDRESSSIZE-1:0] r_addr,
        input [ADDRESSSIZE-1:0] w_addr,
 
@@ -128,7 +127,20 @@ always_ff @(posedge clk) begin
       mem_fetch <= temp_mem_fetch;
     end
     else if(c_state == FOUND && wr_en) begin
-        cachedata[w_addr[14:6/*IDXBITS*/]][(w_addr[5:0/*OFFBITS*/]*8)+:64] <= data_in;
+        case(mem_datasize)
+            DATA_8 : begin
+                cachedata[w_addr[14:6/*IDXBITS*/]][(w_addr[5:0/*OFFBITS*/]*8)+:8] <= (data_in & (64'hffffffffffffffff >> mem_datasize));
+            end
+            DATA_16: begin
+                cachedata[w_addr[14:6/*IDXBITS*/]][(w_addr[5:0/*OFFBITS*/]*8)+:16] <= (data_in & (64'hffffffffffffffff >> mem_datasize));
+            end
+            DATA_32: begin
+                cachedata[w_addr[14:6/*IDXBITS*/]][(w_addr[5:0/*OFFBITS*/]*8)+:32] <= (data_in & (64'hffffffffffffffff >> mem_datasize));
+            end
+            DATA_64: begin
+                cachedata[w_addr[14:6/*IDXBITS*/]][(w_addr[5:0/*OFFBITS*/]*8)+:64] <= (data_in & (64'hffffffffffffffff >> mem_datasize));
+            end
+        endcase
         $display("HERE");
     end
     else begin
@@ -148,7 +160,7 @@ always_ff @(posedge clk) begin
     //else 
 
     if (pass & enable) begin
-        data_out <= final_value;
+        data_out <= final_value & (64'hffffffffffffffff >> (mem_datasize));
     end
     else begin
         data_out <= 10'h00f;

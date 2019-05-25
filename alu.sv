@@ -24,6 +24,7 @@ module alu
     output alu_store,
     output wr_en,
     output alu_load,
+    output [5:0] mem_datasize,
     output [31:0] pc_from_alu
 );
 
@@ -91,6 +92,7 @@ logic [31:0] auipc_word;
 logic is_store, tmp_jmp, is_load;
 logic[11:0] off_dest12;
 logic[63:0] off_dest64, tmp_pc, tmp_jalr;
+enum_datasize temp_datasize;
 always_ff @(posedge clk) begin
   if(reset) begin
     //reset pc
@@ -108,6 +110,7 @@ always_ff @(posedge clk) begin
     is_jmp <= tmp_jmp;
     alu_store <= is_store;
     alu_load <= is_load;
+    mem_datasize <= temp_datasize;
         
     if (sign_extend && is_store == 0) begin
       data_out <= {{32{temp_dest[31]}}, temp_dest[31:0]};
@@ -131,6 +134,7 @@ always_ff @(posedge clk) begin
 end
 
 always_comb begin
+  temp_datasize = 0;
   is_store = 0;
   is_load = 0;
   mem_dest = mem_out;
@@ -228,35 +232,41 @@ always_comb begin
       quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{56{quart_temp_dest[7]}}, quart_temp_dest[7:0]};
       sign_extend = 0;
+      temp_datasize = DATA_8;
     end
     opcode_lh   : begin
       is_load = 1;
       half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{48{half_temp_dest[15]}}, half_temp_dest[15:0]};
       sign_extend = 0;
+      temp_datasize = DATA_16;
     end      
     opcode_lw   : begin
       is_load = 1;
       word_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {{32{word_temp_dest[31]}}, word_temp_dest[31:0]};
       sign_extend = 0;
+      temp_datasize = DATA_32;
     end      
     opcode_lbu : begin
       is_load = 1;
       quart_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {24'h000000, quart_temp_dest[7:0]};
       sign_extend = 0;
+      temp_datasize = DATA_8;
     end    
     opcode_lwu : begin
       is_load = 1;
       temp_dest = (regA_value + {{52{regB[11]}}, regB});
       sign_extend = 0;
+      temp_datasize = DATA_32;
     end
     opcode_lhu  : begin
       is_load = 1;
       half_temp_dest = (regA_value + {{52{regB[11]}}, regB});
       temp_dest = {16'h0000, half_temp_dest[15:0]};
       sign_extend = 0;
+      temp_datasize = DATA_16;
     end
     opcode_sb   : begin
       is_store = 1;
@@ -265,6 +275,7 @@ always_comb begin
       mem_dest   = regA_value + off_dest64;
       temp_dest  = $signed(regB_value[7:0]);
       sign_extend = 0;
+      temp_datasize = DATA_8;
     end
     opcode_sh   : begin
       is_store = 1;
@@ -272,6 +283,7 @@ always_comb begin
       off_dest64 = {{52{off_dest12[11]}}, off_dest12};
       mem_dest   = regA_value + off_dest64;
       temp_dest  = $signed(regB_value[15:0]);
+      temp_datasize = DATA_16;
     end
     opcode_sw   : begin
       is_store = 1;
@@ -279,11 +291,13 @@ always_comb begin
       off_dest64 = {{52{off_dest12[11]}}, off_dest12};
       mem_dest   = regA_value + off_dest64;
       temp_dest  = $signed(regB_value[31:0]);
+      temp_datasize = DATA_32;
     end
     opcode_ld   : begin
       is_load = 1;
       temp_dest = regA_value + {{52{regB[11]}}, regB};
       sign_extend = 0;
+      temp_datasize = DATA_64;
     end
     opcode_sd   : begin
       is_store = 1;
@@ -291,6 +305,7 @@ always_comb begin
       off_dest64 = {{52{off_dest12[11]}}, off_dest12};
       mem_dest   = regA_value + off_dest64;
       temp_dest  = regB_value;
+      temp_datasize = DATA_64;
     end
     opcode_fence: begin
       temp_dest = 0;//regA_value + {{52{regB[11]}}, regB};
