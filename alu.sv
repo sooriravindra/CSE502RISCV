@@ -567,7 +567,6 @@ always_comb begin
     default: begin
         temp_dest = 0;
         sign_extend = 0;
-        $display("chose default. Opcode %x, PC %x", opcode, i_pc);
     end
   endcase
 end

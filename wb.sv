@@ -39,7 +39,6 @@ logic [LOGSIZE-1:0] ecall_output;
 			destReg	 <= 64'b0;
 		end 
                 else if(is_ecall) begin
-                        $display("Doing ECALL, PC = %x", curr_pc);
 			do_ecall(register_set[17],register_set[10],register_set[11],register_set[12],register_set[13],register_set[14],register_set[15],register_set[16],ecall_output);//call do_ecall
 			//access the pc and send to the fetch stage
 			ecall_flush <= 1;//set flush bit to use as no-op in previous states
